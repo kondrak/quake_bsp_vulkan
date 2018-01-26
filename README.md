@@ -9,7 +9,7 @@ Usage
 -----
 Running the viewer:
 
-<code>QuakeBspViewer.exe <path-to-bsp-file> </code>
+<code>QuakeBspViewer.exe &lt;path-to-bsp-file&gt; </code>
 
 Use tilde key (~) to toggle statistics menu on/off. Note that you must have Quake III Arena textures and models unpacked in the root directory if you want to see proper texturing. To move around use the WASD keys. RF keys lift you up/down and QE keys let you do the barrel roll.
 
