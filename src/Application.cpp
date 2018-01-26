@@ -46,6 +46,10 @@ void Application::OnStart(int argc, char **argv)
         }
     }
 
+    // avoid excessive if-checks if no argv BSP was supplied and just display the UI message
+    if (!m_q3map)
+        m_q3map = new Q3BspMap(false);
+
     Math::Vector3f startPos;
     m_q3map->Init();
     m_q3map->ToggleRenderFlag(Q3RenderUseLightmaps);
