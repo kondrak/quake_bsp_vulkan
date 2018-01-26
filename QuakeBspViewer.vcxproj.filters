@@ -1,0 +1,198 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\q3bsp">
+      <UniqueIdentifier>{2fac9542-501a-4f7a-87d3-5117c1265cc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\common">
+      <UniqueIdentifier>{c9a007c0-706e-4b98-886a-b20c629bab18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\renderer">
+      <UniqueIdentifier>{ef909dd3-c34b-41a0-95e6-5c9948c6afbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\contrib">
+      <UniqueIdentifier>{17d3385a-0ab1-42fa-ae7d-c404ffd460a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\renderer\vulkan">
+      <UniqueIdentifier>{f4044431-bdfb-4323-a3c1-f54db70ce2b9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Application.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Frustum.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\q3bsp\Q3BSPLoader.cpp">
+      <Filter>Source Files\q3bsp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\q3bsp\Q3BspPatch.cpp">
+      <Filter>Source Files\q3bsp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\q3bsp\Q3BspMap.cpp">
+      <Filter>Source Files\q3bsp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\q3bsp\Q3BspStatsUI.cpp">
+      <Filter>Source Files\q3bsp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\Camera.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\CameraDirector.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\RenderContext.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="contrib\stb_image\stb_image.c">
+      <Filter>Source Files\contrib</Filter>
+    </ClCompile>
+    <ClCompile Include="src\InputHandlers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\TextureManager.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\Font.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringHelpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Math.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\vulkan\Device.cpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\vulkan\Validation.cpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\vulkan\Pipeline.cpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\vulkan\Buffers.cpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\vulkan\Image.cpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\vulkan\CmdBuffer.cpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\vulkan\Base.cpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\GameTexture.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Application.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Frustum.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\q3bsp\Q3Bsp.hpp">
+      <Filter>Source Files\q3bsp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\q3bsp\Q3BSPLoader.hpp">
+      <Filter>Source Files\q3bsp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\q3bsp\Q3BspPatch.hpp">
+      <Filter>Source Files\q3bsp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\q3bsp\Q3BspMap.hpp">
+      <Filter>Source Files\q3bsp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\q3bsp\Q3BspRenderHelpers.hpp">
+      <Filter>Source Files\q3bsp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\q3bsp\Q3BspStatsUI.hpp">
+      <Filter>Source Files\q3bsp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\StatsUI.hpp">
+      <Filter>Source Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\Camera.hpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\CameraDirector.hpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\RenderContext.hpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="contrib\stb_image\stb_image.h">
+      <Filter>Source Files\contrib</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\BspMap.hpp">
+      <Filter>Source Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\InputHandlers.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\TextureManager.hpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\Font.hpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StringHelpers.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Math.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Utils.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\vulkan\Device.hpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\vulkan\Validation.hpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\vulkan\Pipeline.hpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\vulkan\Buffers.hpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\vulkan\Image.hpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\vulkan\CmdBuffer.hpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\vulkan\Base.hpp">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\vulkan\vk_mem_alloc.h">
+      <Filter>Source Files\renderer\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\GameTexture.hpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

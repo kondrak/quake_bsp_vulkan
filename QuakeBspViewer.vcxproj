@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="contrib\stb_image\stb_image.c" />
+    <ClCompile Include="src\Application.cpp" />
+    <ClCompile Include="src\Frustum.cpp" />
+    <ClCompile Include="src\InputHandlers.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Math.cpp" />
+    <ClCompile Include="src\q3bsp\Q3BSPLoader.cpp" />
+    <ClCompile Include="src\q3bsp\Q3BspMap.cpp" />
+    <ClCompile Include="src\q3bsp\Q3BspPatch.cpp" />
+    <ClCompile Include="src\q3bsp\Q3BspStatsUI.cpp" />
+    <ClCompile Include="src\renderer\Camera.cpp" />
+    <ClCompile Include="src\renderer\CameraDirector.cpp" />
+    <ClCompile Include="src\renderer\Font.cpp" />
+    <ClCompile Include="src\renderer\GameTexture.cpp" />
+    <ClCompile Include="src\renderer\RenderContext.cpp" />
+    <ClCompile Include="src\renderer\TextureManager.cpp" />
+    <ClCompile Include="src\renderer\vulkan\Base.cpp" />
+    <ClCompile Include="src\renderer\vulkan\Buffers.cpp" />
+    <ClCompile Include="src\renderer\vulkan\CmdBuffer.cpp" />
+    <ClCompile Include="src\renderer\vulkan\Device.cpp" />
+    <ClCompile Include="src\renderer\vulkan\Image.cpp" />
+    <ClCompile Include="src\renderer\vulkan\Pipeline.cpp" />
+    <ClCompile Include="src\renderer\vulkan\Validation.cpp" />
+    <ClCompile Include="src\StringHelpers.cpp" />
+    <ClCompile Include="src\Utils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="contrib\stb_image\stb_image.h" />
+    <ClInclude Include="src\Application.hpp" />
+    <ClInclude Include="src\common\BspMap.hpp" />
+    <ClInclude Include="src\common\StatsUI.hpp" />
+    <ClInclude Include="src\Frustum.hpp" />
+    <ClInclude Include="src\InputHandlers.hpp" />
+    <ClInclude Include="src\Math.hpp" />
+    <ClInclude Include="src\q3bsp\Q3Bsp.hpp" />
+    <ClInclude Include="src\q3bsp\Q3BSPLoader.hpp" />
+    <ClInclude Include="src\q3bsp\Q3BspMap.hpp" />
+    <ClInclude Include="src\q3bsp\Q3BspPatch.hpp" />
+    <ClInclude Include="src\q3bsp\Q3BspRenderHelpers.hpp" />
+    <ClInclude Include="src\q3bsp\Q3BspStatsUI.hpp" />
+    <ClInclude Include="src\renderer\Camera.hpp" />
+    <ClInclude Include="src\renderer\CameraDirector.hpp" />
+    <ClInclude Include="src\renderer\Font.hpp" />
+    <ClInclude Include="src\renderer\GameTexture.hpp" />
+    <ClInclude Include="src\renderer\RenderContext.hpp" />
+    <ClInclude Include="src\renderer\TextureManager.hpp" />
+    <ClInclude Include="src\renderer\vulkan\Base.hpp" />
+    <ClInclude Include="src\renderer\vulkan\Buffers.hpp" />
+    <ClInclude Include="src\renderer\vulkan\CmdBuffer.hpp" />
+    <ClInclude Include="src\renderer\vulkan\Device.hpp" />
+    <ClInclude Include="src\renderer\vulkan\Image.hpp" />
+    <ClInclude Include="src\renderer\vulkan\Pipeline.hpp" />
+    <ClInclude Include="src\renderer\vulkan\Validation.hpp" />
+    <ClInclude Include="src\renderer\vulkan\vk_mem_alloc.h" />
+    <ClInclude Include="src\StringHelpers.hpp" />
+    <ClInclude Include="src\Utils.hpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{74D78140-348F-4C55-9D29-C41940DBC100}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>QuakeBspViewer</RootNamespace>
+    <ProjectName>QuakeBspViewer</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>contrib\SDL\include;contrib;src;$(IncludePath);$(VC_IncludePath)</IncludePath>
+    <LibraryPath>contrib\SDL\lib\x86;$(LibraryPath);$(VC_LibraryPath_x86)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>contrib\SDL\include;contrib;src;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);$(VC_IncludePath);</IncludePath>
+    <LibraryPath>contrib\SDL\lib\x86;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);$(VC_LibraryPath_x86);</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>vulkan-1.lib;SDL2.lib;SDL2Main.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)/Lib32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>vulkan-1.lib;SDL2.lib;SDL2Main.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)/Lib32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
