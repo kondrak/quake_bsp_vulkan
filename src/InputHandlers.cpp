@@ -141,7 +141,7 @@ void processEvents()
         case SDL_QUIT:
             g_application.Terminate();
             break;
-            // window events      
+            // window events
         case SDL_WINDOWEVENT:
             switch (event.window.event)
             {

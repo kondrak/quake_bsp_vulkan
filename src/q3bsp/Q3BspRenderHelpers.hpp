@@ -40,7 +40,7 @@ struct Q3FaceRenderable
 };
 
 
-// VBO handles for a single face in the BSP
+// Vulkan buffers and descriptor for a single face in the BSP
 struct FaceBuffers
 {
     vk::Buffer vertexBuffer;
@@ -55,8 +55,8 @@ struct RenderBuffers
 {
     vk::Buffer uniformBuffer;
 
-    std::map< int, FaceBuffers > m_faceVBOs;
-    std::map< int, std::vector<FaceBuffers> > m_patchVBOs;
+    std::map< int, FaceBuffers > m_faceBuffers;
+    std::map< int, std::vector<FaceBuffers> > m_patchBuffers;
 };
 
 
@@ -69,7 +69,5 @@ struct BspStats
     int totalPatches    = 0;
     int visiblePatches  = 0;
 };
-
-
 
 #endif

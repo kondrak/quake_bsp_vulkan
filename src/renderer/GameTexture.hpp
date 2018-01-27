@@ -4,7 +4,7 @@
 #include "renderer/vulkan/Image.hpp"
 
 /*
- *  Basic texture
+ *  Generic texture with Vulkan image buffer
  */
 
 class GameTexture

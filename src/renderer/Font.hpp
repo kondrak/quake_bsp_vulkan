@@ -12,6 +12,7 @@ class Font
 public:
     Font(const char *texture);
     ~Font();
+
     void SetColor(const Math::Vector4f &color) { m_color = color; }
     void SetPosition(const Math::Vector3f &position) { m_position = position; }
     void SetScale(const Math::Vector2f &scale) { m_scale = scale; }

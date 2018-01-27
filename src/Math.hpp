@@ -195,7 +195,9 @@ namespace Math
     // determine whether a point is in front of or behind a plane (based on its normal vector)
     int PointPlanePos(float normalX, float normalY, float normalZ, float intercept, const Math::Vector3f &point);
 
+    // translate matrix by (x,y,z)
     void Translate(Matrix4f &matrix, float x, float y=0.0f, float z=0.0f);
+    // scale matrix by (x,y,z)
     void Scale(Matrix4f &matrix, float x, float y=1.0f, float z=1.0f);
 
     // rendering matrices

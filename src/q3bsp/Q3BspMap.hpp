@@ -21,10 +21,7 @@ public:
     static const int   s_tesselationLevel; // level of curved surface tesselation
     static const float s_worldScale;       // scale down factor for the map
 
-    Q3BspMap(bool bspValid) : BspMap(bspValid)
-    {
-    }
-
+    Q3BspMap(bool bspValid) : BspMap(bspValid) {}
     ~Q3BspMap();
 
     void Init();

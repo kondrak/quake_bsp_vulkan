@@ -27,14 +27,14 @@ Q3BspMap::~Q3BspMap()
 
     vkDestroyDescriptorSetLayout(g_renderContext.device.logical, dsLayout, nullptr);
 
-    for (auto &q = m_renderBuffers.m_faceVBOs.begin(); q != m_renderBuffers.m_faceVBOs.end(); ++q)
+    for (auto &it : m_renderBuffers.m_faceBuffers)
     {
-        vkDestroyDescriptorPool(g_renderContext.device.logical, q->second.descriptor.pool, nullptr);
-        vk::freeBuffer(g_renderContext.device, &q->second.vertexBuffer);
-        vk::freeBuffer(g_renderContext.device, &q->second.indexBuffer);
+        vkDestroyDescriptorPool(g_renderContext.device.logical, it.second.descriptor.pool, nullptr);
+        vk::freeBuffer(g_renderContext.device, &it.second.vertexBuffer);
+        vk::freeBuffer(g_renderContext.device, &it.second.indexBuffer);
     }
 
-    for (auto &it : m_renderBuffers.m_patchVBOs)
+    for (auto &it : m_renderBuffers.m_patchBuffers)
     {
         for (auto &it2 : it.second)
         {
@@ -454,7 +454,7 @@ void Q3BspMap::recordCommandBuffers()
 
         for (auto &f : m_visibleFaces)
         {
-            FaceBuffers &fb = m_renderBuffers.m_faceVBOs[f->index];
+            FaceBuffers &fb = m_renderBuffers.m_faceBuffers[f->index];
 
             VkBuffer vertexBuffers[] = { fb.vertexBuffer.buffer };
             VkDeviceSize offsets[] = { 0 };
@@ -470,7 +470,7 @@ void Q3BspMap::recordCommandBuffers()
 
         for (auto &pi : m_visiblePatches)
         {
-            for (auto &p : m_renderBuffers.m_patchVBOs[pi])
+            for (auto &p : m_renderBuffers.m_patchBuffers[pi])
             {
                 VkBuffer vertexBuffers[] = { p.vertexBuffer.buffer };
                 VkDeviceSize offsets[] = { 0 };
@@ -506,19 +506,19 @@ void Q3BspMap::CreateBuffersForFace(const Q3BspFaceLump &face, int idx)
     if (face.type == FaceTypeBillboard)
         return;
 
-    m_renderBuffers.m_faceVBOs[idx].descriptor.setLayout = dsLayout;
+    m_renderBuffers.m_faceBuffers[idx].descriptor.setLayout = dsLayout;
 
     // app specific: vertex buffer and index buffer with staging buffer
-    vk::createVertexBuffer(g_renderContext.device, m_commandPool, &(vertices[face.vertex].position), sizeof(Q3BspVertexLump) * face.n_vertexes, &m_renderBuffers.m_faceVBOs[idx].vertexBuffer);
-    vk::createIndexBuffer(g_renderContext.device, m_commandPool, &meshVertices[face.meshvert], sizeof(Q3BspMeshVertLump) * face.n_meshverts, &m_renderBuffers.m_faceVBOs[idx].indexBuffer);
+    vk::createVertexBuffer(g_renderContext.device, m_commandPool, &(vertices[face.vertex].position), sizeof(Q3BspVertexLump) * face.n_vertexes, &m_renderBuffers.m_faceBuffers[idx].vertexBuffer);
+    vk::createIndexBuffer(g_renderContext.device, m_commandPool, &meshVertices[face.meshvert], sizeof(Q3BspMeshVertLump) * face.n_meshverts, &m_renderBuffers.m_faceBuffers[idx].indexBuffer);
     const vk::Texture *colorTex = m_textures[faces[idx].texture] ? m_textures[faces[idx].texture]->vkTex() : m_missingTex->vkTex();
     const vk::Texture lmap = faces[idx].lm_index >= 0 ? m_lightmapTextures[faces[idx].lm_index] : m_whiteTex;
 
     const vk::Texture *textureSet[2] = { colorTex, &lmap };
-    createDescriptor(textureSet, &m_renderBuffers.m_faceVBOs[idx].descriptor);
+    createDescriptor(textureSet, &m_renderBuffers.m_faceBuffers[idx].descriptor);
 
-    m_renderBuffers.m_faceVBOs[idx].vertexCount = face.n_vertexes;
-    m_renderBuffers.m_faceVBOs[idx].indexCount = face.n_meshverts;
+    m_renderBuffers.m_faceBuffers[idx].vertexCount = face.n_vertexes;
+    m_renderBuffers.m_faceBuffers[idx].indexCount = face.n_meshverts;
 }
 
 
@@ -533,20 +533,20 @@ void Q3BspMap::CreateBuffersForPatch(int idx)
         int tessLevel = m_patches[idx]->quadraticPatches[i].m_tesselationLevel;
         for (int row = 0; row < tessLevel; ++row)
         {
-            m_renderBuffers.m_patchVBOs[idx].push_back(FaceBuffers());
-            m_renderBuffers.m_patchVBOs[idx].back().descriptor.setLayout = dsLayout;
+            m_renderBuffers.m_patchBuffers[idx].push_back(FaceBuffers());
+            m_renderBuffers.m_patchBuffers[idx].back().descriptor.setLayout = dsLayout;
 
             // app specific: vertex buffer and index buffer with staging buffer
-            vk::createVertexBuffer(g_renderContext.device, m_commandPool, &(m_patches[idx]->quadraticPatches[i].m_vertices[0].position), sizeof(Q3BspVertexLump) * numVerts, &m_renderBuffers.m_patchVBOs[idx].back().vertexBuffer);
-            vk::createIndexBuffer(g_renderContext.device, m_commandPool, &m_patches[idx]->quadraticPatches[i].m_indices[row * 2 * (tessLevel + 1)], sizeof(Q3BspMeshVertLump) * 2 * (tessLevel + 1), &m_renderBuffers.m_patchVBOs[idx].back().indexBuffer);
+            vk::createVertexBuffer(g_renderContext.device, m_commandPool, &(m_patches[idx]->quadraticPatches[i].m_vertices[0].position), sizeof(Q3BspVertexLump) * numVerts, &m_renderBuffers.m_patchBuffers[idx].back().vertexBuffer);
+            vk::createIndexBuffer(g_renderContext.device, m_commandPool, &m_patches[idx]->quadraticPatches[i].m_indices[row * 2 * (tessLevel + 1)], sizeof(Q3BspMeshVertLump) * 2 * (tessLevel + 1), &m_renderBuffers.m_patchBuffers[idx].back().indexBuffer);
             const vk::Texture *colorTex = m_textures[m_patches[idx]->textureIdx] ? m_textures[m_patches[idx]->textureIdx]->vkTex() : m_missingTex->vkTex();
             const vk::Texture lmap = m_patches[idx]->lightmapIdx >= 0 ? m_lightmapTextures[m_patches[idx]->lightmapIdx] : m_whiteTex;
 
             const vk::Texture *textureSet[] = { colorTex, &lmap };
-            createDescriptor(textureSet, &m_renderBuffers.m_patchVBOs[idx].back().descriptor);
+            createDescriptor(textureSet, &m_renderBuffers.m_patchBuffers[idx].back().descriptor);
 
-            m_renderBuffers.m_patchVBOs[idx].back().vertexCount = numVerts;
-            m_renderBuffers.m_patchVBOs[idx].back().indexCount = 2 * (tessLevel + 1);
+            m_renderBuffers.m_patchBuffers[idx].back().vertexCount = numVerts;
+            m_renderBuffers.m_patchBuffers[idx].back().indexCount = 2 * (tessLevel + 1);
         }
     }
 }

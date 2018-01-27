@@ -66,7 +66,6 @@ void Camera::SetMode(CameraMode cm)
     if (m_mode != cm)
     {
         m_mode = cm;
-
         UpdateProjectionMatrix();
     }
 }
@@ -79,11 +78,19 @@ void Camera::UpdateProjectionMatrix()
     case CAM_FPS:
         if (g_renderContext.width > g_renderContext.height)
         {
-            Math::MakePerspective(m_projectionMatrix, g_renderContext.fov, g_renderContext.scrRatio, g_renderContext.nearPlane, g_renderContext.farPlane);
+            Math::MakePerspective(m_projectionMatrix,
+                                  g_renderContext.fov,
+                                  g_renderContext.scrRatio,
+                                  g_renderContext.nearPlane,
+                                  g_renderContext.farPlane);
         }
         else
         {
-            Math::MakePerspective(m_projectionMatrix, g_renderContext.fov * 1.f / g_renderContext.scrRatio, g_renderContext.scrRatio, g_renderContext.nearPlane, g_renderContext.farPlane);
+            Math::MakePerspective(m_projectionMatrix,
+                                  g_renderContext.fov / g_renderContext.scrRatio,
+                                  g_renderContext.scrRatio,
+                                  g_renderContext.nearPlane,
+                                  g_renderContext.farPlane);
         }
         break;
     case CAM_ORTHO:
@@ -91,6 +98,7 @@ void Camera::UpdateProjectionMatrix()
         break;
     }
 
+    // Convert projection matrix to Vulkan coordinate system (https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/)
     Math::Matrix4f vulkanCorrection;
     vulkanCorrection.Zero();
     vulkanCorrection[0] = 1.f;

@@ -13,7 +13,6 @@ public:
     void ReleaseTextures();
 private:
     TextureManager() {}
-
     ~TextureManager();
 
     std::map<std::string, GameTexture *> m_textures;

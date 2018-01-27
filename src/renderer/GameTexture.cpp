@@ -21,7 +21,6 @@ GameTexture::GameTexture(const char *filename)
     }
 }
 
-
 GameTexture::~GameTexture()
 {
     if (m_textureData != nullptr)

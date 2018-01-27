@@ -10,7 +10,7 @@
 #include <SDL_syswm.h>
 
 
-// UBO used by the main (and only) shader
+// UBO used by the main shader
 struct UniformBufferObject
 {
     Math::Matrix4f ModelViewProjectionMatrix;
@@ -20,7 +20,7 @@ struct UniformBufferObject
     int useAlphaTest = 0;
 };
 
-// GLSL attribute IDs
+// GLSL attribute IDs for both the main and font shaders
 enum Attributes : uint32_t
 {
     inVertex = 0,

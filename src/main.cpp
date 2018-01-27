@@ -13,7 +13,7 @@ int g_fps = 1;
 int main(int argc, char **argv)
 {
     // initialize SDL
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0)
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         LOG_MESSAGE_ASSERT(false, "Failed to initialize SDL.");
         return 1;
