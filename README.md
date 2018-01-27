@@ -5,6 +5,10 @@ This is a BSP tree Vulkan renderer written in C++ and a port of the same viewer 
 
 ![Screenshot](http://kondrak.info/images/qbsp/qbspvk.png?raw=true)
 
+Building
+-----
+The project works out of the box with latest Vulkan SDK (tested against SDK 1.0.65.1 and corresponding runtime) installed and Visual Studio.
+
 Usage
 -----
 Running the viewer:
@@ -37,4 +41,5 @@ TODO
 - take advantage of SDLs recently added Vulkan functions
 - add MSAA
 - use pipeline derivatives
+- Linux build!
 - add more comments?
