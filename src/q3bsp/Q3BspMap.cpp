@@ -21,11 +21,10 @@ Q3BspMap::~Q3BspMap()
     for (auto &it : m_patches)
         delete it;
 
+    // release all allocated Vulkan resources
     vkDeviceWaitIdle(g_renderContext.device.logical);
     vk::destroyPipeline(g_renderContext.device, m_facesPipeline);
     vk::destroyPipeline(g_renderContext.device, m_patchPipeline);
-
-    vkDestroyDescriptorSetLayout(g_renderContext.device.logical, dsLayout, nullptr);
 
     for (auto &it : m_renderBuffers.m_faceBuffers)
     {
@@ -44,18 +43,18 @@ Q3BspMap::~Q3BspMap()
         }
     }
 
-    vk::freeBuffer(g_renderContext.device, &m_renderBuffers.uniformBuffer);
-    vk::releaseTexture(g_renderContext.device, &m_whiteTex);
-
     for (size_t i = 0; i < lightMaps.size(); ++i)
     {
         vk::releaseTexture(g_renderContext.device, &m_lightmapTextures[i]);
     }
+    delete[] m_lightmapTextures;
 
+    vk::freeBuffer(g_renderContext.device, &m_renderBuffers.uniformBuffer);
+    vk::releaseTexture(g_renderContext.device, &m_whiteTex);
     vk::freeCommandBuffers(g_renderContext.device, m_commandPool, m_commandBuffers);
     vk::destroyRenderPass(g_renderContext.device, m_renderPass);
     vkDestroyCommandPool(g_renderContext.device.logical, m_commandPool, nullptr);
-    delete[] m_lightmapTextures;
+    vkDestroyDescriptorSetLayout(g_renderContext.device.logical, m_dsLayout, nullptr);
 }
 
 void Q3BspMap::OnWindowChanged()
@@ -114,10 +113,10 @@ void Q3BspMap::Init()
     m_renderFaces.reserve(faces.size());
 
     // create a common descriptor layout set and vertex buffer info
-    vbInfo.bindingDescriptions.push_back(vk::getBindingDescription(sizeof(Q3BspVertexLump)));
-    vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inVertex, VK_FORMAT_R32G32B32_SFLOAT, 0));
-    vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inTexCoord, VK_FORMAT_R32G32_SFLOAT, sizeof(vec3f)));
-    vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inTexCoordLightmap, VK_FORMAT_R32G32_SFLOAT, sizeof(vec3f) + sizeof(vec2f)));
+    m_vbInfo.bindingDescriptions.push_back(vk::getBindingDescription(sizeof(Q3BspVertexLump)));
+    m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inVertex, VK_FORMAT_R32G32B32_SFLOAT, 0));
+    m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inTexCoord, VK_FORMAT_R32G32_SFLOAT, sizeof(vec3f)));
+    m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inTexCoordLightmap, VK_FORMAT_R32G32_SFLOAT, sizeof(vec3f) + sizeof(vec2f)));
 
     // descriptor set layout is common for the entire BSP
     createDescriptorSetLayout();
@@ -338,13 +337,13 @@ void Q3BspMap::LoadLightmaps()
             memcpy(rgba_lmap + j, lightMaps[i].map + k, 3);
 
         // Create texture from bsp lightmap data
-        vk::createTexture(g_renderContext.device, m_commandPool, &m_lightmapTextures[i], rgba_lmap, 128, 128, 4);
+        vk::createTexture(g_renderContext.device, m_commandPool, &m_lightmapTextures[i], rgba_lmap, 128, 128);
     }
 
     // Create white texture for if no lightmap specified
     unsigned char white[] = { 255, 255, 255, 255 };
 
-    vk::createTexture(g_renderContext.device, m_commandPool, &m_whiteTex, white, 1, 1, 4);
+    vk::createTexture(g_renderContext.device, m_commandPool, &m_whiteTex, white, 1, 1);
 }
 
 
@@ -497,8 +496,8 @@ void Q3BspMap::rebuildPipelines()
 
     // todo: pipeline derivatives https://github.com/SaschaWillems/Vulkan/blob/master/examples/pipelines/pipelines.cpp
     const char *shaders[] = { "res/Basic_vert.spv", "res/Basic_frag.spv" };
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, &vbInfo, &dsLayout, &m_facesPipeline, shaders));
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, &vbInfo, &dsLayout, &m_patchPipeline, shaders));
+    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, &m_vbInfo, &m_dsLayout, &m_facesPipeline, shaders));
+    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, &m_vbInfo, &m_dsLayout, &m_patchPipeline, shaders));
 }
 
 void Q3BspMap::CreateBuffersForFace(const Q3BspFaceLump &face, int idx)
@@ -506,7 +505,7 @@ void Q3BspMap::CreateBuffersForFace(const Q3BspFaceLump &face, int idx)
     if (face.type == FaceTypeBillboard)
         return;
 
-    m_renderBuffers.m_faceBuffers[idx].descriptor.setLayout = dsLayout;
+    m_renderBuffers.m_faceBuffers[idx].descriptor.setLayout = m_dsLayout;
 
     // app specific: vertex buffer and index buffer with staging buffer
     vk::createVertexBuffer(g_renderContext.device, m_commandPool, &(vertices[face.vertex].position), sizeof(Q3BspVertexLump) * face.n_vertexes, &m_renderBuffers.m_faceBuffers[idx].vertexBuffer);
@@ -534,7 +533,7 @@ void Q3BspMap::CreateBuffersForPatch(int idx)
         for (int row = 0; row < tessLevel; ++row)
         {
             m_renderBuffers.m_patchBuffers[idx].push_back(FaceBuffers());
-            m_renderBuffers.m_patchBuffers[idx].back().descriptor.setLayout = dsLayout;
+            m_renderBuffers.m_patchBuffers[idx].back().descriptor.setLayout = m_dsLayout;
 
             // app specific: vertex buffer and index buffer with staging buffer
             vk::createVertexBuffer(g_renderContext.device, m_commandPool, &(m_patches[idx]->quadraticPatches[i].m_vertices[0].position), sizeof(Q3BspVertexLump) * numVerts, &m_renderBuffers.m_patchBuffers[idx].back().vertexBuffer);
@@ -580,7 +579,7 @@ void Q3BspMap::createDescriptorSetLayout()
     layoutInfo.bindingCount = 3;
     layoutInfo.pBindings = bindings;
 
-    VK_VERIFY(vkCreateDescriptorSetLayout(g_renderContext.device.logical, &layoutInfo, nullptr, &dsLayout));
+    VK_VERIFY(vkCreateDescriptorSetLayout(g_renderContext.device.logical, &layoutInfo, nullptr, &m_dsLayout));
 }
 
 void Q3BspMap::createDescriptor(const vk::Texture **texture, vk::Descriptor *descriptor)

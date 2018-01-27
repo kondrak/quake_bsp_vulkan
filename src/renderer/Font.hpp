@@ -45,13 +45,13 @@ private:
     Math::Vector3f  m_position;
     Math::Vector4f  m_color;
 
-    // Vulkan thingamabobs
+    // Vulkan buffers
     vk::Pipeline   m_pipeline;
     vk::RenderPass m_renderPass;
     VkCommandPool  m_commandPool;
     std::vector<VkCommandBuffer> m_commandBuffers;
 
-    vk::VertexBufferInfo vbInfo;
+    vk::VertexBufferInfo m_vbInfo;
 
     vk::Buffer     m_vertexBuffer;
     vk::Descriptor m_descriptor;

@@ -107,10 +107,10 @@ namespace vk
         return vmaCreateImage(device.allocator, &imageInfo, &vmallocInfo, &texture->image, &texture->allocation, nullptr);
     }
 
-    void createTextureImage(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *pixels, uint32_t imageWidth, uint32_t imageHeight, int imageComponents)
+    void createTextureImage(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *pixels, uint32_t imageWidth, uint32_t imageHeight)
     {
         Buffer stagingBuffer;
-        uint32_t imageSize = imageWidth * imageHeight * imageComponents;
+        uint32_t imageSize = imageWidth * imageHeight * (dstTex->format == VK_FORMAT_R8G8B8_UNORM ? 3 : 4);
 
         VK_VERIFY(createStagingBuffer(device, imageSize, &stagingBuffer));
 
@@ -119,8 +119,6 @@ namespace vk
         memcpy(data, pixels, (size_t)imageSize);
         vmaUnmapMemory(device.allocator, stagingBuffer.allocation);
 
-        // todo: preset format when creating texture?
-        dstTex->format = imageComponents == 3 ? VK_FORMAT_R8G8B8_UNORM : VK_FORMAT_R8G8B8A8_UNORM;
         VK_VERIFY(createImage(device, imageWidth, imageHeight, dstTex->format,
                               VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, dstTex));
@@ -180,9 +178,9 @@ namespace vk
         return vkCreateSampler(device.logical, &samplerInfo, nullptr, &texture->sampler);
     }
 
-    void createTexture(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height, int components)
+    void createTexture(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
     {
-        createTextureImage(device, commandPool, dstTex, data, width, height, components);
+        createTextureImage(device, commandPool, dstTex, data, width, height);
         VK_VERIFY(createTextureImageView(device, dstTex));
         VK_VERIFY(createTextureSampler(device, dstTex));
     }

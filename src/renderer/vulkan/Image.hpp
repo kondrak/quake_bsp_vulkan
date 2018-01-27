@@ -9,18 +9,18 @@ namespace vk
     {
         VkImage image = VK_NULL_HANDLE;
         VmaAllocation allocation = VK_NULL_HANDLE;
-        VkImageView imageView = VK_NULL_HANDLE;
-        VkSampler sampler = VK_NULL_HANDLE;
-        VkFormat format = VK_FORMAT_UNDEFINED;
+        VkImageView imageView    = VK_NULL_HANDLE;
+        VkSampler sampler  = VK_NULL_HANDLE;
+        VkFormat format    = VK_FORMAT_R8G8B8A8_UNORM;
         VkFilter minFilter = VK_FILTER_LINEAR;
         VkFilter magFilter = VK_FILTER_LINEAR;
-    }; // todo: add format?
+    };
 
-    void createTextureImage(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *pixels, uint32_t imageWidth, uint32_t imageHeight, int imageComponents);
+    void createTextureImage(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *pixels, uint32_t imageWidth, uint32_t imageHeight);
     VkResult createImageView(const Device &device, const VkImage &image, VkImageAspectFlags aspectFlags, VkImageView *imageView, VkFormat format);
     VkResult createTextureImageView(const Device &device, Texture *texture);
     VkResult createTextureSampler(const Device &device, Texture *texture);
-    void createTexture(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height, int components);
+    void createTexture(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height);
     void releaseTexture(const Device &device, Texture *texture);
     Texture createDepthResources(const Device &device, const SwapChain &swapChain, const VkCommandPool &commandPool);
 }

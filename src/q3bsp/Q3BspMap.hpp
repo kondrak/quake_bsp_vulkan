@@ -61,39 +61,39 @@ private:
     void SetLightmapGamma(float gamma);
     void CreatePatch(const Q3BspFaceLump &f);
 
-    // VBO creation
+    // Vulkan buffer creation
     void CreateBuffersForFace(const Q3BspFaceLump &face, int idx);
     void CreateBuffersForPatch(int idx);
     void createDescriptorSetLayout();
     void createDescriptor(const vk::Texture **texture, vk::Descriptor *descriptor);
 
     // render data
-    std::vector<Q3LeafRenderable>   m_renderLeaves; // bsp leaves in "renderable format"
-    std::vector<Q3FaceRenderable>   m_renderFaces;  // bsp faces in "renderable format"
-
+    std::vector<Q3LeafRenderable>   m_renderLeaves;   // bsp leaves in "renderable format"
+    std::vector<Q3FaceRenderable>   m_renderFaces;    // bsp faces in "renderable format"
     std::vector<Q3BspPatch *>       m_patches;        // curved surfaces
     std::vector<GameTexture *>      m_textures;       // loaded in-game textures
     std::vector<Q3FaceRenderable *> m_visibleFaces;   // list of visible surfaces to render
     std::vector<int>                m_visiblePatches; // list of visible patches to render
     vk::Texture  *m_lightmapTextures = nullptr;       // bsp lightmaps 
 
-    Frustum  m_frustum;                             // view frustum
+    Frustum  m_frustum; // view frustum
 
     // helper textures
     GameTexture *m_missingTex; // rendered if an in-game texture is missing
-    vk::Texture m_whiteTex;   // used if no lightmap specified for a face
+    vk::Texture  m_whiteTex;   // used if no lightmap specified for a face
 
     // rendering Vulkan buffers and pipelines
     RenderBuffers m_renderBuffers;
     UniformBufferObject m_ubo;
-    vk::Pipeline   m_facesPipeline;
-    vk::Pipeline   m_patchPipeline;
+    vk::Pipeline   m_facesPipeline; // used for rendering standard faces
+    vk::Pipeline   m_patchPipeline; // used for rendering curves/patches
     vk::RenderPass m_renderPass;
     VkCommandPool  m_commandPool = VK_NULL_HANDLE;
     std::vector<VkCommandBuffer> m_commandBuffers;
 
-    vk::VertexBufferInfo vbInfo;
-    VkDescriptorSetLayout dsLayout;
+    // all faces and patches use shared vertex buffer info and descriptor set layout
+    vk::VertexBufferInfo m_vbInfo;
+    VkDescriptorSetLayout m_dsLayout;
 };
 
 #endif

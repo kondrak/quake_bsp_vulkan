@@ -46,7 +46,6 @@ namespace Math
         }
     }
 
-    // da sie szybciej?
     void Matrix4f::Transpose()
     {
         Matrix4f temp;
@@ -222,7 +221,6 @@ namespace Math
 /*
  * General purpose functions
  */
-
     float QuickInverseSqrt( float number )
     {
         long i;

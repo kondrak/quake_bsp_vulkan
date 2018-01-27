@@ -41,7 +41,9 @@ bool GameTexture::Load(const VkCommandPool commandPool, bool filtering)
         m_vkTexture.magFilter = VK_FILTER_NEAREST;
     }
 
-    vk::createTexture(g_renderContext.device, commandPool, &m_vkTexture, m_textureData, m_width, m_height, m_components);
+    m_vkTexture.format = m_components == 3 ? VK_FORMAT_R8G8B8_UNORM : VK_FORMAT_R8G8B8A8_UNORM;
+
+    vk::createTexture(g_renderContext.device, commandPool, &m_vkTexture, m_textureData, m_width, m_height);
 
     stbi_image_free(m_textureData);
     m_textureData = nullptr;

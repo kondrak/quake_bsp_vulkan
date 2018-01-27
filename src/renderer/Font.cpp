@@ -20,15 +20,17 @@ Font::Font(const char *tex) : m_scale(1.f, 1.f), m_position(0.0f, 0.0f, 0.0f), m
     m_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     m_pipeline.blendMode = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
     m_pipeline.depthTestEnable = VK_FALSE;
+    // do not clear frame buffers when rendering text
     m_renderPass.colorLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+
     VK_VERIFY(vk::createRenderPass(g_renderContext.device, g_renderContext.swapChain, &m_renderPass));
     VK_VERIFY(vk::createCommandPool(g_renderContext.device, &m_commandPool));
     m_texture = TextureManager::GetInstance()->LoadTexture(tex, m_commandPool, false);
 
-    vbInfo.bindingDescriptions.push_back(vk::getBindingDescription(sizeof(GlyphData)));
-    vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inVertex, VK_FORMAT_R32G32B32_SFLOAT, 0));
-    vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inTexCoord, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3));
-    vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inColor, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 5));
+    m_vbInfo.bindingDescriptions.push_back(vk::getBindingDescription(sizeof(GlyphData)));
+    m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inVertex, VK_FORMAT_R32G32B32_SFLOAT, 0));
+    m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inTexCoord, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3));
+    m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inColor, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 5));
 
     vk::createVertexBuffer(g_renderContext.device, m_commandPool, &m_charBuffer, sizeof(Glyph) * MAX_CHARS, &m_vertexBuffer);
     createDescriptor(m_texture->vkTex(), &m_descriptor);
@@ -57,7 +59,7 @@ void Font::rebuildPipeline()
 
     // todo: pipeline derivatives https://github.com/SaschaWillems/Vulkan/blob/master/examples/pipelines/pipelines.cpp
     const char *shaders[] = { "res/Font_vert.spv", "res/Font_frag.spv" };
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, &vbInfo, &m_descriptor.setLayout, &m_pipeline, shaders));
+    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, &m_vbInfo, &m_descriptor.setLayout, &m_pipeline, shaders));
 }
 
 void Font::OnWindowChanged()
