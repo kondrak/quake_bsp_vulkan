@@ -7,7 +7,7 @@
 
 bool RenderContext::Init(const char *title, int x, int y, int w, int h)
 {
-    window = SDL_CreateWindow(title, x, y, w, h, SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow(title, x, y, w, h, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
 
     if (!initVulkan())
         return false;
@@ -67,8 +67,11 @@ void RenderContext::Destroy()
 
 bool RenderContext::initVulkan()
 {
-    VK_VERIFY(vk::createInstance(&m_instance, "Quake BSP Viewer in Vulkan"));
-    VK_VERIFY(vk::createSurface(window, m_instance, &m_surface));
+    VK_VERIFY(vk::createInstance(window, &m_instance, "Quake BSP Viewer in Vulkan"));
+    // "oldschool" way of creating a Vulkan surface in SDL prior to 2.0.6
+    //VK_VERIFY(vk::createSurface(window, m_instance, &m_surface));
+    SDL_Vulkan_CreateSurface(window, m_instance, &m_surface);
+
     device = vk::createDevice(m_instance, m_surface);
     VK_VERIFY(vk::initAllocator(device));
 

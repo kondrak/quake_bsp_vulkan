@@ -1,12 +1,11 @@
 #include "renderer/vulkan/Base.hpp"
 #include "renderer/vulkan/Validation.hpp"
 #include "Utils.hpp"
-#include <SDL.h>
-#include <SDL_syswm.h>
+#include <SDL_vulkan.h>
 
 namespace vk
 {
-    VkResult createInstance(VkInstance *instance, const char *title)
+    VkResult createInstance(SDL_Window *window, VkInstance *instance, const char *title)
     {
         VkApplicationInfo appInfo = {};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -16,17 +15,28 @@ namespace vk
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.apiVersion = VK_API_VERSION_1_0;
 
-        // require only surface extension in this case
-        int extCount = 2;
-        const char *extensionNames[] = { VK_KHR_SURFACE_EXTENSION_NAME
-            , VK_KHR_WIN32_SURFACE_EXTENSION_NAME
+        unsigned int extCount = 0;
+        unsigned int additionalExtCount = 0;
 #ifdef VALIDATION_LAYERS_ON
-            , VK_EXT_DEBUG_REPORT_EXTENSION_NAME
-        };
-        extCount++;
-#else
-        };
+        additionalExtCount++;
 #endif
+        // get count of required extensions
+        SDL_Vulkan_GetInstanceExtensions(window, &extCount, nullptr);
+        const char **extensionNames = new const char*[extCount + additionalExtCount];
+        // get names of required extensions
+        SDL_Vulkan_GetInstanceExtensions(window, &extCount, extensionNames);
+
+#ifdef VALIDATION_LAYERS_ON
+        // add additional extensions to the list - validation layer in this case
+        const char *additionalExtensions[] = { VK_EXT_DEBUG_REPORT_EXTENSION_NAME };
+        for (int i = 0; i < additionalExtCount; ++i)
+        {
+            extensionNames[extCount + i] = additionalExtensions[i];
+        }
+
+        extCount += additionalExtCount;
+#endif
+
         VkInstanceCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &appInfo;
@@ -35,7 +45,11 @@ namespace vk
 
 #ifdef VALIDATION_LAYERS_ON
         if (!validationLayersAvailable(validationLayers, 1))
+        {
+            LOG_MESSAGE_ASSERT(false, "Validation layers not available!");
+            delete[] extensionNames;
             return VK_RESULT_MAX_ENUM;
+        }
 
         createInfo.enabledLayerCount = 1;
         createInfo.ppEnabledLayerNames = validationLayers;
@@ -45,14 +59,15 @@ namespace vk
         VkResult instanceCreated = vkCreateInstance(&createInfo, nullptr, instance);
 
 #ifdef VALIDATION_LAYERS_ON
-        if (instanceCreated == VK_SUCCESS)
-        {
-            vk::createValidationLayers(*instance);
-        }
+        VK_VERIFY(instanceCreated);
+        vk::createValidationLayers(*instance);
 #endif
+        delete[] extensionNames;
         return instanceCreated;
     }
 
+// deprecated Vulkan surface creation prior to SDL 2.0.6
+/*
     VkResult createSurface(const void *window, const VkInstance &instance, VkSurfaceKHR *surface)
     {
         SDL_SysWMinfo wminfo;
@@ -77,4 +92,5 @@ namespace vk
             return vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, nullptr, surface);
         }
     }
+*/
 }

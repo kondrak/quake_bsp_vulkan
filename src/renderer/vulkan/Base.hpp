@@ -1,4 +1,6 @@
 #pragma once
+struct SDL_Window;
+
 #ifdef _WIN32
     #define VK_USE_PLATFORM_WIN32_KHR
     #include <vulkan/vulkan.h>
@@ -50,6 +52,6 @@ namespace vk
         VkDescriptorSet set   = VK_NULL_HANDLE; // automatically cleaned with descriptor pools
     };
 
-    VkResult createInstance(VkInstance *instance, const char *title);
-    VkResult createSurface(const void *window, const VkInstance &instance, VkSurfaceKHR *surface);
+    VkResult createInstance(SDL_Window *window, VkInstance *instance, const char *title);
+    //VkResult createSurface(const void *window, const VkInstance &instance, VkSurfaceKHR *surface);
 }

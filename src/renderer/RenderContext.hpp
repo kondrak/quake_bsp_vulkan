@@ -8,6 +8,7 @@
 #include "renderer/vulkan/Pipeline.hpp"
 #include <SDL.h>
 #include <SDL_syswm.h>
+#include <SDL_vulkan.h>
 
 
 // UBO used by the main shader
