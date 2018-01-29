@@ -88,7 +88,7 @@ void Font::recordCommandBuffers()
         renderBeginInfo.renderPass = m_renderPass.renderPass;
         renderBeginInfo.framebuffer = g_renderContext.frameBuffers[i];
         renderBeginInfo.renderArea.offset = { 0, 0 };
-        renderBeginInfo.renderArea.extent = g_renderContext.swapChain.scExtent;
+        renderBeginInfo.renderArea.extent = g_renderContext.swapChain.extent;
         renderBeginInfo.clearValueCount = 2;
         renderBeginInfo.pClearValues = clearColors;
 

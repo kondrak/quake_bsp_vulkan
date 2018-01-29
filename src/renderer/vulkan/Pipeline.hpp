@@ -2,6 +2,10 @@
 #include "renderer/vulkan/Device.hpp"
 #include "renderer/vulkan/Buffers.hpp"
 
+/*
+ * Vulkan pipeline, renderpass and shaders
+ */
+
 namespace vk
 {
     struct Pipeline
@@ -27,9 +31,9 @@ namespace vk
         VkShaderModule fragShader = VK_NULL_HANDLE;
     };
 
+
     VkResult createPipeline(const Device &device, const SwapChain &swapChain, const RenderPass &renderPass, const VertexBufferInfo *vbInfo, const VkDescriptorSetLayout *descriptorLayout, Pipeline *pipeline, const char **shaders);
-    void destroyPipeline(const Device &device, Pipeline &pipeline);
+    void     destroyPipeline(const Device &device, Pipeline &pipeline);
     VkResult createRenderPass(const Device &device, const SwapChain &swapChain, RenderPass *renderPass);
-    void destroyRenderPass(const Device &device, RenderPass &renderPass);
-    VkShaderModule createShaderModule(const Device &device, const uint32_t *shaderSrc, size_t codeSize);
+    void     destroyRenderPass(const Device &device, RenderPass &renderPass);
 }

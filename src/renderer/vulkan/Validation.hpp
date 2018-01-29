@@ -1,6 +1,10 @@
 #pragma once
 #include "renderer/vulkan/Base.hpp"
 
+/*
+ * Vulkan validation layers
+ */
+
 namespace vk
 {
 #ifdef VALIDATION_LAYERS_ON

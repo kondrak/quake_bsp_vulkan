@@ -5,6 +5,7 @@
 
 namespace vk
 {
+    // helper struct to avoid passing tons of args to functions
     struct SwapChainInfo
     {
         VkSurfaceCapabilitiesKHR surfaceCaps = {};
@@ -21,9 +22,9 @@ namespace vk
     };
 
     // requested device extensions
-#define EXT_COUNT 1
-    static const char *devExtensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+    static std::vector<const char *> devExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
+    // internal helper functions for device and swapchain creation
     static VkResult selectPhysicalDevice(const VkInstance &instance, const VkSurfaceKHR &surface, Device *device);
     static VkResult createLogicalDevice(Device *device);
     static VkPhysicalDevice getBestPhysicalDevice(const VkPhysicalDevice *devices, size_t count, const VkSurfaceKHR &surface, Device *device);
@@ -43,71 +44,6 @@ namespace vk
         vkGetDeviceQueue(device.logical, device.presentFamilyIndex, 0, &device.presentQueue);
 
         return device;
-    }
-
-    VkResult selectPhysicalDevice(const VkInstance &instance, const VkSurfaceKHR &surface, Device *device)
-    {
-        LOG_MESSAGE_ASSERT(instance != VK_NULL_HANDLE, "Invalid instance!");
-        LOG_MESSAGE_ASSERT(surface != VK_NULL_HANDLE, "Invalid surface!");
-
-        uint32_t physicalDeviceCount = 0;
-        VK_VERIFY(vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, nullptr));
-
-        if (physicalDeviceCount == 0)
-        {
-            LOG_MESSAGE_ASSERT(false, "No Vulkan-capable devices found!");
-            return VK_RESULT_MAX_ENUM;
-        }
-
-        VkPhysicalDevice *physicalDevices = new VkPhysicalDevice[physicalDeviceCount];
-        VK_VERIFY(vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDevices));
-
-        device->physical = getBestPhysicalDevice(physicalDevices, physicalDeviceCount, surface, device);
-        LOG_MESSAGE_ASSERT(device->physical != VK_NULL_HANDLE, "Could not find a suitable physical device!");
-
-        delete[] physicalDevices;
-        return VK_SUCCESS;
-    }
-
-    VkResult createLogicalDevice(Device *device)
-    {
-        LOG_MESSAGE_ASSERT(device->physical != VK_NULL_HANDLE, "Invalid physical device!");
-        float queuePriority = 1.f;
-        VkDeviceQueueCreateInfo queueCreateInfo = {};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = device->queueFamilyIndex;
-        queueCreateInfo.queueCount = 1;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
-
-        VkPhysicalDeviceFeatures deviceFeatures = {};
-        deviceFeatures.samplerAnisotropy = VK_TRUE;
-        deviceFeatures.fillModeNonSolid = VK_TRUE;  // for wireframe rendering
-
-        VkDeviceCreateInfo deviceCreateInfo = {};
-        deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
-        deviceCreateInfo.ppEnabledExtensionNames = devExtensions;
-        deviceCreateInfo.enabledExtensionCount = EXT_COUNT;
-
-        // a single queue can draw and present? Provide single create info, otherwise create two separate queues
-        if (device->queueFamilyIndex == device->presentFamilyIndex)
-        {
-            deviceCreateInfo.queueCreateInfoCount = 1;
-            deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
-        }
-        else
-        {
-            VkDeviceQueueCreateInfo queues[] = { queueCreateInfo, queueCreateInfo };
-            deviceCreateInfo.queueCreateInfoCount = 2;
-            deviceCreateInfo.pQueueCreateInfos = queues;
-        }
-#ifdef VALIDATION_LAYERS_ON
-        deviceCreateInfo.enabledLayerCount = 1;
-        deviceCreateInfo.ppEnabledLayerNames = vk::validationLayers;
-#else
-        deviceCreateInfo.enabledLayerCount = 0;
-#endif
-        return vkCreateDevice(device->physical, &deviceCreateInfo, nullptr, &device->logical);
     }
 
     SwapChain createSwapChain(const Device &device, const VkSurfaceKHR &surface, const VkSwapchainKHR &oldSwapchain)
@@ -153,16 +89,78 @@ namespace vk
         scCreateInfo.oldSwapchain = oldSwapchain;
 
         VK_VERIFY(vkCreateSwapchainKHR(device.logical, &scCreateInfo, nullptr, &swapChain.sc));
-        swapChain.scFormat = surfaceFormat.format;
-        swapChain.scExtent = extent;
+        swapChain.format = surfaceFormat.format;
+        swapChain.extent = extent;
 
         // retrieve swap chain images
         VK_VERIFY(vkGetSwapchainImagesKHR(device.logical, swapChain.sc, &imageCount, nullptr));
         LOG_MESSAGE_ASSERT(imageCount != 0, "No available images in the swap chain?");
-        swapChain.scImages.resize(imageCount);
-        VK_VERIFY(vkGetSwapchainImagesKHR(device.logical, swapChain.sc, &imageCount, swapChain.scImages.data()));
+        swapChain.images.resize(imageCount);
+        VK_VERIFY(vkGetSwapchainImagesKHR(device.logical, swapChain.sc, &imageCount, swapChain.images.data()));
 
         return swapChain;
+    }
+
+    VkResult selectPhysicalDevice(const VkInstance &instance, const VkSurfaceKHR &surface, Device *device)
+    {
+        uint32_t physicalDeviceCount = 0;
+        VK_VERIFY(vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, nullptr));
+
+        if (physicalDeviceCount == 0)
+        {
+            LOG_MESSAGE_ASSERT(false, "No Vulkan-capable devices found!");
+            return VK_RESULT_MAX_ENUM;
+        }
+
+        VkPhysicalDevice *physicalDevices = new VkPhysicalDevice[physicalDeviceCount];
+        VK_VERIFY(vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDevices));
+
+        device->physical = getBestPhysicalDevice(physicalDevices, physicalDeviceCount, surface, device);
+        LOG_MESSAGE_ASSERT(device->physical != VK_NULL_HANDLE, "Could not find a suitable physical device!");
+
+        delete[] physicalDevices;
+        return VK_SUCCESS;
+    }
+
+    VkResult createLogicalDevice(Device *device)
+    {
+        LOG_MESSAGE_ASSERT(device->physical != VK_NULL_HANDLE, "Invalid physical device!");
+        float queuePriority = 1.f;
+        VkDeviceQueueCreateInfo queueCreateInfo = {};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = device->queueFamilyIndex;
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+
+        VkPhysicalDeviceFeatures deviceFeatures = {};
+        deviceFeatures.samplerAnisotropy = VK_TRUE;
+        deviceFeatures.fillModeNonSolid = VK_TRUE;  // for wireframe rendering
+
+        VkDeviceCreateInfo deviceCreateInfo = {};
+        deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+        deviceCreateInfo.ppEnabledExtensionNames = devExtensions.data();
+        deviceCreateInfo.enabledExtensionCount = devExtensions.size();
+
+        // a single queue can draw and present? Provide single create info, otherwise create two separate queues
+        if (device->queueFamilyIndex == device->presentFamilyIndex)
+        {
+            deviceCreateInfo.queueCreateInfoCount = 1;
+            deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
+        }
+        else
+        {
+            VkDeviceQueueCreateInfo queues[] = { queueCreateInfo, queueCreateInfo };
+            deviceCreateInfo.queueCreateInfoCount = 2;
+            deviceCreateInfo.pQueueCreateInfos = queues;
+        }
+#ifdef VALIDATION_LAYERS_ON
+        deviceCreateInfo.enabledLayerCount = 1;
+        deviceCreateInfo.ppEnabledLayerNames = vk::validationLayers;
+#else
+        deviceCreateInfo.enabledLayerCount = 0;
+#endif
+        return vkCreateDevice(device->physical, &deviceCreateInfo, nullptr, &device->logical);
     }
 
     VkPhysicalDevice getBestPhysicalDevice(const VkPhysicalDevice *devices, size_t count, const VkSurfaceKHR &surface, Device *device)
@@ -183,7 +181,7 @@ namespace vk
                 LOG_MESSAGE_ASSERT(queueFamilyCount != 0, "No queue families for the device!");
 
                 // check if requested device extensions are present
-                bool extSupported = deviceExtensionsSupported(devices[i], devExtensions, EXT_COUNT);
+                bool extSupported = deviceExtensionsSupported(devices[i], devExtensions.data(), devExtensions.size());
 
                 // no required extensions? try next device
                 if (!extSupported || !deviceFeatures.samplerAnisotropy || !deviceFeatures.fillModeNonSolid)

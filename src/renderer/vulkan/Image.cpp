@@ -150,11 +150,6 @@ namespace vk
         return vkCreateImageView(device.logical, &ivCreateInfo, nullptr, imageView);
     }
 
-    VkResult createTextureImageView(const Device &device, Texture *texture)
-    {
-        return createImageView(device, texture->image, VK_IMAGE_ASPECT_COLOR_BIT, &texture->imageView, texture->format);
-    }
-
     VkResult createTextureSampler(const Device &device, Texture *texture)
     {
         VkSamplerCreateInfo samplerInfo = {};
@@ -181,7 +176,7 @@ namespace vk
     void createTexture(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
     {
         createTextureImage(device, commandPool, dstTex, data, width, height);
-        VK_VERIFY(createTextureImageView(device, dstTex));
+        VK_VERIFY(createImageView(device, dstTex->image, VK_IMAGE_ASPECT_COLOR_BIT, &dstTex->imageView, dstTex->format));
         VK_VERIFY(createTextureSampler(device, dstTex));
     }
 
@@ -200,7 +195,7 @@ namespace vk
         Texture depthTexture;
         depthTexture.format = VK_FORMAT_D32_SFLOAT;
 
-        VK_VERIFY(createImage(device, swapChain.scExtent.width, swapChain.scExtent.height, depthTexture.format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &depthTexture));
+        VK_VERIFY(createImage(device, swapChain.extent.width, swapChain.extent.height, depthTexture.format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &depthTexture));
         VK_VERIFY(createImageView(device, depthTexture.image, VK_IMAGE_ASPECT_DEPTH_BIT, &depthTexture.imageView, depthTexture.format));
 
         transitionImageLayout(device, commandPool, depthTexture, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);

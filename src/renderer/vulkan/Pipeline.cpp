@@ -4,6 +4,8 @@
 
 namespace vk
 {
+    static VkShaderModule createShaderModule(const Device &device, const uint32_t *shaderSrc, size_t codeSize);
+
     static uint32_t *ReadShaderFromFile(const char *filename, size_t *buffSize)
     {
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -74,15 +76,15 @@ namespace vk
         VkViewport viewport = {};
         viewport.x = 0.f;
         viewport.y = 0.f;
-        viewport.width = (float)swapChain.scExtent.width;
-        viewport.height = (float)swapChain.scExtent.height;
+        viewport.width = (float)swapChain.extent.width;
+        viewport.height = (float)swapChain.extent.height;
         viewport.minDepth = 0.f;
         viewport.maxDepth = 1.f;
 
         VkRect2D scissor = {};
         scissor.offset.x = 0;
         scissor.offset.y = 0;
-        scissor.extent = swapChain.scExtent;
+        scissor.extent = swapChain.extent;
 
         VkPipelineViewportStateCreateInfo vpCreateInfo = {};
         vpCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -198,7 +200,7 @@ namespace vk
     VkResult createRenderPass(const Device &device, const SwapChain &swapChain, RenderPass *renderPass)
     {
         VkAttachmentDescription attachmentDesc = {};
-        attachmentDesc.format = swapChain.scFormat;
+        attachmentDesc.format = swapChain.format;
         attachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
         attachmentDesc.loadOp = renderPass->colorLoadOp;
         attachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;

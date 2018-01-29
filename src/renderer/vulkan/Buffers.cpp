@@ -8,19 +8,7 @@
 
 namespace vk
 {
-    VkResult initAllocator(Device &device)
-    {
-        VmaAllocatorCreateInfo allocatorInfo = {};
-        allocatorInfo.physicalDevice = device.physical;
-        allocatorInfo.device = device.logical;
-
-        return vmaCreateAllocator(&allocatorInfo, &device.allocator);
-    }
-
-    void destroyAllocator(Device &device)
-    {
-        vmaDestroyAllocator(device.allocator);
-    }
+    static void copyBuffer(const Device &device, const VkCommandPool &commandPool, const VkBuffer &src, VkBuffer &dst, VkDeviceSize size);
 
     VkVertexInputBindingDescription getBindingDescription(uint32_t stride)
     {
@@ -137,17 +125,5 @@ namespace vk
         dstOpts.vmaFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
         dstOpts.vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU;
         return createBuffer(device, size, dstBuffer, dstOpts);
-    }
-
-    VkResult createDescriptorSet(const Device &device, Descriptor *descriptor)
-    {
-        VkDescriptorSetLayout layouts[] = { descriptor->setLayout };
-        VkDescriptorSetAllocateInfo allocInfo = {};
-        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        allocInfo.descriptorPool = descriptor->pool;
-        allocInfo.pSetLayouts = layouts;
-        allocInfo.descriptorSetCount = 1;
-
-        return vkAllocateDescriptorSets(device.logical, &allocInfo, &descriptor->set);
     }
 }

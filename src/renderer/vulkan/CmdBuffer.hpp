@@ -3,6 +3,10 @@
 #include "renderer/vulkan/Base.hpp"
 #include "renderer/vulkan/Device.hpp"
 
+/*
+ *  Command pool and command buffer related functions
+ */
+
 namespace vk
 {
     VkCommandBuffer beginOneTimeCommand(const Device &device, const VkCommandPool &commandPool);

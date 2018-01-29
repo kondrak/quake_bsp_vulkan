@@ -53,7 +53,7 @@ void RenderContext::Destroy()
         vkDestroySemaphore(device.logical, m_imageAvailableSemaphore, nullptr);
         vkDestroySemaphore(device.logical, renderFinishedSemaphore, nullptr);
         vkDestroySemaphore(device.logical, renderUIFinishedSemaphore, nullptr);
-        vk::destroyAllocator(device);
+        vk::destroyAllocator(device.allocator);
         vkDestroyDevice(device.logical, nullptr);
         vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 #ifdef VALIDATION_LAYERS_ON
@@ -73,7 +73,7 @@ bool RenderContext::initVulkan()
     SDL_Vulkan_CreateSurface(window, m_instance, &m_surface);
 
     device = vk::createDevice(m_instance, m_surface);
-    VK_VERIFY(vk::initAllocator(device));
+    VK_VERIFY(vk::createAllocator(device, &device.allocator));
 
     swapChain = vk::createSwapChain(device, m_surface, VK_NULL_HANDLE);
     if (swapChain.sc == VK_NULL_HANDLE) return false;
@@ -86,11 +86,11 @@ bool RenderContext::initVulkan()
 
 bool RenderContext::createImageViews()
 {
-    m_imageViews.resize(swapChain.scImages.size());
+    m_imageViews.resize(swapChain.images.size());
 
-    for (size_t i = 0; i < swapChain.scImages.size(); ++i)
+    for (size_t i = 0; i < swapChain.images.size(); ++i)
     {
-        VkResult result = vk::createImageView(device, swapChain.scImages[i], VK_IMAGE_ASPECT_COLOR_BIT, &m_imageViews[i], swapChain.scFormat);
+        VkResult result = vk::createImageView(device, swapChain.images[i], VK_IMAGE_ASPECT_COLOR_BIT, &m_imageViews[i], swapChain.format);
 
         if (result != VK_SUCCESS)
         {
@@ -122,8 +122,8 @@ bool RenderContext::createFramebuffers(const vk::RenderPass &renderPass)
         fbCreateInfo.renderPass = renderPass.renderPass;
         fbCreateInfo.attachmentCount = 2;
         fbCreateInfo.pAttachments = attachments;
-        fbCreateInfo.width = swapChain.scExtent.width;
-        fbCreateInfo.height = swapChain.scExtent.height;
+        fbCreateInfo.width = swapChain.extent.width;
+        fbCreateInfo.height = swapChain.extent.height;
         fbCreateInfo.layers = 1;
 
         VkResult result = vkCreateFramebuffer(device.logical, &fbCreateInfo, nullptr, &frameBuffers[i]);

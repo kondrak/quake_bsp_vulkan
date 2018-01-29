@@ -66,6 +66,34 @@ namespace vk
         return instanceCreated;
     }
 
+    VkResult createDescriptorSet(const Device &device, Descriptor *descriptor)
+    {
+        VkDescriptorSetLayout layouts[] = { descriptor->setLayout };
+        VkDescriptorSetAllocateInfo allocInfo = {};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool = descriptor->pool;
+        allocInfo.pSetLayouts = layouts;
+        allocInfo.descriptorSetCount = 1;
+
+        return vkAllocateDescriptorSets(device.logical, &allocInfo, &descriptor->set);
+    }
+
+    // create VMA allocator
+    VkResult createAllocator(const Device &device, VmaAllocator *allocator)
+    {
+        VmaAllocatorCreateInfo allocatorInfo = {};
+        allocatorInfo.physicalDevice = device.physical;
+        allocatorInfo.device = device.logical;
+
+        return vmaCreateAllocator(&allocatorInfo, allocator);
+    }
+
+    // destroy VMA allocator
+    void destroyAllocator(VmaAllocator &allocator)
+    {
+        vmaDestroyAllocator(allocator);
+    }
+
 // deprecated Vulkan surface creation prior to SDL 2.0.6
 /*
     VkResult createSurface(const void *window, const VkInstance &instance, VkSurfaceKHR *surface)
