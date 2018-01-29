@@ -9,7 +9,7 @@ bool RenderContext::Init(const char *title, int x, int y, int w, int h)
 {
     window = SDL_CreateWindow(title, x, y, w, h, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
 
-    if (!initVulkan())
+    if (!InitVulkan())
         return false;
 
     SDL_GetWindowSize(window, &width, &height);
@@ -39,8 +39,8 @@ void RenderContext::Destroy()
     if (window)
     {
         vkDeviceWaitIdle(device.logical);
-        destroyFramebuffers();
-        destroyImageViews();
+        DestroyFramebuffers();
+        DestroyImageViews();
         if (m_depthBuffer.image != VK_NULL_HANDLE)
         {
             vmaDestroyImage(device.allocator, m_depthBuffer.image, m_depthBuffer.allocation);
@@ -65,7 +65,7 @@ void RenderContext::Destroy()
     }
 }
 
-bool RenderContext::initVulkan()
+bool RenderContext::InitVulkan()
 {
     VK_VERIFY(vk::createInstance(window, &m_instance, "Quake BSP Viewer in Vulkan"));
     // "oldschool" way of creating a Vulkan surface in SDL prior to 2.0.6
@@ -78,13 +78,13 @@ bool RenderContext::initVulkan()
     swapChain = vk::createSwapChain(device, m_surface, VK_NULL_HANDLE);
     if (swapChain.sc == VK_NULL_HANDLE) return false;
 
-    if (!createImageViews()) return false;
-    createSemaphores();
+    if (!CreateImageViews()) return false;
+    CreateSemaphores();
 
     return true;
 }
 
-bool RenderContext::createImageViews()
+bool RenderContext::CreateImageViews()
 {
     m_imageViews.resize(swapChain.images.size());
 
@@ -95,7 +95,7 @@ bool RenderContext::createImageViews()
         if (result != VK_SUCCESS)
         {
             VK_VERIFY(result);
-            destroyImageViews();
+            DestroyImageViews();
             return false;
         }
     }
@@ -103,13 +103,13 @@ bool RenderContext::createImageViews()
     return true;
 }
 
-void RenderContext::destroyImageViews()
+void RenderContext::DestroyImageViews()
 {
     for (VkImageView &iv : m_imageViews)
         vkDestroyImageView(device.logical, iv, nullptr);
 }
 
-bool RenderContext::createFramebuffers(const vk::RenderPass &renderPass)
+bool RenderContext::CreateFramebuffers(const vk::RenderPass &renderPass)
 {
     frameBuffers.resize(m_imageViews.size());
 
@@ -131,7 +131,7 @@ bool RenderContext::createFramebuffers(const vk::RenderPass &renderPass)
         if (result != VK_SUCCESS)
         {
             VK_VERIFY(result);
-            destroyFramebuffers();
+            DestroyFramebuffers();
             return false;
         }
     }
@@ -139,7 +139,7 @@ bool RenderContext::createFramebuffers(const vk::RenderPass &renderPass)
     return true;
 }
 
-void RenderContext::destroyFramebuffers()
+void RenderContext::DestroyFramebuffers()
 {
     for (VkImage &fb : frameBuffers)
     {
@@ -149,7 +149,7 @@ void RenderContext::destroyFramebuffers()
     frameBuffers.clear();
 }
 
-void RenderContext::createSemaphores()
+void RenderContext::CreateSemaphores()
 {
     VkSemaphoreCreateInfo sCreateInfo = {};
     sCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -204,18 +204,18 @@ VkResult RenderContext::Present(bool uiVisible)
     return vkQueuePresentKHR(device.graphicsQueue, &presentInfo);
 }
 
-bool RenderContext::recreateSwapChain(const VkCommandPool &commandPool, const vk::RenderPass &renderPass)
+bool RenderContext::RecreateSwapChain(const VkCommandPool &commandPool, const vk::RenderPass &renderPass)
 {
     vkDeviceWaitIdle(device.logical);
-    destroyFramebuffers();
-    destroyImageViews();
+    DestroyFramebuffers();
+    DestroyImageViews();
 
     VkSwapchainKHR oldSwapChain = swapChain.sc;
     swapChain = vk::createSwapChain(device, m_surface, oldSwapChain);
     vkDestroySwapchainKHR(device.logical, oldSwapChain, nullptr);
     if (swapChain.sc == VK_NULL_HANDLE) return false;
 
-    if (!createImageViews()) return false;
+    if (!CreateImageViews()) return false;
 
     if (m_depthBuffer.image != VK_NULL_HANDLE)
     {
@@ -224,7 +224,7 @@ bool RenderContext::recreateSwapChain(const VkCommandPool &commandPool, const vk
     }
     m_depthBuffer = vk::createDepthBuffer(device, swapChain, commandPool);
 
-    if (!createFramebuffers(renderPass)) return false;
+    if (!CreateFramebuffers(renderPass)) return false;
 
     return true;
 }

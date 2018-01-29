@@ -49,7 +49,7 @@ private:
     bool m_noRedraw    = false;   //  do not perform window redraw
     BspMap  *m_q3map   = nullptr; // loaded map
     StatsUI *m_q3stats = nullptr; // map stats UI
-    uint8_t m_debugRenderState = RenderMapStats;
+    uint8_t  m_debugRenderState = RenderMapStats;
 
     std::map< KeyCode, bool > m_keyStates;
 };

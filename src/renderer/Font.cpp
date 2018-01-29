@@ -14,7 +14,7 @@ static const int CHAR_HEIGHT = 9;
 static const float CHAR_SPACING = 1.5f;
 
 
-Font::Font(const char *tex) : m_scale(1.f, 1.f), m_position(0.0f, 0.0f, 0.0f), m_color(1.f, 1.f, 1.f, 1.f)
+Font::Font(const char *tex) : m_scale(1.f, 1.f), m_position(0.0f, 0.0f, 0.0f), m_color(1.f, 1.f, 1.f)
 {
     m_pipeline.cullMode = VK_CULL_MODE_NONE;
     m_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
@@ -26,16 +26,17 @@ Font::Font(const char *tex) : m_scale(1.f, 1.f), m_position(0.0f, 0.0f, 0.0f), m
     VK_VERIFY(vk::createRenderPass(g_renderContext.device, g_renderContext.swapChain, &m_renderPass));
     VK_VERIFY(vk::createCommandPool(g_renderContext.device, &m_commandPool));
     m_texture = TextureManager::GetInstance()->LoadTexture(tex, m_commandPool, false);
+    LOG_MESSAGE_ASSERT(m_texture, "Could not load font texture: " << tex);
 
-    m_vbInfo.bindingDescriptions.push_back(vk::getBindingDescription(sizeof(GlyphData)));
+    m_vbInfo.bindingDescriptions.push_back(vk::getBindingDescription(sizeof(GlyphVertex)));
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inVertex, VK_FORMAT_R32G32B32_SFLOAT, 0));
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inTexCoord, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3));
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inColor, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 5));
 
     vk::createVertexBuffer(g_renderContext.device, m_commandPool, &m_charBuffer, sizeof(Glyph) * MAX_CHARS, &m_vertexBuffer);
-    createDescriptor(m_texture->vkTex(), &m_descriptor);
+    CreateDescriptor(m_texture->vkTex(), &m_descriptor);
 
-    rebuildPipeline();
+    RebuildPipeline();
     VK_VERIFY(vk::createCommandBuffers(g_renderContext.device, m_commandPool, m_commandBuffers, g_renderContext.frameBuffers.size()));
 }
 
@@ -52,7 +53,13 @@ Font::~Font()
     vkDestroyCommandPool(g_renderContext.device.logical, m_commandPool, nullptr);
 }
 
-void Font::rebuildPipeline()
+void Font::OnWindowChanged()
+{
+    // swapchain is recreated by bsp, so here we only need to update the pipeline
+    RebuildPipeline();
+}
+
+void Font::RebuildPipeline()
 {
     vkDeviceWaitIdle(g_renderContext.device.logical);
     vk::destroyPipeline(g_renderContext.device, m_pipeline);
@@ -62,13 +69,7 @@ void Font::rebuildPipeline()
     VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, &m_vbInfo, &m_descriptor.setLayout, &m_pipeline, shaders));
 }
 
-void Font::OnWindowChanged()
-{
-    // swapchain is recreated by bsp, so here we only need to update the pipeline
-    rebuildPipeline();
-}
-
-void Font::recordCommandBuffers()
+void Font::RecordCommandBuffers()
 {
     for (size_t i = 0; i < m_commandBuffers.size(); ++i)
     {
@@ -110,9 +111,8 @@ void Font::recordCommandBuffers()
     }
 }
 
-void Font::renderAt(const Math::Vector3f &pos, int w, int h, int uo, int vo, int offset, const Math::Vector4f &color)
+void Font::DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int offset, const Math::Vector3f &color)
 {
-    LOG_MESSAGE_ASSERT(m_texture, "Trying to render with no texture?");
     Math::Matrix4f texMatrix, mvMatrix;
 
     Math::Scale(mvMatrix, 2.f * w / g_renderContext.height, 2.f * h / g_renderContext.height);
@@ -127,7 +127,7 @@ void Font::renderAt(const Math::Vector3f &pos, int w, int h, int uo, int vo, int
     Math::Vector3f uv[4];
     Math::Vector3f p(pos.m_x, -pos.m_y, pos.m_z);
     Math::Vector3f uvo(texMatrix[12], texMatrix[13], 0.f);
-    GlyphData g;
+    GlyphVertex g;
 
     for (int i = 0; i < 4; i++)
     {
@@ -137,32 +137,26 @@ void Font::renderAt(const Math::Vector3f &pos, int w, int h, int uo, int vo, int
         memcpy(g.pos, &verts[i], sizeof(g.pos));
         memcpy(g.uv, &uv[i], sizeof(g.uv));
         memcpy(g.color, &m_color, sizeof(g.color));
-        memcpy(&m_mappedData->verts[i], &g, sizeof(GlyphData));
+        memcpy(&m_mappedData->verts[i], &g, sizeof(GlyphVertex));
     }
 }
 
-void Font::drawText(const std::string &text, float x, float y, float z, float r, float g, float b, float a)
+void Font::RenderText(const std::string &text, float x, float y, float z, float r, float g, float b)
 {
-    drawText(text, Math::Vector3f(x, y, z), Math::Vector4f(r, g, b, a));
+    RenderText(text, Math::Vector3f(x, y, z), Math::Vector3f(r, g, b));
 }
 
-void Font::drawText(const std::string &text, float x, float y, float z)
+void Font::RenderText(const std::string &text, float x, float y, float z)
 {
-    drawText(text, Math::Vector3f(x, y, z), m_color);
+    RenderText(text, Math::Vector3f(x, y, z), m_color);
 }
 
-void Font::drawText(const std::string &text)
+void Font::RenderText(const std::string &text)
 {
-    drawText(text, m_position, m_color);
+    RenderText(text, m_position, m_color);
 }
 
-void Font::drawStart()
-{
-    m_charCount = 0;
-    vmaMapMemory(g_renderContext.device.allocator, m_vertexBuffer.allocation, (void**)&m_mappedData);
-}
-
-void Font::drawText(const std::string &text, const Math::Vector3f &position, const Math::Vector4f &color)
+void Font::RenderText(const std::string &text, const Math::Vector3f &position, const Math::Vector3f &color)
 {
     Camera::CameraMode camMode = g_cameraDirector.GetActiveCamera()->GetMode();
     g_cameraDirector.GetActiveCamera()->SetMode(Camera::CAM_ORTHO);
@@ -178,7 +172,7 @@ void Font::drawText(const std::string &text, const Math::Vector3f &position, con
 
         if (cu >= 0 && cu < 32 * 3)
         {
-            renderAt(pos, CHAR_WIDTH, CHAR_HEIGHT, cu % 16 * CHAR_WIDTH, cu / 16 * (CHAR_HEIGHT + 1), i, color);
+            DrawChar(pos, CHAR_WIDTH, CHAR_HEIGHT, cu % 16 * CHAR_WIDTH, cu / 16 * (CHAR_HEIGHT + 1), i, color);
         }
 
         pos.m_x += m_scale.m_x * (CHAR_SPACING / g_renderContext.scrRatio) * CHAR_WIDTH / g_renderContext.height;
@@ -188,12 +182,18 @@ void Font::drawText(const std::string &text, const Math::Vector3f &position, con
     g_cameraDirector.GetActiveCamera()->SetMode(camMode);
 }
 
-void Font::drawFinish()
+void Font::RenderStart()
+{
+    m_charCount = 0;
+    vmaMapMemory(g_renderContext.device.allocator, m_vertexBuffer.allocation, (void**)&m_mappedData);
+}
+
+void Font::RenderFinish()
 {
     vmaUnmapMemory(g_renderContext.device.allocator, m_vertexBuffer.allocation);
 
     // update command buffers with new characters
-    recordCommandBuffers();
+    RecordCommandBuffers();
 
     // submit: UI must wait for bsp rendering to complete and use it's own semaphore to signal that it finished rendering itself
     g_renderContext.submitInfo.pWaitSemaphores = &g_renderContext.renderFinishedSemaphore;
@@ -203,7 +203,7 @@ void Font::drawFinish()
     VK_VERIFY(g_renderContext.Submit(m_commandBuffers));
 }
 
-void Font::createDescriptor(const vk::Texture *texture, vk::Descriptor *descriptor)
+void Font::CreateDescriptor(const vk::Texture *texture, vk::Descriptor *descriptor)
 {
     // create descriptor set layout
     VkDescriptorSetLayoutBinding samplerLayoutBinding = {};

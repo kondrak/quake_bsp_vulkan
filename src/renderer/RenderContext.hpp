@@ -41,7 +41,7 @@ public:
     VkResult RenderStart();
     VkResult Submit(const std::vector<VkCommandBuffer> &commandBuffers);
     VkResult Present(bool uiVisible);
-    bool recreateSwapChain(const VkCommandPool &commandPool, const vk::RenderPass &renderPasss);
+    bool RecreateSwapChain(const VkCommandPool &commandPool, const vk::RenderPass &renderPasss);
 
     SDL_Window *window = nullptr;
     vk::Device device;
@@ -68,16 +68,16 @@ public:
 
     Math::Matrix4f ModelViewProjectionMatrix; // global MVP used to orient the entire world
 private:
-    bool initVulkan();
-    bool createImageViews();
-    void destroyImageViews();
-    bool createFramebuffers(const vk::RenderPass &renderPass);
-    void destroyFramebuffers();
-    void createSemaphores();
+    bool InitVulkan();
+    bool CreateImageViews();
+    void DestroyImageViews();
+    bool CreateFramebuffers(const vk::RenderPass &renderPass);
+    void DestroyFramebuffers();
+    void CreateSemaphores();
 
     // Vulkan instance and surface
-    VkInstance m_instance  = VK_NULL_HANDLE;
-    VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+    VkInstance   m_instance = VK_NULL_HANDLE;
+    VkSurfaceKHR m_surface  = VK_NULL_HANDLE;
 
     // Vulkan image views
     std::vector<VkImageView> m_imageViews;

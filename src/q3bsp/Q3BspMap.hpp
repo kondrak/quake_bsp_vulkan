@@ -52,8 +52,6 @@ public:
     std::vector<Q3BspLightVolLump>  lightVols;
     Q3BspVisDataLump                visData;
 
-    void recordCommandBuffers();
-    void rebuildPipelines();
     void OnFlagSet(bool set, int flag);
 private:
     void LoadTextures();
@@ -64,8 +62,12 @@ private:
     // Vulkan buffer creation
     void CreateBuffersForFace(const Q3BspFaceLump &face, int idx);
     void CreateBuffersForPatch(int idx);
-    void createDescriptorSetLayout();
-    void createDescriptor(const vk::Texture **texture, vk::Descriptor *descriptor);
+    void CreateDescriptorSetLayout();
+    void CreateDescriptor(const vk::Texture **textures, vk::Descriptor *descriptor);
+
+    // Vulkan draw builder and pipeline builder
+    void RecordCommandBuffers();
+    void RebuildPipelines();
 
     // render data
     std::vector<Q3LeafRenderable>   m_renderLeaves;   // bsp leaves in "renderable format"
@@ -74,13 +76,13 @@ private:
     std::vector<GameTexture *>      m_textures;       // loaded in-game textures
     std::vector<Q3FaceRenderable *> m_visibleFaces;   // list of visible surfaces to render
     std::vector<int>                m_visiblePatches; // list of visible patches to render
-    vk::Texture  *m_lightmapTextures = nullptr;       // bsp lightmaps 
+    vk::Texture *m_lightmapTextures = nullptr;        // bsp lightmaps
 
     Frustum  m_frustum; // view frustum
 
     // helper textures
-    GameTexture *m_missingTex; // rendered if an in-game texture is missing
-    vk::Texture  m_whiteTex;   // used if no lightmap specified for a face
+    GameTexture *m_missingTex = nullptr; // rendered if an in-game texture is missing
+    vk::Texture  m_whiteTex;             // used if no lightmap specified for a face
 
     // rendering Vulkan buffers and pipelines
     RenderBuffers m_renderBuffers;

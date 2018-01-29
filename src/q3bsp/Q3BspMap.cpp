@@ -59,8 +59,8 @@ Q3BspMap::~Q3BspMap()
 
 void Q3BspMap::OnWindowChanged()
 {
-    g_renderContext.recreateSwapChain(m_commandPool, m_renderPass);
-    rebuildPipelines();
+    g_renderContext.RecreateSwapChain(m_commandPool, m_renderPass);
+    RebuildPipelines();
 }
 
 void Q3BspMap::Init()
@@ -71,8 +71,9 @@ void Q3BspMap::Init()
 
     VK_VERIFY(vk::createRenderPass(g_renderContext.device, g_renderContext.swapChain, &m_renderPass));
     VK_VERIFY(vk::createCommandPool(g_renderContext.device, &m_commandPool));
+
     if (g_renderContext.frameBuffers.empty())
-        g_renderContext.recreateSwapChain(m_commandPool, m_renderPass);
+        g_renderContext.RecreateSwapChain(m_commandPool, m_renderPass);
 
     m_missingTex = TextureManager::GetInstance()->LoadTexture("res/missing.png", m_commandPool);
 
@@ -119,7 +120,7 @@ void Q3BspMap::Init()
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inTexCoordLightmap, VK_FORMAT_R32G32_SFLOAT, sizeof(vec3f) + sizeof(vec2f)));
 
     // descriptor set layout is common for the entire BSP
-    createDescriptorSetLayout();
+    CreateDescriptorSetLayout();
 
     // single shared uniform buffer
     VK_VERIFY(vk::createUniformBuffer(g_renderContext.device, sizeof(UniformBufferObject), &m_renderBuffers.uniformBuffer));
@@ -157,7 +158,7 @@ void Q3BspMap::Init()
     m_mapStats.totalFaces    = faces.size();
     m_mapStats.totalPatches  = patchArrayIdx;
 
-    rebuildPipelines();
+    RebuildPipelines();
     VK_VERIFY(vk::createCommandBuffers(g_renderContext.device, m_commandPool, m_commandBuffers, g_renderContext.frameBuffers.size()));
 
     // set the scale-down uniform
@@ -171,7 +172,7 @@ void Q3BspMap::OnFlagSet(bool set, int flag)
     case Q3RenderShowWireframe:
         m_facesPipeline.mode = set ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
         m_patchPipeline.mode = set ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
-        rebuildPipelines();
+        RebuildPipelines();
         break;
     case Q3RenderShowLightmaps:
         m_ubo.renderLightmaps = set ? 1 : 0;
@@ -191,23 +192,23 @@ void Q3BspMap::OnRender()
 {
     // update uniform buffers
     m_ubo.ModelViewProjectionMatrix = g_renderContext.ModelViewProjectionMatrix;
+    m_frustum.OnRender();
 
     void *data;
     vmaMapMemory(g_renderContext.device.allocator, m_renderBuffers.uniformBuffer.allocation, &data);
     memcpy(data, &m_ubo, sizeof(m_ubo));
     vmaUnmapMemory(g_renderContext.device.allocator, m_renderBuffers.uniformBuffer.allocation);
 
-    recordCommandBuffers();
+    RecordCommandBuffers();
 
     // render visible faces
     VK_VERIFY(g_renderContext.Submit(m_commandBuffers));
-    m_frustum.OnRender();
 }
 
 // determine if a bsp cluster is visible from a given camera cluster
 bool Q3BspMap::ClusterVisible(int cameraCluster, int testCluster) const
 {
-    if ((visData.vecs == nullptr) || (cameraCluster < 0)) {
+    if (!visData.vecs || (cameraCluster < 0)) {
         return true;
     }
 
@@ -422,7 +423,7 @@ void Q3BspMap::CreatePatch(const Q3BspFaceLump &f)
     m_patches.push_back(newPatch);
 }
 
-void Q3BspMap::recordCommandBuffers()
+void Q3BspMap::RecordCommandBuffers()
 {
     for (size_t i = 0; i < m_commandBuffers.size(); ++i)
     {
@@ -488,7 +489,7 @@ void Q3BspMap::recordCommandBuffers()
     }
 }
 
-void Q3BspMap::rebuildPipelines()
+void Q3BspMap::RebuildPipelines()
 {
     vkDeviceWaitIdle(g_renderContext.device.logical);
     vk::destroyPipeline(g_renderContext.device, m_facesPipeline);
@@ -514,7 +515,7 @@ void Q3BspMap::CreateBuffersForFace(const Q3BspFaceLump &face, int idx)
     const vk::Texture lmap = faces[idx].lm_index >= 0 ? m_lightmapTextures[faces[idx].lm_index] : m_whiteTex;
 
     const vk::Texture *textureSet[2] = { colorTex, &lmap };
-    createDescriptor(textureSet, &m_renderBuffers.m_faceBuffers[idx].descriptor);
+    CreateDescriptor(textureSet, &m_renderBuffers.m_faceBuffers[idx].descriptor);
 
     m_renderBuffers.m_faceBuffers[idx].vertexCount = face.n_vertexes;
     m_renderBuffers.m_faceBuffers[idx].indexCount = face.n_meshverts;
@@ -542,7 +543,7 @@ void Q3BspMap::CreateBuffersForPatch(int idx)
             const vk::Texture lmap = m_patches[idx]->lightmapIdx >= 0 ? m_lightmapTextures[m_patches[idx]->lightmapIdx] : m_whiteTex;
 
             const vk::Texture *textureSet[] = { colorTex, &lmap };
-            createDescriptor(textureSet, &m_renderBuffers.m_patchBuffers[idx].back().descriptor);
+            CreateDescriptor(textureSet, &m_renderBuffers.m_patchBuffers[idx].back().descriptor);
 
             m_renderBuffers.m_patchBuffers[idx].back().vertexCount = numVerts;
             m_renderBuffers.m_patchBuffers[idx].back().indexCount = 2 * (tessLevel + 1);
@@ -550,7 +551,7 @@ void Q3BspMap::CreateBuffersForPatch(int idx)
     }
 }
 
-void Q3BspMap::createDescriptorSetLayout()
+void Q3BspMap::CreateDescriptorSetLayout()
 {
     VkDescriptorSetLayoutBinding uboLayoutBinding = {};
     uboLayoutBinding.binding = 0;
@@ -582,7 +583,7 @@ void Q3BspMap::createDescriptorSetLayout()
     VK_VERIFY(vkCreateDescriptorSetLayout(g_renderContext.device.logical, &layoutInfo, nullptr, &m_dsLayout));
 }
 
-void Q3BspMap::createDescriptor(const vk::Texture **texture, vk::Descriptor *descriptor)
+void Q3BspMap::CreateDescriptor(const vk::Texture **textures, vk::Descriptor *descriptor)
 {
     // create descriptor pool
     VkDescriptorPoolSize poolSizes[3];
@@ -610,13 +611,13 @@ void Q3BspMap::createDescriptor(const vk::Texture **texture, vk::Descriptor *des
 
     VkDescriptorImageInfo imageInfo = {};
     imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = texture[0]->imageView;
-    imageInfo.sampler = texture[0]->sampler;
+    imageInfo.imageView = textures[0]->imageView;
+    imageInfo.sampler = textures[0]->sampler;
 
     VkDescriptorImageInfo lightmapInfo = {};
     lightmapInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    lightmapInfo.imageView = texture[1]->imageView;
-    lightmapInfo.sampler = texture[1]->sampler;
+    lightmapInfo.imageView = textures[1]->imageView;
+    lightmapInfo.sampler = textures[1]->sampler;
 
     VkWriteDescriptorSet descriptorWrites[3];
     descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

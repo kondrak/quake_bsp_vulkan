@@ -18,7 +18,7 @@ public:
                   const Math::Vector3f &up,
                   const Math::Vector3f &right,
                   const Math::Vector3f &view);
-    Camera *GetActiveCamera() { return m_activeCamera; }
+    Camera *GetActiveCamera()        { return m_activeCamera; }
     Camera *GetCamera(int camIdx)    { return m_cameras[camIdx]; }
     void SetActiveCamera(int camIdx) { m_activeCamera = m_cameras[camIdx]; }
 

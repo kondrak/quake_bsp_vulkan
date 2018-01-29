@@ -12,38 +12,42 @@ class Font
 public:
     Font(const char *texture);
     ~Font();
+    void OnWindowChanged();
 
-    void SetColor(const Math::Vector4f &color) { m_color = color; }
+    void SetColor(const Math::Vector3f &color) { m_color = color; }
     void SetPosition(const Math::Vector3f &position) { m_position = position; }
     void SetScale(const Math::Vector2f &scale) { m_scale = scale; }
-    void drawText(const std::string &text);
-    void drawText(const std::string &text, float x, float y, float z, float r, float g, float b, float a);
-    void drawText(const std::string &text, const Math::Vector3f &position, const Math::Vector4f &color = Math::Vector4f(1.f, 1.f, 1.f, 1.f));
-    void drawText(const std::string &text, float x, float y, float z = -1.0f);
-    void OnWindowChanged();
-    void drawStart();
-    void drawFinish();
+    void RenderText(const std::string &text);
+    void RenderText(const std::string &text, float x, float y, float z, float r, float g, float b);
+    void RenderText(const std::string &text, const Math::Vector3f &position, const Math::Vector3f &color = Math::Vector3f(1.f, 1.f, 1.f));
+    void RenderText(const std::string &text, float x, float y, float z = -1.0f);
+    void RenderStart();
+    void RenderFinish();
 private:
-    struct GlyphData
+    // vertex data for character
+    struct GlyphVertex
     {
         float pos[3];
         float uv[2];
         float color[3];
     };
 
+    // single character
     struct Glyph
     {
-        GlyphData verts[4];
+        GlyphVertex verts[4];
     };
 
-    void rebuildPipeline();
-    void recordCommandBuffers();
-    void renderAt(const Math::Vector3f &pos, int w, int h, int uo, int vo, int offset, const Math::Vector4f &color);
-    void createDescriptor(const vk::Texture *texture, vk::Descriptor *descriptor);
+    void RebuildPipeline();
+    void RecordCommandBuffers();
+    void CreateDescriptor(const vk::Texture *texture, vk::Descriptor *descriptor);
+    void DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int offset, const Math::Vector3f &color);
+
+    // handle to font texture
     GameTexture*    m_texture = nullptr;
     Math::Vector2f  m_scale;
     Math::Vector3f  m_position;
-    Math::Vector4f  m_color;
+    Math::Vector3f  m_color;
 
     // Vulkan buffers
     vk::Pipeline   m_pipeline;
