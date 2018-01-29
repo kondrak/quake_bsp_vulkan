@@ -222,7 +222,7 @@ bool RenderContext::recreateSwapChain(const VkCommandPool &commandPool, const vk
         vmaDestroyImage(device.allocator, m_depthBuffer.image, m_depthBuffer.allocation);
         vkDestroyImageView(device.logical, m_depthBuffer.imageView, nullptr);
     }
-    m_depthBuffer = vk::createDepthResources(device, swapChain, commandPool);
+    m_depthBuffer = vk::createDepthBuffer(device, swapChain, commandPool);
 
     if (!createFramebuffers(renderPass)) return false;
 

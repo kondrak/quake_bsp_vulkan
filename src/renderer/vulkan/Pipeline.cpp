@@ -4,7 +4,20 @@
 
 namespace vk
 {
-    static VkShaderModule createShaderModule(const Device &device, const uint32_t *shaderSrc, size_t codeSize);
+    static VkShaderModule createShaderModule(const Device &device, const uint32_t *shaderSrc, size_t codeSize)
+    {
+        VkShaderModule shaderModule = VK_NULL_HANDLE;
+
+        VkShaderModuleCreateInfo smCreateInfo = {};
+        smCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        smCreateInfo.codeSize = codeSize;
+        smCreateInfo.pCode = shaderSrc;
+
+        VkResult result = vkCreateShaderModule(device.logical, &smCreateInfo, nullptr, &shaderModule);
+        LOG_MESSAGE_ASSERT(result == VK_SUCCESS, "Could not create shader module: " << result);
+
+        return shaderModule;
+    }
 
     static uint32_t *ReadShaderFromFile(const char *filename, size_t *buffSize)
     {
@@ -26,7 +39,7 @@ namespace vk
         return outBuffer;
     }
 
-    static ShaderProgram LoadShader(const Device &device, const char* vshFilename, const char *fshFilename)
+    static ShaderProgram loadShader(const Device &device, const char* vshFilename, const char *fshFilename)
     {
         size_t vShaderSize = 0, fShaderSize = 0;
         ShaderProgram shader;
@@ -45,7 +58,7 @@ namespace vk
 
     VkResult createPipeline(const Device &device, const SwapChain &swapChain, const RenderPass &renderPass, const VertexBufferInfo *vbInfo, const VkDescriptorSetLayout *descriptorLayout, Pipeline *pipeline, const char **shaders)
     {
-        ShaderProgram shader = LoadShader(device, shaders[0], shaders[1]);
+        ShaderProgram shader = loadShader(device, shaders[0], shaders[1]);
 
         VkPipelineShaderStageCreateInfo vssCreateInfo = {};
         vssCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -260,21 +273,6 @@ namespace vk
     {
         if (renderPass.renderPass != VK_NULL_HANDLE)
             vkDestroyRenderPass(device.logical, renderPass.renderPass, nullptr);
-    }
-
-    VkShaderModule createShaderModule(const Device &device, const uint32_t *shaderSrc, size_t codeSize)
-    {
-        VkShaderModule shaderModule = VK_NULL_HANDLE;
-
-        VkShaderModuleCreateInfo smCreateInfo = {};
-        smCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        smCreateInfo.codeSize = codeSize;
-        smCreateInfo.pCode = shaderSrc;
-
-        VkResult result = vkCreateShaderModule(device.logical, &smCreateInfo, nullptr, &shaderModule);
-        LOG_MESSAGE_ASSERT(result == VK_SUCCESS, "Could not create shader module: " << result);
-
-        return shaderModule;
     }
 }
 
