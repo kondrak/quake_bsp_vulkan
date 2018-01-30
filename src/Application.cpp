@@ -69,7 +69,6 @@ void Application::OnStart(int argc, char **argv)
     m_q3stats = new Q3StatsUI(m_q3map);
 }
 
-
 void Application::OnRender()
 {
     if (m_noRedraw)
@@ -109,7 +108,6 @@ void Application::OnRender()
     }
 }
 
-
 void Application::OnUpdate(float dt)
 {
     UpdateCamera(dt);
@@ -119,13 +117,11 @@ void Application::OnUpdate(float dt)
         m_q3map->CalculateVisibleFaces(g_cameraDirector.GetActiveCamera()->Position());
 }
 
-
 void Application::OnTerminate()
 {
     delete m_q3stats;
     delete m_q3map;
 }
-
 
 bool Application::KeyPressed(KeyCode key)
 {
@@ -135,7 +131,6 @@ bool Application::KeyPressed(KeyCode key)
 
     return m_keyStates[key];
 }
-
 
 void Application::OnKeyPress(KeyCode key)
 {
@@ -178,18 +173,15 @@ void Application::OnKeyPress(KeyCode key)
     }
 }
 
-
 void Application::OnKeyRelease(KeyCode key)
 {
     SetKeyPressed(key, false);
 }
 
-
 void Application::OnMouseMove(int x, int y)
 {
     g_cameraDirector.GetActiveCamera()->OnMouseMove(x, y);
 }
-
 
 void Application::UpdateCamera(float dt)
 {
@@ -221,7 +213,6 @@ void Application::UpdateCamera(float dt)
     if (KeyPressed(KEY_F))
         g_cameraDirector.GetActiveCamera()->MoveUpward(-movementSpeed * dt);
 }
-
 
 Math::Vector3f Application::FindPlayerStart(const char *entities)
 {
@@ -257,7 +248,6 @@ Math::Vector3f Application::FindPlayerStart(const char *entities)
 
     return result;
 }
-
 
 bool Application::FindEntityAttribute(const std::string &entity, const char *entityName, const char *attribName, std::string &output)
 {

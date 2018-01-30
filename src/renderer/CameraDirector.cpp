@@ -9,7 +9,6 @@ CameraDirector::~CameraDirector()
     }
 }
 
-
 int CameraDirector::AddCamera(float x, float y, float z)
 {
     m_cameras.push_back(new Camera(x, y, z));
@@ -17,7 +16,6 @@ int CameraDirector::AddCamera(float x, float y, float z)
 
     return m_cameras.size();
 }
-
 
 int CameraDirector::AddCamera(const Math::Vector3f &position,
                               const Math::Vector3f &up,
@@ -29,7 +27,6 @@ int CameraDirector::AddCamera(const Math::Vector3f &position,
 
     return m_cameras.size();
 }
-
 
 void CameraDirector::OnMouseMove(int x, int y)
 {

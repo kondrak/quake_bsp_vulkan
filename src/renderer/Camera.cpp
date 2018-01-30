@@ -17,7 +17,6 @@ Camera::Camera(float x, float y, float z) : m_position(x, y, z),
     SetMode(CAM_DOF6);
 }
 
-
 Camera::Camera(const Math::Vector3f &position,
                const Math::Vector3f &up,
                const Math::Vector3f &right,
@@ -31,13 +30,11 @@ Camera::Camera(const Math::Vector3f &position,
     SetMode(CAM_DOF6);
 }
 
-
 void Camera::OnRender()
 {
     // view matrix
     Math::MakeView(m_viewMatrix, m_position, m_viewVector, m_upVector);
 }
-
 
 void Camera::RotateCamera(float angle, float x, float y, float z)
 {
@@ -61,56 +58,6 @@ void Camera::RotateCamera(const Math::Quaternion &q)
     m_viewVector.m_z = result.m_z;
 }
 
-void Camera::SetMode(CameraMode cm)
-{
-    if (m_mode != cm)
-    {
-        m_mode = cm;
-        UpdateProjectionMatrix();
-    }
-}
-
-void Camera::UpdateProjectionMatrix()
-{
-    switch (m_mode)
-    {
-    case CAM_DOF6:
-    case CAM_FPS:
-        if (g_renderContext.width > g_renderContext.height)
-        {
-            Math::MakePerspective(m_projectionMatrix,
-                                  g_renderContext.fov,
-                                  g_renderContext.scrRatio,
-                                  g_renderContext.nearPlane,
-                                  g_renderContext.farPlane);
-        }
-        else
-        {
-            Math::MakePerspective(m_projectionMatrix,
-                                  g_renderContext.fov / g_renderContext.scrRatio,
-                                  g_renderContext.scrRatio,
-                                  g_renderContext.nearPlane,
-                                  g_renderContext.farPlane);
-        }
-        break;
-    case CAM_ORTHO:
-        Math::MakeOrthogonal(m_projectionMatrix, g_renderContext.left, g_renderContext.right, g_renderContext.bottom, g_renderContext.top, 0.1f, 5.f);
-        break;
-    }
-
-    // Convert projection matrix to Vulkan coordinate system (https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/)
-    Math::Matrix4f vulkanCorrection;
-    vulkanCorrection.Zero();
-    vulkanCorrection[0] = 1.f;
-    vulkanCorrection[5] = -1.f;
-    vulkanCorrection[10] = 0.5f;
-    vulkanCorrection[14] = 0.5f;
-    vulkanCorrection[15] = 1.f;
-
-    m_projectionMatrix = m_projectionMatrix * vulkanCorrection;
-}
-
-
 void Camera::Move(const Math::Vector3f &Direction)
 {
     m_position = m_position + Direction;
@@ -128,12 +75,19 @@ void Camera::MoveUpward(float Distance)
     m_position = m_position + (m_upVector * Distance);
 }
 
-
 void Camera::Strafe(float Distance)
 {
     m_position = m_position + (m_rightVector * Distance);
 }
 
+void Camera::SetMode(CameraMode cm)
+{
+    if (m_mode != cm)
+    {
+        m_mode = cm;
+        UpdateProjectionMatrix();
+    }
+}
 
 void Camera::rotateX(float angle)
 {
@@ -143,14 +97,12 @@ void Camera::rotateX(float angle)
     m_upVector = m_rightVector.CrossProduct(m_viewVector);
 }
 
-
 void Camera::rotateY(float angle)
 {
     m_rotation.m_y += angle;
     RotateCamera(angle, m_upVector.m_x, m_upVector.m_y, m_upVector.m_z);
     m_rightVector = m_viewVector.CrossProduct(m_upVector);
 }
-
 
 void Camera::rotateZ(float angle)
 {
@@ -160,11 +112,7 @@ void Camera::rotateZ(float angle)
     axis.QuickNormalize();
 
     Math::Quaternion rotQuat(axis, angle);
-
-    Math::Quaternion viewQuat(m_upVector.m_x,
-                              m_upVector.m_y,
-                              m_upVector.m_z,
-                              0 );
+    Math::Quaternion viewQuat(m_upVector.m_x, m_upVector.m_y, m_upVector.m_z, 0);
 
     Math::Quaternion result = ((rotQuat * viewQuat) * rotQuat.GetConjugate());
 
@@ -174,7 +122,6 @@ void Camera::rotateZ(float angle)
 
     m_rightVector = m_upVector.CrossProduct(m_viewVector) * -1;
 }
-
 
 void Camera::OnMouseMove(int x, int y)
 {
@@ -233,4 +180,44 @@ void Camera::OnMouseMove(int x, int y)
 
     m_rightVector = m_viewVector.CrossProduct(m_upVector);
     m_rightVector.QuickNormalize();
+}
+
+void Camera::UpdateProjectionMatrix()
+{
+    switch (m_mode)
+    {
+    case CAM_DOF6:
+    case CAM_FPS:
+        if (g_renderContext.width > g_renderContext.height)
+        {
+            Math::MakePerspective(m_projectionMatrix,
+                                  g_renderContext.fov,
+                                  g_renderContext.scrRatio,
+                                  g_renderContext.nearPlane,
+                                  g_renderContext.farPlane);
+        }
+        else
+        {
+            Math::MakePerspective(m_projectionMatrix,
+                                  g_renderContext.fov / g_renderContext.scrRatio,
+                                  g_renderContext.scrRatio,
+                                  g_renderContext.nearPlane,
+                                  g_renderContext.farPlane);
+        }
+        break;
+    case CAM_ORTHO:
+        Math::MakeOrthogonal(m_projectionMatrix, g_renderContext.left, g_renderContext.right, g_renderContext.bottom, g_renderContext.top, 0.1f, 5.f);
+        break;
+    }
+
+    // Convert projection matrix to Vulkan coordinate system (https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/)
+    Math::Matrix4f vulkanCorrection;
+    vulkanCorrection.Zero();
+    vulkanCorrection[0] = 1.f;
+    vulkanCorrection[5] = -1.f;
+    vulkanCorrection[10] = 0.5f;
+    vulkanCorrection[14] = 0.5f;
+    vulkanCorrection[15] = 1.f;
+
+    m_projectionMatrix = m_projectionMatrix * vulkanCorrection;
 }

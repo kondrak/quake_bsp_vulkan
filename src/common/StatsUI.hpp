@@ -10,15 +10,10 @@ class BspMap;
 class StatsUI
 {
 public:
-    StatsUI(BspMap *map) : m_map(map)
-    {
-    }
+    StatsUI(BspMap *map) : m_map(map) {}
+    virtual ~StatsUI() {}
 
-    virtual ~StatsUI()
-    {
-    }
-
-    virtual void OnRender() = 0;  // perform rendering
+    virtual void OnRender()        = 0; // perform rendering
     virtual void OnWindowChanged() = 0; // perform renderer update (rebuild swapchain, pipelines, etc.)
 protected:
     BspMap *m_map;

@@ -27,12 +27,10 @@ public:
     virtual void CalculateVisibleFaces(const Math::Vector3f &cameraPosition) = 0;  // determine which bsp faces are visible
 
     // render helpers - extra flags + map statistics
-    inline void  ToggleRenderFlag(int flag) { m_renderFlags ^= flag; OnFlagSet(HasRenderFlag(flag), flag); }
+    virtual void ToggleRenderFlag(int flag) = 0;
     inline bool  HasRenderFlag(int flag) const { return (m_renderFlags & flag) == flag; }
     inline bool  Valid() const { return m_bspValid; }
     inline const BspStats &GetMapStats() const { return m_mapStats; }
-    virtual void OnFlagSet(bool set, int flag) = 0;
-
 protected:
     int      m_renderFlags = 0;
     bool     m_bspValid;

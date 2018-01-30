@@ -59,88 +59,6 @@ void Font::OnWindowChanged()
     RebuildPipeline();
 }
 
-void Font::RebuildPipeline()
-{
-    vkDeviceWaitIdle(g_renderContext.device.logical);
-    vk::destroyPipeline(g_renderContext.device, m_pipeline);
-
-    // todo: pipeline derivatives https://github.com/SaschaWillems/Vulkan/blob/master/examples/pipelines/pipelines.cpp
-    const char *shaders[] = { "res/Font_vert.spv", "res/Font_frag.spv" };
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, &m_vbInfo, &m_descriptor.setLayout, &m_pipeline, shaders));
-}
-
-void Font::RecordCommandBuffers()
-{
-    for (size_t i = 0; i < m_commandBuffers.size(); ++i)
-    {
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-        beginInfo.pInheritanceInfo = nullptr;
-
-        VkResult result = vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo);
-        LOG_MESSAGE_ASSERT(result == VK_SUCCESS, "Could not begin command buffer: " << result);
-
-        VkClearValue clearColors[2];
-        clearColors[0].color = { 0.f, 0.f, 0.f, 1.f };
-        clearColors[1].depthStencil = { 1.0f, 0 };
-        VkRenderPassBeginInfo renderBeginInfo = {};
-        renderBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderBeginInfo.renderPass = m_renderPass.renderPass;
-        renderBeginInfo.framebuffer = g_renderContext.frameBuffers[i];
-        renderBeginInfo.renderArea.offset = { 0, 0 };
-        renderBeginInfo.renderArea.extent = g_renderContext.swapChain.extent;
-        renderBeginInfo.clearValueCount = 2;
-        renderBeginInfo.pClearValues = clearColors;
-
-        vkCmdBeginRenderPass(m_commandBuffers[i], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.pipeline);
-
-        // queue characters
-        VkDeviceSize offsets[] = { 0 };
-        vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_vertexBuffer.buffer, offsets);
-        vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.layout, 0, 1, &m_descriptor.set, 0, nullptr);
-
-        for (int j = 0; j < m_charCount; j++)
-            vkCmdDraw(m_commandBuffers[i], 4, 1, j * 4, 0);
-
-        vkCmdEndRenderPass(m_commandBuffers[i]);
-
-        result = vkEndCommandBuffer(m_commandBuffers[i]);
-        LOG_MESSAGE_ASSERT(result == VK_SUCCESS, "Error recording command buffer: " << result);
-    }
-}
-
-void Font::DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int offset, const Math::Vector3f &color)
-{
-    Math::Matrix4f texMatrix, mvMatrix;
-
-    Math::Scale(mvMatrix, 2.f * w / g_renderContext.height, 2.f * h / g_renderContext.height);
-    Math::Scale(mvMatrix, m_scale.m_x, m_scale.m_y);
-
-    Math::Scale(texMatrix, 1.f / m_texture->Width(), -1.f / m_texture->Height());
-    Math::Translate(texMatrix, (float)uo, (float)-vo);
-    Math::Scale(texMatrix, (float)w, (float)h);
-
-    Math::Vector3f verts[]{ {0.f, 0.f, -1.f}, {0.f, -1.f, -1.f},
-                            {1.f, 0.f, -1.f}, {1.f, -1.f, -1.f} };
-    Math::Vector3f uv[4];
-    Math::Vector3f p(pos.m_x, -pos.m_y, pos.m_z);
-    Math::Vector3f uvo(texMatrix[12], texMatrix[13], 0.f);
-    GlyphVertex g;
-
-    for (int i = 0; i < 4; i++)
-    {
-        uv[i] = texMatrix * verts[i] + uvo;
-        verts[i] = g_cameraDirector.GetActiveCamera()->ProjectionMatrix() * mvMatrix * verts[i] + p;
-
-        memcpy(g.pos, &verts[i], sizeof(g.pos));
-        memcpy(g.uv, &uv[i], sizeof(g.uv));
-        memcpy(g.color, &m_color, sizeof(g.color));
-        memcpy(&m_mappedData->verts[i], &g, sizeof(GlyphVertex));
-    }
-}
-
 void Font::RenderText(const std::string &text, float x, float y, float z, float r, float g, float b)
 {
     RenderText(text, Math::Vector3f(x, y, z), Math::Vector3f(r, g, b));
@@ -203,6 +121,88 @@ void Font::RenderFinish()
     VK_VERIFY(g_renderContext.Submit(m_commandBuffers));
 }
 
+void Font::DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int offset, const Math::Vector3f &color)
+{
+    Math::Matrix4f texMatrix, mvMatrix;
+
+    Math::Scale(mvMatrix, 2.f * w / g_renderContext.height, 2.f * h / g_renderContext.height);
+    Math::Scale(mvMatrix, m_scale.m_x, m_scale.m_y);
+
+    Math::Scale(texMatrix, 1.f / m_texture->Width(), -1.f / m_texture->Height());
+    Math::Translate(texMatrix, (float)uo, (float)-vo);
+    Math::Scale(texMatrix, (float)w, (float)h);
+
+    Math::Vector3f verts[]{ { 0.f, 0.f, -1.f },{ 0.f, -1.f, -1.f },
+                            { 1.f, 0.f, -1.f },{ 1.f, -1.f, -1.f } };
+    Math::Vector3f uv[4];
+    Math::Vector3f p(pos.m_x, -pos.m_y, pos.m_z);
+    Math::Vector3f uvo(texMatrix[12], texMatrix[13], 0.f);
+    GlyphVertex g;
+
+    for (int i = 0; i < 4; i++)
+    {
+        uv[i] = texMatrix * verts[i] + uvo;
+        verts[i] = g_cameraDirector.GetActiveCamera()->ProjectionMatrix() * mvMatrix * verts[i] + p;
+
+        memcpy(g.pos, &verts[i], sizeof(g.pos));
+        memcpy(g.uv, &uv[i], sizeof(g.uv));
+        memcpy(g.color, &m_color, sizeof(g.color));
+        memcpy(&m_mappedData->verts[i], &g, sizeof(GlyphVertex));
+    }
+}
+
+void Font::RebuildPipeline()
+{
+    vkDeviceWaitIdle(g_renderContext.device.logical);
+    vk::destroyPipeline(g_renderContext.device, m_pipeline);
+
+    // todo: pipeline derivatives https://github.com/SaschaWillems/Vulkan/blob/master/examples/pipelines/pipelines.cpp
+    const char *shaders[] = { "res/Font_vert.spv", "res/Font_frag.spv" };
+    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, &m_vbInfo, &m_descriptor.setLayout, &m_pipeline, shaders));
+}
+
+void Font::RecordCommandBuffers()
+{
+    for (size_t i = 0; i < m_commandBuffers.size(); ++i)
+    {
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+        beginInfo.pInheritanceInfo = nullptr;
+
+        VkResult result = vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo);
+        LOG_MESSAGE_ASSERT(result == VK_SUCCESS, "Could not begin command buffer: " << result);
+
+        VkClearValue clearColors[2];
+        clearColors[0].color = { 0.f, 0.f, 0.f, 1.f };
+        clearColors[1].depthStencil = { 1.0f, 0 };
+        VkRenderPassBeginInfo renderBeginInfo = {};
+        renderBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderBeginInfo.renderPass = m_renderPass.renderPass;
+        renderBeginInfo.framebuffer = g_renderContext.frameBuffers[i];
+        renderBeginInfo.renderArea.offset = { 0, 0 };
+        renderBeginInfo.renderArea.extent = g_renderContext.swapChain.extent;
+        renderBeginInfo.clearValueCount = 2;
+        renderBeginInfo.pClearValues = clearColors;
+
+        vkCmdBeginRenderPass(m_commandBuffers[i], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.pipeline);
+
+        // queue characters
+        VkDeviceSize offsets[] = { 0 };
+        vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_vertexBuffer.buffer, offsets);
+        vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.layout, 0, 1, &m_descriptor.set, 0, nullptr);
+
+        for (int j = 0; j < m_charCount; j++)
+            vkCmdDraw(m_commandBuffers[i], 4, 1, j * 4, 0);
+
+        vkCmdEndRenderPass(m_commandBuffers[i]);
+
+        result = vkEndCommandBuffer(m_commandBuffers[i]);
+        LOG_MESSAGE_ASSERT(result == VK_SUCCESS, "Error recording command buffer: " << result);
+    }
+}
+
 void Font::CreateDescriptor(const vk::Texture *texture, vk::Descriptor *descriptor)
 {
     // create descriptor set layout
@@ -233,8 +233,6 @@ void Font::CreateDescriptor(const vk::Texture *texture, vk::Descriptor *descript
     poolInfo.maxSets = 1;
 
     VK_VERIFY(vkCreateDescriptorPool(g_renderContext.device.logical, &poolInfo, nullptr, &descriptor->pool));
-
-    // create descriptor set
     VK_VERIFY(vk::createDescriptorSet(g_renderContext.device, descriptor));
 
     VkDescriptorImageInfo imageInfo = {};

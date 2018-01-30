@@ -54,12 +54,10 @@ Q3BspMap *Q3BspLoader::Load(const std::string &filename)
     return q3map;
 }
 
-
 void Q3BspLoader::LoadBspHeader(Q3BspHeader &hdr, std::ifstream &fstream)
 {
     fstream.read((char*)&(hdr), sizeof(Q3BspHeader));
 }
-
 
 void Q3BspLoader::LoadEntitiesLump(Q3BspMap *map, std::ifstream &fstream)
 {
@@ -69,7 +67,6 @@ void Q3BspLoader::LoadEntitiesLump(Q3BspMap *map, std::ifstream &fstream)
     fstream.seekg(map->header.direntries[Entities].offset, std::ios_base::beg);
     fstream.read(map->entities.ents, sizeof(char) * map->entities.size);
 }
-
 
 void Q3BspLoader::LoadVisDataLump(Q3BspMap *map, std::ifstream &fstream)
 {

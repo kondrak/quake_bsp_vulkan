@@ -31,6 +31,7 @@ public:
     bool ClusterVisible(int cameraCluster, int testCluster)   const;
     int  FindCameraLeaf(const Math::Vector3f &cameraPosition) const;
     void CalculateVisibleFaces(const Math::Vector3f &cameraPosition);
+    void ToggleRenderFlag(int flag);
 
     // bsp data
     Q3BspHeader     header;
@@ -51,23 +52,21 @@ public:
     std::vector<Q3BspLightMapLump>  lightMaps;
     std::vector<Q3BspLightVolLump>  lightVols;
     Q3BspVisDataLump                visData;
-
-    void OnFlagSet(bool set, int flag);
 private:
     void LoadTextures();
     void LoadLightmaps();
     void SetLightmapGamma(float gamma);
     void CreatePatch(const Q3BspFaceLump &f);
 
+    // Vulkan draw call builder and pipeline builder
+    void RecordCommandBuffers();
+    void RebuildPipelines();
+
     // Vulkan buffer creation
     void CreateBuffersForFace(const Q3BspFaceLump &face, int idx);
     void CreateBuffersForPatch(int idx);
     void CreateDescriptorSetLayout();
     void CreateDescriptor(const vk::Texture **textures, vk::Descriptor *descriptor);
-
-    // Vulkan draw builder and pipeline builder
-    void RecordCommandBuffers();
-    void RebuildPipelines();
 
     // render data
     std::vector<Q3LeafRenderable>   m_renderLeaves;   // bsp leaves in "renderable format"

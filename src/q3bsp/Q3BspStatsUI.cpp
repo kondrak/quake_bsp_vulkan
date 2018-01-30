@@ -14,7 +14,6 @@ Q3StatsUI::Q3StatsUI(BspMap *map) : StatsUI(map)
     m_font->SetScale(Math::Vector2f(2.f, 2.f));
 }
 
-
 void Q3StatsUI::OnRender()
 {
     m_font->RenderStart();

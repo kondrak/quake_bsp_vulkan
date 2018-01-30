@@ -52,19 +52,6 @@ namespace vk
         vmaDestroyBuffer(device.allocator, buffer->buffer, buffer->allocation);
     }
 
-    void copyBuffer(const Device &device, const VkCommandPool &commandPool, const VkBuffer &src, VkBuffer &dst, VkDeviceSize size)
-    {
-        VkCommandBuffer commandBuffer = beginOneTimeCommand(device, commandPool);
-
-        VkBufferCopy copyRegion = {};
-        copyRegion.srcOffset = 0;
-        copyRegion.dstOffset = 0;
-        copyRegion.size = size;
-        vkCmdCopyBuffer(commandBuffer, src, dst, 1, &copyRegion);
-
-        endOneTimeCommand(device, commandBuffer, commandPool, device.graphicsQueue);
-    }
-
     VkResult createStagingBuffer(const Device &device, VkDeviceSize size, Buffer *dstBuffer)
     {
         BufferOptions stagingOpts;
@@ -125,5 +112,19 @@ namespace vk
         dstOpts.vmaFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
         dstOpts.vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU;
         return createBuffer(device, size, dstBuffer, dstOpts);
+    }
+
+    // internal helper
+    void copyBuffer(const Device &device, const VkCommandPool &commandPool, const VkBuffer &src, VkBuffer &dst, VkDeviceSize size)
+    {
+        VkCommandBuffer commandBuffer = beginOneTimeCommand(device, commandPool);
+
+        VkBufferCopy copyRegion = {};
+        copyRegion.srcOffset = 0;
+        copyRegion.dstOffset = 0;
+        copyRegion.size = size;
+        vkCmdCopyBuffer(commandBuffer, src, dst, 1, &copyRegion);
+
+        endOneTimeCommand(device, commandBuffer, commandPool, device.graphicsQueue);
     }
 }

@@ -13,7 +13,6 @@ TextureManager::~TextureManager()
     ReleaseTextures();
 }
 
-
 void TextureManager::ReleaseTextures()
 {
     for (std::map<std::string, GameTexture*>::iterator it = m_textures.begin(); it != m_textures.end(); ++it)

@@ -57,12 +57,6 @@ Q3BspMap::~Q3BspMap()
     vkDestroyDescriptorSetLayout(g_renderContext.device.logical, m_dsLayout, nullptr);
 }
 
-void Q3BspMap::OnWindowChanged()
-{
-    g_renderContext.RecreateSwapChain(m_commandPool, m_renderPass);
-    RebuildPipelines();
-}
-
 void Q3BspMap::Init()
 {
     // regular faces are simple triangle lists, patches are drawn as triangle strips, so we need extra pipeline
@@ -165,29 +159,6 @@ void Q3BspMap::Init()
     m_ubo.worldScaleFactor = 1.f / Q3BspMap::s_worldScale;
 }
 
-void Q3BspMap::OnFlagSet(bool set, int flag)
-{
-    switch (flag)
-    {
-    case Q3RenderShowWireframe:
-        m_facesPipeline.mode = set ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
-        m_patchPipeline.mode = set ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
-        RebuildPipelines();
-        break;
-    case Q3RenderShowLightmaps:
-        m_ubo.renderLightmaps = set ? 1 : 0;
-        break;
-    case Q3RenderUseLightmaps:
-        m_ubo.useLightmaps = set ? 1 : 0;
-        break;
-    case Q3RenderAlphaTest:
-        m_ubo.useAlphaTest = set ? 1 : 0;
-        break;
-    default:
-        break;
-    }
-}
-
 void Q3BspMap::OnRender()
 {
     // update uniform buffers
@@ -203,6 +174,12 @@ void Q3BspMap::OnRender()
 
     // render visible faces
     VK_VERIFY(g_renderContext.Submit(m_commandBuffers));
+}
+
+void Q3BspMap::OnWindowChanged()
+{
+    g_renderContext.RecreateSwapChain(m_commandPool, m_renderPass);
+    RebuildPipelines();
 }
 
 // determine if a bsp cluster is visible from a given camera cluster
@@ -285,6 +262,31 @@ void Q3BspMap::CalculateVisibleFaces(const Math::Vector3f &cameraPosition)
     m_mapStats.visiblePatches = m_visiblePatches.size();
 }
 
+void Q3BspMap::ToggleRenderFlag(int flag)
+{
+    m_renderFlags ^= flag;
+    bool set = HasRenderFlag(flag);
+
+    switch (flag)
+    {
+    case Q3RenderShowWireframe:
+        m_facesPipeline.mode = set ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
+        m_patchPipeline.mode = set ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
+        RebuildPipelines();
+        break;
+    case Q3RenderShowLightmaps:
+        m_ubo.renderLightmaps = set ? 1 : 0;
+        break;
+    case Q3RenderUseLightmaps:
+        m_ubo.useLightmaps = set ? 1 : 0;
+        break;
+    case Q3RenderAlphaTest:
+        m_ubo.useAlphaTest = set ? 1 : 0;
+        break;
+    default:
+        break;
+    }
+}
 
 void Q3BspMap::LoadTextures()
 {
@@ -321,7 +323,6 @@ void Q3BspMap::LoadTextures()
     }
 }
 
-
 void Q3BspMap::LoadLightmaps()
 {
     m_lightmapTextures = new vk::Texture[lightMaps.size()];
@@ -346,7 +347,6 @@ void Q3BspMap::LoadLightmaps()
 
     vk::createTexture(g_renderContext.device, m_commandPool, &m_whiteTex, white, 1, 1);
 }
-
 
 // tweak lightmap gamma settings
 void Q3BspMap::SetLightmapGamma(float gamma)
@@ -382,7 +382,6 @@ void Q3BspMap::SetLightmapGamma(float gamma)
         }
     }
 }
-
 
 // create a Q3Bsp curved surface
 void Q3BspMap::CreatePatch(const Q3BspFaceLump &f)

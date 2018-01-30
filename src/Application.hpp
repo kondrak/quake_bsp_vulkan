@@ -21,11 +21,11 @@ public:
     void OnStart(int argc, char **argv);
     void OnRender();
     void OnUpdate(float dt);
+    void OnTerminate();
 
     inline bool Running() const { return m_running; }
     inline void Terminate() { m_running = false; }
 
-    void OnTerminate();
     bool KeyPressed(KeyCode key);
     void OnKeyPress(KeyCode key);
     void OnKeyRelease(KeyCode key);

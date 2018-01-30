@@ -38,10 +38,12 @@ private:
         GlyphVertex verts[4];
     };
 
+    // single character draw
+    void DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int offset, const Math::Vector3f &color);
+    // Vulkan buffer creation
     void RebuildPipeline();
     void RecordCommandBuffers();
     void CreateDescriptor(const vk::Texture *texture, vk::Descriptor *descriptor);
-    void DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int offset, const Math::Vector3f &color);
 
     // handle to font texture
     GameTexture*    m_texture = nullptr;

@@ -33,7 +33,7 @@ public:
     void Strafe(float Distance);
 
     void SetMode(CameraMode cm);
-    CameraMode GetMode() { return m_mode; }
+    inline CameraMode GetMode() { return m_mode; }
     const Math::Vector3f &Position() const { return m_position; }
 
     // rotate in Euler-space - used mainly for some debugging
@@ -43,10 +43,9 @@ public:
 
     void OnMouseMove(int x, int y);
 
+    void UpdateProjectionMatrix();
     const Math::Matrix4f &ProjectionMatrix() const { return m_projectionMatrix; }
     const Math::Matrix4f &ViewMatrix() const { return m_viewMatrix; }
-
-    void UpdateProjectionMatrix(); // on window resize
 
     // manually specify vector values
     void SetRightVector(float x, float y, float z)
