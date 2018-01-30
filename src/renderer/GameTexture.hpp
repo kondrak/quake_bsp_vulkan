@@ -21,11 +21,11 @@ private:
     GameTexture(const char *filename);
     ~GameTexture();
 
-    bool Load(const VkCommandPool commandPool, bool filtering);
+    bool Load(const VkCommandPool &commandPool, bool filtering);
 
-    int    m_width;
-    int    m_height;
-    int    m_components;
+    int m_width;
+    int m_height;
+    int m_components;
     vk::Texture m_vkTexture;
     unsigned char *m_textureData;
 };

@@ -29,7 +29,7 @@ GameTexture::~GameTexture()
     vk::releaseTexture(g_renderContext.device, &m_vkTexture);
 }
 
-bool GameTexture::Load(const VkCommandPool commandPool, bool filtering)
+bool GameTexture::Load(const VkCommandPool &commandPool, bool filtering)
 {
     // texture already loaded or doesn't exist
     if (!m_textureData)
