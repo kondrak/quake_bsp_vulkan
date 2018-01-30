@@ -23,7 +23,7 @@ void TextureManager::ReleaseTextures()
     m_textures.clear();
 }
 
-GameTexture *TextureManager::LoadTexture(const char *textureName, const VkCommandPool commandPool, bool filtering)
+GameTexture *TextureManager::LoadTexture(const char *textureName, const VkCommandPool &commandPool, bool filtering)
 {
     if (m_textures.count(textureName) == 0)
     {

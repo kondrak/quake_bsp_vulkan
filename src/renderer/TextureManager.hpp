@@ -10,7 +10,7 @@ public:
     static TextureManager* GetInstance();
 
     void ReleaseTextures();
-    GameTexture *LoadTexture(const char *textureName, const VkCommandPool commandPool, bool filtering = true);
+    GameTexture *LoadTexture(const char *textureName, const VkCommandPool &commandPool, bool filtering = true);
 private:
     TextureManager() {}
     ~TextureManager();
