@@ -65,6 +65,84 @@ void RenderContext::Destroy()
     }
 }
 
+VkResult RenderContext::RenderStart()
+{
+#undef max
+    vkQueueWaitIdle(device.presentQueue);
+    VkResult result = vkAcquireNextImageKHR(device.logical, swapChain.sc, std::numeric_limits<int>::max(), m_imageAvailableSemaphore, VK_NULL_HANDLE, &m_imageIndex);
+
+    // swapchain has become incompatible - application has to recreate it
+    if (result == VK_ERROR_OUT_OF_DATE_KHR)
+        return result;
+
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = &m_imageAvailableSemaphore;
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = &renderFinishedSemaphore;
+
+    LOG_MESSAGE_ASSERT(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR, "Could not acquire swapchain image: " << result);
+    return result;
+}
+
+VkResult RenderContext::Submit(const std::vector<VkCommandBuffer> &commandBuffers)
+{
+    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    submitInfo.pWaitDstStageMask = waitStages;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffers[m_imageIndex];
+
+    return vkQueueSubmit(device.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+}
+
+VkResult RenderContext::Present(bool uiVisible)
+{
+    VkSwapchainKHR swapChains[] = { swapChain.sc };
+    VkPresentInfoKHR presentInfo = {};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = uiVisible ? &renderUIFinishedSemaphore : &renderFinishedSemaphore;
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = swapChains;
+    presentInfo.pImageIndices = &m_imageIndex;
+    presentInfo.pResults = nullptr;
+
+    return vkQueuePresentKHR(device.graphicsQueue, &presentInfo);
+}
+
+Math::Vector2f RenderContext::WindowSize()
+{
+    VkSurfaceCapabilitiesKHR surfaceCaps;
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.physical, m_surface, &surfaceCaps);
+
+    return Math::Vector2f((float)surfaceCaps.currentExtent.width, (float)surfaceCaps.currentExtent.height);
+}
+
+bool RenderContext::RecreateSwapChain(const VkCommandPool &commandPool, const vk::RenderPass &renderPass)
+{
+    vkDeviceWaitIdle(device.logical);
+    DestroyFramebuffers();
+    DestroyImageViews();
+
+    VkSwapchainKHR oldSwapChain = swapChain.sc;
+    swapChain = vk::createSwapChain(device, m_surface, oldSwapChain);
+    vkDestroySwapchainKHR(device.logical, oldSwapChain, nullptr);
+    if (swapChain.sc == VK_NULL_HANDLE) return false;
+
+    if (!CreateImageViews()) return false;
+
+    if (m_depthBuffer.image != VK_NULL_HANDLE)
+    {
+        vmaDestroyImage(device.allocator, m_depthBuffer.image, m_depthBuffer.allocation);
+        vkDestroyImageView(device.logical, m_depthBuffer.imageView, nullptr);
+    }
+    m_depthBuffer = vk::createDepthBuffer(device, swapChain, commandPool);
+
+    if (!CreateFramebuffers(renderPass)) return false;
+
+    return true;
+}
+
 bool RenderContext::InitVulkan()
 {
     VK_VERIFY(vk::createInstance(window, &m_instance, "Quake BSP Viewer in Vulkan"));
@@ -157,82 +235,4 @@ void RenderContext::CreateSemaphores()
     VK_VERIFY(vkCreateSemaphore(device.logical, &sCreateInfo, nullptr, &m_imageAvailableSemaphore));
     VK_VERIFY(vkCreateSemaphore(device.logical, &sCreateInfo, nullptr, &renderFinishedSemaphore));
     VK_VERIFY(vkCreateSemaphore(device.logical, &sCreateInfo, nullptr, &renderUIFinishedSemaphore));
-}
-
-VkResult RenderContext::RenderStart()
-{
-#undef max
-    vkQueueWaitIdle(device.presentQueue);
-    VkResult result = vkAcquireNextImageKHR(device.logical, swapChain.sc, std::numeric_limits<int>::max(), m_imageAvailableSemaphore, VK_NULL_HANDLE, &m_imageIndex);
-
-    // swapchain has become incompatible - application has to recreate it
-    if (result == VK_ERROR_OUT_OF_DATE_KHR)
-        return result;
-
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = &m_imageAvailableSemaphore;
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &renderFinishedSemaphore;
-
-    LOG_MESSAGE_ASSERT(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR, "Could not acquire swapchain image: " << result);
-    return result;
-}
-
-VkResult RenderContext::Submit(const std::vector<VkCommandBuffer> &commandBuffers)
-{
-    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    submitInfo.pWaitDstStageMask = waitStages;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffers[m_imageIndex];
-
-    return vkQueueSubmit(device.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-}
-
-VkResult RenderContext::Present(bool uiVisible)
-{
-    VkSwapchainKHR swapChains[] = { swapChain.sc };
-    VkPresentInfoKHR presentInfo = {};
-    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = uiVisible ? &renderUIFinishedSemaphore : &renderFinishedSemaphore;
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = swapChains;
-    presentInfo.pImageIndices = &m_imageIndex;
-    presentInfo.pResults = nullptr;
-
-    return vkQueuePresentKHR(device.graphicsQueue, &presentInfo);
-}
-
-Math::Vector2f RenderContext::WindowSize()
-{
-    VkSurfaceCapabilitiesKHR surfaceCaps;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.physical, m_surface, &surfaceCaps);
-
-    return Math::Vector2f((float)surfaceCaps.currentExtent.width, (float)surfaceCaps.currentExtent.height);
-}
-
-bool RenderContext::RecreateSwapChain(const VkCommandPool &commandPool, const vk::RenderPass &renderPass)
-{
-    vkDeviceWaitIdle(device.logical);
-    DestroyFramebuffers();
-    DestroyImageViews();
-
-    VkSwapchainKHR oldSwapChain = swapChain.sc;
-    swapChain = vk::createSwapChain(device, m_surface, oldSwapChain);
-    vkDestroySwapchainKHR(device.logical, oldSwapChain, nullptr);
-    if (swapChain.sc == VK_NULL_HANDLE) return false;
-
-    if (!CreateImageViews()) return false;
-
-    if (m_depthBuffer.image != VK_NULL_HANDLE)
-    {
-        vmaDestroyImage(device.allocator, m_depthBuffer.image, m_depthBuffer.allocation);
-        vkDestroyImageView(device.logical, m_depthBuffer.imageView, nullptr);
-    }
-    m_depthBuffer = vk::createDepthBuffer(device, swapChain, commandPool);
-
-    if (!CreateFramebuffers(renderPass)) return false;
-
-    return true;
 }
