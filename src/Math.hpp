@@ -18,10 +18,7 @@ namespace Math
     struct Vector2f
     {
         Vector2f() {}
-
-        Vector2f(float x, float y) : m_x(x), m_y(y)
-        {
-        }
+        Vector2f(float x, float y) : m_x(x), m_y(y) {}
 
         float m_x = 0.f;
         float m_y = 0.f;
@@ -32,14 +29,8 @@ namespace Math
     {
     public:
         Vector3f() {}
-
-        Vector3f(float x, float y, float z) : m_x(x), m_y(y), m_z(z)
-        {
-        }
-
-        Vector3f(const Vector3f &v2) : m_x(v2.m_x), m_y(v2.m_y), m_z(v2.m_z)
-        {
-        }
+        Vector3f(float x, float y, float z) : m_x(x), m_y(y), m_z(z) {}
+        Vector3f(const Vector3f &v2) : m_x(v2.m_x), m_y(v2.m_y), m_z(v2.m_z) {}
 
         float Length()
         {
@@ -65,10 +56,7 @@ namespace Math
     struct Vector4f
     {
         Vector4f() {}
-
-        Vector4f(float x, float y, float z, float w) : m_x(x), m_y(y), m_z(z), m_w(w)
-        {
-        }
+        Vector4f(float x, float y, float z, float w) : m_x(x), m_y(y), m_z(z), m_w(w) {}
 
         float m_x = 0.f;
         float m_y = 0.f;
@@ -148,23 +136,14 @@ namespace Math
     {
     public:
         Quaternion() {}
-
         // create based on standard parameters
-        Quaternion(float x, float y, float z, float w) : m_x(x), m_y(y), m_z(z), m_w(w)
-        {
-        }
-
+        Quaternion(float x, float y, float z, float w) : m_x(x), m_y(y), m_z(z), m_w(w) {}
         // create from axis/angle representaiton
         Quaternion(const Vector3f &axis, float angle) : m_x( axis.m_x * sinf(angle/2) ),
                                                         m_y( axis.m_y * sinf(angle/2) ),
                                                         m_z( axis.m_z * sinf(angle/2) ),
-                                                        m_w( cosf(angle/2) )
-        {
-        }
-
-        Quaternion(const Quaternion &q2) : m_x(q2.m_x), m_y(q2.m_y), m_z(q2.m_z), m_w(q2.m_w)
-        {
-        }
+                                                        m_w( cosf(angle/2) ) {}
+        Quaternion(const Quaternion &q2) : m_x(q2.m_x), m_y(q2.m_y), m_z(q2.m_z), m_w(q2.m_w) {}
 
         Quaternion GetConjugate() const;
         void Normalize();

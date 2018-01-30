@@ -204,6 +204,14 @@ VkResult RenderContext::Present(bool uiVisible)
     return vkQueuePresentKHR(device.graphicsQueue, &presentInfo);
 }
 
+Math::Vector2f RenderContext::WindowSize()
+{
+    VkSurfaceCapabilitiesKHR surfaceCaps;
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.physical, m_surface, &surfaceCaps);
+
+    return Math::Vector2f((float)surfaceCaps.currentExtent.width, (float)surfaceCaps.currentExtent.height);
+}
+
 bool RenderContext::RecreateSwapChain(const VkCommandPool &commandPool, const vk::RenderPass &renderPass)
 {
     vkDeviceWaitIdle(device.logical);

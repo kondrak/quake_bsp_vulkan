@@ -41,6 +41,7 @@ public:
     VkResult RenderStart();
     VkResult Submit(const std::vector<VkCommandBuffer> &commandBuffers);
     VkResult Present(bool uiVisible);
+    Math::Vector2f WindowSize();
     bool RecreateSwapChain(const VkCommandPool &commandPool, const vk::RenderPass &renderPasss);
 
     SDL_Window *window = nullptr;

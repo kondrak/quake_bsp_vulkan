@@ -12,12 +12,14 @@ extern CameraDirector g_cameraDirector;
 
 void Application::OnWindowResize(int newWidth, int newHeight)
 {
-    // fast window resizes may return incorrect results for 0 height, so set a treshold
-    if (newWidth > 128 && newHeight > 128)
+    // fast window resizes return incorrect results from polled event - Vulkan surface query does it better
+    Math::Vector2f windowSize = g_renderContext.WindowSize();
+
+    if (windowSize.m_x > 0 && windowSize.m_y > 0)
     {
         m_noRedraw = false;
-        g_renderContext.width = newWidth;
-        g_renderContext.height = newHeight;
+        g_renderContext.width = (int)windowSize.m_x;
+        g_renderContext.height = (int)windowSize.m_y;
 
         m_q3map->OnWindowChanged();
         m_q3stats->OnWindowChanged();
