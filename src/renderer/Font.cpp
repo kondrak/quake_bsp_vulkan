@@ -35,7 +35,7 @@ Font::Font(const char *tex) : m_scale(1.f, 1.f), m_position(0.0f, 0.0f, 0.0f), m
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inColor, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 5));
 
     vk::createVertexBuffer(g_renderContext.device, m_commandPool, &m_charBuffer, sizeof(Glyph) * MAX_CHARS, &m_vertexBuffer);
-    CreateDescriptor(m_texture->vkTex(), &m_descriptor);
+    CreateDescriptor(*m_texture, &m_descriptor);
 
     RebuildPipeline();
     VK_VERIFY(vk::createCommandBuffers(g_renderContext.device, m_commandPool, m_commandBuffers, g_renderContext.frameBuffers.size()));

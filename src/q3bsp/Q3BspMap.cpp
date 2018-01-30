@@ -509,7 +509,7 @@ void Q3BspMap::CreateBuffersForFace(const Q3BspFaceLump &face, int idx)
     // app specific: vertex buffer and index buffer with staging buffer
     vk::createVertexBuffer(g_renderContext.device, m_commandPool, &(vertices[face.vertex].position), sizeof(Q3BspVertexLump) * face.n_vertexes, &m_renderBuffers.m_faceBuffers[idx].vertexBuffer);
     vk::createIndexBuffer(g_renderContext.device, m_commandPool, &meshVertices[face.meshvert], sizeof(Q3BspMeshVertLump) * face.n_meshverts, &m_renderBuffers.m_faceBuffers[idx].indexBuffer);
-    const vk::Texture *colorTex = m_textures[faces[idx].texture] ? m_textures[faces[idx].texture]->vkTex() : m_missingTex->vkTex();
+    const vk::Texture *colorTex = m_textures[faces[idx].texture] ? *m_textures[faces[idx].texture] : *m_missingTex;
     const vk::Texture lmap = faces[idx].lm_index >= 0 ? m_lightmapTextures[faces[idx].lm_index] : m_whiteTex;
 
     const vk::Texture *textureSet[2] = { colorTex, &lmap };
@@ -537,7 +537,7 @@ void Q3BspMap::CreateBuffersForPatch(int idx)
             // app specific: vertex buffer and index buffer with staging buffer
             vk::createVertexBuffer(g_renderContext.device, m_commandPool, &(m_patches[idx]->quadraticPatches[i].m_vertices[0].position), sizeof(Q3BspVertexLump) * numVerts, &m_renderBuffers.m_patchBuffers[idx].back().vertexBuffer);
             vk::createIndexBuffer(g_renderContext.device, m_commandPool, &m_patches[idx]->quadraticPatches[i].m_indices[row * 2 * (tessLevel + 1)], sizeof(Q3BspMeshVertLump) * 2 * (tessLevel + 1), &m_renderBuffers.m_patchBuffers[idx].back().indexBuffer);
-            const vk::Texture *colorTex = m_textures[m_patches[idx]->textureIdx] ? m_textures[m_patches[idx]->textureIdx]->vkTex() : m_missingTex->vkTex();
+            const vk::Texture *colorTex = m_textures[m_patches[idx]->textureIdx] ? *m_textures[m_patches[idx]->textureIdx] : *m_missingTex;
             const vk::Texture lmap = m_patches[idx]->lightmapIdx >= 0 ? m_lightmapTextures[m_patches[idx]->lightmapIdx] : m_whiteTex;
 
             const vk::Texture *textureSet[] = { colorTex, &lmap };

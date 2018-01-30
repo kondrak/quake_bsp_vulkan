@@ -12,9 +12,11 @@ class GameTexture
 public:
     friend class TextureManager;
 
-    const int Width()      const { return m_width; }
-    const int Height()     const { return m_height; }
-    const vk::Texture *vkTex() const { return &m_vkTexture; }
+    const int Width()  const { return m_width; }
+    const int Height() const { return m_height; }
+
+    // implicit conversion to vk::Texture* for fast reference to Vulkan image
+    operator const vk::Texture*() const { return &m_vkTexture; }
 private:
     GameTexture(const char *filename);
     ~GameTexture();
