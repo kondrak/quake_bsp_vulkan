@@ -194,7 +194,6 @@ bool Q3BspMap::ClusterVisible(int cameraCluster, int testCluster) const
     return (visData.vecs[idx] & (1 << (testCluster & 7))) != 0;
 }
 
-
 // determine which bsp leaf camera resides in
 int Q3BspMap::FindCameraLeaf(const Math::Vector3f & cameraPosition) const
 {
@@ -203,11 +202,11 @@ int Q3BspMap::FindCameraLeaf(const Math::Vector3f & cameraPosition) const
     while (leafIndex >= 0)
     {
         // children.x - front node; children.y - back node
-        if(PointPlanePos( planes[nodes[leafIndex].plane].normal.x,
+        if (PointPlanePos(planes[nodes[leafIndex].plane].normal.x,
                           planes[nodes[leafIndex].plane].normal.y,
                           planes[nodes[leafIndex].plane].normal.z,
                           planes[nodes[leafIndex].plane].dist, 
-                          cameraPosition ) == Math::PointInFrontOfPlane )
+                          cameraPosition ) == Math::PointInFrontOfPlane)
         {
             leafIndex = nodes[leafIndex].children.x;
         }

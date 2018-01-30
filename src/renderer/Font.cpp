@@ -16,8 +16,9 @@ static const float CHAR_SPACING = 1.5f;
 
 Font::Font(const char *tex) : m_scale(1.f, 1.f), m_position(0.0f, 0.0f, 0.0f), m_color(1.f, 1.f, 1.f)
 {
-    m_pipeline.cullMode = VK_CULL_MODE_NONE;
-    m_pipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+    // characters are rendered as alpha blended triangle strips with no culling
+    m_pipeline.cullMode  = VK_CULL_MODE_NONE;
+    m_pipeline.topology  = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     m_pipeline.blendMode = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
     m_pipeline.depthTestEnable = VK_FALSE;
     // do not clear frame buffers when rendering text
@@ -51,12 +52,6 @@ Font::~Font()
     vk::destroyRenderPass(g_renderContext.device, m_renderPass);
     vk::freeCommandBuffers(g_renderContext.device, m_commandPool, m_commandBuffers);
     vkDestroyCommandPool(g_renderContext.device.logical, m_commandPool, nullptr);
-}
-
-void Font::OnWindowChanged()
-{
-    // swapchain is recreated by bsp, so here we only need to update the pipeline
-    RebuildPipeline();
 }
 
 void Font::RenderText(const std::string &text, float x, float y, float z, float r, float g, float b)
@@ -121,6 +116,16 @@ void Font::RenderFinish()
     VK_VERIFY(g_renderContext.Submit(m_commandBuffers));
 }
 
+void Font::RebuildPipeline()
+{
+    vkDeviceWaitIdle(g_renderContext.device.logical);
+    vk::destroyPipeline(g_renderContext.device, m_pipeline);
+
+    // todo: pipeline derivatives https://github.com/SaschaWillems/Vulkan/blob/master/examples/pipelines/pipelines.cpp
+    const char *shaders[] = { "res/Font_vert.spv", "res/Font_frag.spv" };
+    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, &m_vbInfo, &m_descriptor.setLayout, &m_pipeline, shaders));
+}
+
 void Font::DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int offset, const Math::Vector3f &color)
 {
     Math::Matrix4f texMatrix, mvMatrix;
@@ -151,16 +156,6 @@ void Font::DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int
     }
 }
 
-void Font::RebuildPipeline()
-{
-    vkDeviceWaitIdle(g_renderContext.device.logical);
-    vk::destroyPipeline(g_renderContext.device, m_pipeline);
-
-    // todo: pipeline derivatives https://github.com/SaschaWillems/Vulkan/blob/master/examples/pipelines/pipelines.cpp
-    const char *shaders[] = { "res/Font_vert.spv", "res/Font_frag.spv" };
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, &m_vbInfo, &m_descriptor.setLayout, &m_pipeline, shaders));
-}
-
 void Font::RecordCommandBuffers()
 {
     for (size_t i = 0; i < m_commandBuffers.size(); ++i)
@@ -188,7 +183,7 @@ void Font::RecordCommandBuffers()
         vkCmdBeginRenderPass(m_commandBuffers[i], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.pipeline);
 
-        // queue characters
+        // queue all pending characters
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_vertexBuffer.buffer, offsets);
         vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.layout, 0, 1, &m_descriptor.set, 0, nullptr);

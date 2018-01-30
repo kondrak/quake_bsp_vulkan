@@ -105,5 +105,5 @@ void Q3StatsUI::OnRender()
 
 void Q3StatsUI::OnWindowChanged()
 {
-    m_font->OnWindowChanged();
+    m_font->RebuildPipeline();
 }
