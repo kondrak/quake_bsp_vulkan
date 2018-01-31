@@ -6,6 +6,10 @@
 
 class GameTexture;
 
+/*
+ * Basic bitmap font
+ */
+
 class Font
 {
 public:

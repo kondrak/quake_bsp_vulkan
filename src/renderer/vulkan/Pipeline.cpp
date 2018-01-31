@@ -4,6 +4,12 @@
 
 namespace vk
 {
+    struct ShaderProgram
+    {
+        VkShaderModule vertShader = VK_NULL_HANDLE;
+        VkShaderModule fragShader = VK_NULL_HANDLE;
+    };
+
     static VkShaderModule createShaderModule(const Device &device, const uint32_t *shaderSrc, size_t codeSize)
     {
         VkShaderModule shaderModule = VK_NULL_HANDLE;
@@ -194,12 +200,10 @@ namespace vk
         pCreateInfo.basePipelineIndex = -1;
 
         VkResult pResult = vkCreateGraphicsPipelines(device.logical, VK_NULL_HANDLE, 1, &pCreateInfo, nullptr, &pipeline->pipeline);
-        if (pResult != VK_SUCCESS)
-            return pResult;
-
         vkDestroyShaderModule(device.logical, shader.vertShader, nullptr);
         vkDestroyShaderModule(device.logical, shader.fragShader, nullptr);
-        return VK_SUCCESS;
+
+        return pResult;
     }
 
     void destroyPipeline(const Device &device, Pipeline &pipeline)

@@ -25,12 +25,6 @@ namespace vk
         VkAttachmentLoadOp colorLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     };
 
-    struct ShaderProgram
-    {
-        VkShaderModule vertShader = VK_NULL_HANDLE;
-        VkShaderModule fragShader = VK_NULL_HANDLE;
-    };
-
 
     VkResult createPipeline(const Device &device, const SwapChain &swapChain, const RenderPass &renderPass, const VertexBufferInfo *vbInfo, const VkDescriptorSetLayout *descriptorLayout, Pipeline *pipeline, const char **shaders);
     void     destroyPipeline(const Device &device, Pipeline &pipeline);

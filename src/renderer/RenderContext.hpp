@@ -45,6 +45,8 @@ public:
     bool RecreateSwapChain(const VkCommandPool &commandPool, const vk::RenderPass &renderPasss);
 
     SDL_Window *window = nullptr;
+
+    // Vulkan global objects
     vk::Device device;
     vk::SwapChain swapChain;
     std::vector<VkFramebuffer> frameBuffers;

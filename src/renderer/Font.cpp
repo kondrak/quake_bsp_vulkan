@@ -26,14 +26,18 @@ Font::Font(const char *tex) : m_scale(1.f, 1.f), m_position(0.0f, 0.0f, 0.0f), m
 
     VK_VERIFY(vk::createRenderPass(g_renderContext.device, g_renderContext.swapChain, &m_renderPass));
     VK_VERIFY(vk::createCommandPool(g_renderContext.device, &m_commandPool));
+
+    // load font texture
     m_texture = TextureManager::GetInstance()->LoadTexture(tex, m_commandPool, false);
     LOG_MESSAGE_ASSERT(m_texture, "Could not load font texture: " << tex);
 
+    // setup vertex attributes
     m_vbInfo.bindingDescriptions.push_back(vk::getBindingDescription(sizeof(GlyphVertex)));
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inVertex, VK_FORMAT_R32G32B32_SFLOAT, 0));
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inTexCoord, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3));
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inColor, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 5));
 
+    // create vertex buffer and Vulkan descriptor
     vk::createVertexBuffer(g_renderContext.device, m_commandPool, &m_charBuffer, sizeof(Glyph) * MAX_CHARS, &m_vertexBuffer);
     CreateDescriptor(*m_texture, &m_descriptor);
 
@@ -97,6 +101,7 @@ void Font::RenderText(const std::string &text, const Math::Vector3f &position, c
 
 void Font::RenderStart()
 {
+    // reset character counter and start mapping vertex buffer memory
     m_charCount = 0;
     vmaMapMemory(g_renderContext.device.allocator, m_vertexBuffer.allocation, (void**)&m_mappedData);
 }

@@ -502,21 +502,23 @@ void Q3BspMap::CreateBuffersForFace(const Q3BspFaceLump &face, int idx)
     if (face.type == FaceTypeBillboard)
         return;
 
-    m_renderBuffers.m_faceBuffers[idx].descriptor.setLayout = m_dsLayout;
+    auto &faceBuffer = m_renderBuffers.m_faceBuffers[idx];
+    faceBuffer.descriptor.setLayout = m_dsLayout;
+    faceBuffer.vertexCount = face.n_vertexes;
+    faceBuffer.indexCount  = face.n_meshverts;
 
-    // app specific: vertex buffer and index buffer with staging buffer
-    vk::createVertexBuffer(g_renderContext.device, m_commandPool, &(vertices[face.vertex].position), sizeof(Q3BspVertexLump) * face.n_vertexes, &m_renderBuffers.m_faceBuffers[idx].vertexBuffer);
-    vk::createIndexBuffer(g_renderContext.device, m_commandPool, &meshVertices[face.meshvert], sizeof(Q3BspMeshVertLump) * face.n_meshverts, &m_renderBuffers.m_faceBuffers[idx].indexBuffer);
+    // vertex buffer and index buffer with staging buffer
+    vk::createVertexBuffer(g_renderContext.device, m_commandPool,
+                           &(vertices[face.vertex].position), sizeof(Q3BspVertexLump) * face.n_vertexes, &faceBuffer.vertexBuffer);
+     vk::createIndexBuffer(g_renderContext.device, m_commandPool,
+                           &meshVertices[face.meshvert], sizeof(Q3BspMeshVertLump) * face.n_meshverts, &faceBuffer.indexBuffer);
+    // check if both the texture and lightmap exist and if not - replace them with missing/white texture stubs
     const vk::Texture *colorTex = m_textures[faces[idx].texture] ? *m_textures[faces[idx].texture] : *m_missingTex;
     const vk::Texture lmap = faces[idx].lm_index >= 0 ? m_lightmapTextures[faces[idx].lm_index] : m_whiteTex;
 
     const vk::Texture *textureSet[2] = { colorTex, &lmap };
-    CreateDescriptor(textureSet, &m_renderBuffers.m_faceBuffers[idx].descriptor);
-
-    m_renderBuffers.m_faceBuffers[idx].vertexCount = face.n_vertexes;
-    m_renderBuffers.m_faceBuffers[idx].indexCount = face.n_meshverts;
+    CreateDescriptor(textureSet, &faceBuffer.descriptor);
 }
-
 
 void Q3BspMap::CreateBuffersForPatch(int idx)
 {
@@ -524,25 +526,34 @@ void Q3BspMap::CreateBuffersForPatch(int idx)
 
     for (int i = 0; i < numPatches; i++)
     {
-        int numVerts = m_patches[idx]->quadraticPatches[i].m_vertices.size();
+        // shorthand references so the code is easier to read
+        auto *patch       = m_patches[idx];
+        auto &biquadPatch = patch->quadraticPatches[i];
+        auto &patchBuffer = m_renderBuffers.m_patchBuffers[idx];
+        int numVerts  = biquadPatch.m_vertices.size();
+        int tessLevel = biquadPatch.m_tesselationLevel;
 
-        int tessLevel = m_patches[idx]->quadraticPatches[i].m_tesselationLevel;
         for (int row = 0; row < tessLevel; ++row)
         {
-            m_renderBuffers.m_patchBuffers[idx].push_back(FaceBuffers());
-            m_renderBuffers.m_patchBuffers[idx].back().descriptor.setLayout = m_dsLayout;
+            FaceBuffers pb;
+            pb.descriptor.setLayout = m_dsLayout;
+            pb.vertexCount = numVerts;
+            pb.indexCount  = 2 * (tessLevel + 1);
 
-            // app specific: vertex buffer and index buffer with staging buffer
-            vk::createVertexBuffer(g_renderContext.device, m_commandPool, &(m_patches[idx]->quadraticPatches[i].m_vertices[0].position), sizeof(Q3BspVertexLump) * numVerts, &m_renderBuffers.m_patchBuffers[idx].back().vertexBuffer);
-            vk::createIndexBuffer(g_renderContext.device, m_commandPool, &m_patches[idx]->quadraticPatches[i].m_indices[row * 2 * (tessLevel + 1)], sizeof(Q3BspMeshVertLump) * 2 * (tessLevel + 1), &m_renderBuffers.m_patchBuffers[idx].back().indexBuffer);
-            const vk::Texture *colorTex = m_textures[m_patches[idx]->textureIdx] ? *m_textures[m_patches[idx]->textureIdx] : *m_missingTex;
-            const vk::Texture lmap = m_patches[idx]->lightmapIdx >= 0 ? m_lightmapTextures[m_patches[idx]->lightmapIdx] : m_whiteTex;
+            // vertex buffer and index buffer with staging buffer
+            vk::createVertexBuffer(g_renderContext.device, m_commandPool,
+                                   &biquadPatch.m_vertices[0].position, sizeof(Q3BspVertexLump) * numVerts, &pb.vertexBuffer);
+             vk::createIndexBuffer(g_renderContext.device, m_commandPool,
+                                   &biquadPatch.m_indices[row * 2 * (tessLevel + 1)], sizeof(Q3BspMeshVertLump) * 2 * (tessLevel + 1), &pb.indexBuffer);
+            // check if both the texture and lightmap exist and if not - replace them with missing/white texture stubs
+            const vk::Texture *colorTex = m_textures[patch->textureIdx] ? *m_textures[patch->textureIdx] : *m_missingTex;
+            const vk::Texture lmap = patch->lightmapIdx >= 0 ? m_lightmapTextures[patch->lightmapIdx] : m_whiteTex;
 
+            // create Vulkan descriptor
             const vk::Texture *textureSet[] = { colorTex, &lmap };
-            CreateDescriptor(textureSet, &m_renderBuffers.m_patchBuffers[idx].back().descriptor);
+            CreateDescriptor(textureSet, &pb.descriptor);
 
-            m_renderBuffers.m_patchBuffers[idx].back().vertexCount = numVerts;
-            m_renderBuffers.m_patchBuffers[idx].back().indexCount = 2 * (tessLevel + 1);
+            patchBuffer.emplace_back(pb);
         }
     }
 }
