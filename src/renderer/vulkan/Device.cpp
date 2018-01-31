@@ -32,7 +32,7 @@ namespace vk
     static void getSwapChainInfo(const VkPhysicalDevice devices, const VkSurfaceKHR &surface, SwapChainInfo *scInfo);
     static void getSwapSurfaceFormat(const SwapChainInfo &scInfo, VkSurfaceFormatKHR *surfaceFormat);
     static void getSwapPresentMode(const SwapChainInfo &scInfo, VkPresentModeKHR *presentMode);
-    static void getSwapExtent(const SwapChainInfo &scInfo, VkExtent2D *swapExtent);
+    static void getSwapExtent(const SwapChainInfo &scInfo, VkExtent2D *swapExtent, const VkExtent2D &currentSize);
 
     Device createDevice(const VkInstance &instance, const VkSurfaceKHR &surface)
     {
@@ -52,10 +52,11 @@ namespace vk
         VkSurfaceFormatKHR surfaceFormat = {};
         VkPresentModeKHR presentMode = {};
         VkExtent2D extent = {};
+        VkExtent2D currentSize = { swapChain->extent.width, swapChain->extent.height };
         getSwapChainInfo(device.physical, surface, &scInfo);
         getSwapSurfaceFormat(scInfo, &surfaceFormat);
         getSwapPresentMode(scInfo, &presentMode);
-        getSwapExtent(scInfo, &extent);
+        getSwapExtent(scInfo, &extent, currentSize);
 
         // add 1 if going for triple buffering
         uint32_t imageCount = scInfo.surfaceCaps.minImageCount;
@@ -314,7 +315,7 @@ namespace vk
         }
     }
 
-    void getSwapExtent(const SwapChainInfo &scInfo, VkExtent2D *swapExtent)
+    void getSwapExtent(const SwapChainInfo &scInfo, VkExtent2D *swapExtent, const VkExtent2D &currentSize)
     {
 #undef min
 #undef max
@@ -324,9 +325,9 @@ namespace vk
             return;
         }
 
-        // special case when w/h are set to max uint32_t for some WMs - hardcoded FullHD resolution
-        swapExtent->width  = std::max(scInfo.surfaceCaps.minImageExtent.width, std::min(scInfo.surfaceCaps.maxImageExtent.width, (uint32_t)1920));
-        swapExtent->height = std::max(scInfo.surfaceCaps.minImageExtent.height, std::min(scInfo.surfaceCaps.maxImageExtent.height, (uint32_t)1080));
-        LOG_MESSAGE_ASSERT(false, "WM sets extend width and height to max uint32!");
+        // special case when w/h are set to max uint32_t for some WMs - compare against current window size
+        swapExtent->width  = std::max(scInfo.surfaceCaps.minImageExtent.width,  std::min(scInfo.surfaceCaps.maxImageExtent.width,  currentSize.width));
+        swapExtent->height = std::max(scInfo.surfaceCaps.minImageExtent.height, std::min(scInfo.surfaceCaps.maxImageExtent.height, currentSize.height));
+        LOG_MESSAGE("WM sets extent width and height to max uint32!");
     }
 }

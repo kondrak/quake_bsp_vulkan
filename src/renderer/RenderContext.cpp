@@ -10,10 +10,10 @@ bool RenderContext::Init(const char *title, int x, int y, int w, int h)
 {
     window = SDL_CreateWindow(title, x, y, w, h, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
 
+    SDL_GetWindowSize(window, &width, &height);
+
     if (!InitVulkan())
         return false;
-
-    SDL_GetWindowSize(window, &width, &height);
 
     halfWidth  = width  >> 1;
     halfHeight = height >> 1;
@@ -118,6 +118,8 @@ Math::Vector2f RenderContext::WindowSize()
     {
 #undef min
 #undef max
+        // fetch current window width and height from SDL, since we can't rely on WM in this case
+        SDL_GetWindowSize(window, &width, &height);
         float w = (float)std::max(surfaceCaps.minImageExtent.width,  std::min(surfaceCaps.maxImageExtent.width,  (uint32_t)width));
         float h = (float)std::max(surfaceCaps.minImageExtent.height, std::min(surfaceCaps.maxImageExtent.height, (uint32_t)height));
         return Math::Vector2f(w, h);
@@ -132,6 +134,8 @@ bool RenderContext::RecreateSwapChain(const VkCommandPool &commandPool, const vk
     DestroyFramebuffers();
     DestroyImageViews();
 
+    // set initial swap chain extent to current window size - in case WM won't be able to determine it by itself
+    swapChain.extent = { (uint32_t)width, (uint32_t)height };
     VK_VERIFY(vk::createSwapChain(device, m_surface, &swapChain, swapChain.sc));
 
     DestroyDepthBuffer();
@@ -151,6 +155,8 @@ bool RenderContext::InitVulkan()
 
     device = vk::createDevice(m_instance, m_surface);
     VK_VERIFY(vk::createAllocator(device, &device.allocator));
+    // set initial swap chain extent to current window size - in case WM won't be able to determine it by itself
+    swapChain.extent = { (uint32_t)width, (uint32_t)height };
     VK_VERIFY(vk::createSwapChain(device, m_surface, &swapChain, VK_NULL_HANDLE));
 
     if (!CreateImageViews()) return false;

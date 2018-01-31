@@ -18,8 +18,13 @@ void Application::OnWindowResize(int newWidth, int newHeight)
     if (windowSize.m_x > 0 && windowSize.m_y > 0)
     {
         m_noRedraw = false;
-        g_renderContext.width = (int)windowSize.m_x;
+        g_renderContext.width  = (int)windowSize.m_x;
         g_renderContext.height = (int)windowSize.m_y;
+        g_renderContext.halfWidth  = g_renderContext.width >> 1;
+        g_renderContext.halfHeight = g_renderContext.height >> 1;
+        g_renderContext.scrRatio = (float)windowSize.m_x / (float)windowSize.m_y;
+        g_renderContext.left  = -g_renderContext.scrRatio;
+        g_renderContext.right =  g_renderContext.scrRatio;
 
         m_q3map->OnWindowChanged();
         m_q3stats->OnWindowChanged();
