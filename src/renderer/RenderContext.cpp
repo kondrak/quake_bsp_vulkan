@@ -4,6 +4,7 @@
 #include "renderer/vulkan/Validation.hpp"
 #include "renderer/TextureManager.hpp"
 #include "Utils.hpp"
+#include <algorithm>
 
 bool RenderContext::Init(const char *title, int x, int y, int w, int h)
 {
@@ -110,6 +111,17 @@ Math::Vector2f RenderContext::WindowSize()
 {
     VkSurfaceCapabilitiesKHR surfaceCaps;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.physical, m_surface, &surfaceCaps);
+    LOG_MESSAGE_ASSERT(surfaceCaps.currentExtent.width != std::numeric_limits<uint32_t>::max(), "WM sets extent width and height to max uint32!");
+
+    // fallback if WM sets extent dimensions to max uint32
+    if (surfaceCaps.currentExtent.width == std::numeric_limits<uint32_t>::max())
+    {
+#undef min
+#undef max
+        float w = (float)std::max(surfaceCaps.minImageExtent.width,  std::min(surfaceCaps.maxImageExtent.width,  (uint32_t)width));
+        float h = (float)std::max(surfaceCaps.minImageExtent.height, std::min(surfaceCaps.maxImageExtent.height, (uint32_t)height));
+        return Math::Vector2f(w, h);
+    }
 
     return Math::Vector2f((float)surfaceCaps.currentExtent.width, (float)surfaceCaps.currentExtent.height);
 }

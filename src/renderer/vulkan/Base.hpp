@@ -35,9 +35,9 @@ namespace vk
     // Vulkan device
     struct Device
     {
-        VkPhysicalDevice physical = VK_NULL_HANDLE;
-        VkDevice logical = VK_NULL_HANDLE;
-        VmaAllocator allocator = VK_NULL_HANDLE;
+        VkPhysicalDevice physical  = VK_NULL_HANDLE;
+        VkDevice         logical   = VK_NULL_HANDLE;
+        VmaAllocator     allocator = VK_NULL_HANDLE;
 
         VkQueue graphicsQueue = VK_NULL_HANDLE;
         VkQueue presentQueue  = VK_NULL_HANDLE;

@@ -323,7 +323,10 @@ namespace vk
             *swapExtent = scInfo.surfaceCaps.currentExtent;
             return;
         }
-        // special case when w/h are set to max uint32_t for some WMs
-        LOG_MESSAGE_ASSERT(false, "Oh no");
+
+        // special case when w/h are set to max uint32_t for some WMs - hardcoded FullHD resolution
+        swapExtent->width  = std::max(scInfo.surfaceCaps.minImageExtent.width, std::min(scInfo.surfaceCaps.maxImageExtent.width, (uint32_t)1920));
+        swapExtent->height = std::max(scInfo.surfaceCaps.minImageExtent.height, std::min(scInfo.surfaceCaps.maxImageExtent.height, (uint32_t)1080));
+        LOG_MESSAGE_ASSERT(false, "WM sets extend width and height to max uint32!");
     }
 }

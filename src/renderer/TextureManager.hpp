@@ -4,6 +4,10 @@
 #include "renderer/GameTexture.hpp"
 #include <map>
 
+/*
+ * Container class for loading/releasing textures
+ */
+
 class TextureManager
 {
 public:

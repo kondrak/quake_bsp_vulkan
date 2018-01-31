@@ -55,8 +55,8 @@ struct RenderBuffers
 {
     vk::Buffer uniformBuffer;
 
-    std::map< int, FaceBuffers > m_faceBuffers;
-    std::map< int, std::vector<FaceBuffers> > m_patchBuffers;
+    std::map<int, FaceBuffers> m_faceBuffers;
+    std::map<int, std::vector<FaceBuffers> > m_patchBuffers;
 };
 
 

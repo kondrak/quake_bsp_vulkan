@@ -107,7 +107,7 @@ void Q3BspMap::Init()
 
     m_renderFaces.reserve(faces.size());
 
-    // create a common descriptor layout set and vertex buffer info
+    // create a common descriptor set layout and vertex buffer info
     m_vbInfo.bindingDescriptions.push_back(vk::getBindingDescription(sizeof(Q3BspVertexLump)));
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inVertex, VK_FORMAT_R32G32B32_SFLOAT, 0));
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inTexCoord, VK_FORMAT_R32G32_SFLOAT, sizeof(vec3f)));
@@ -168,6 +168,7 @@ void Q3BspMap::OnRender()
     memcpy(data, &m_ubo, sizeof(m_ubo));
     vmaUnmapMemory(g_renderContext.device.allocator, m_renderBuffers.uniformBuffer.allocation);
 
+    // record new set of command buffers including only visible faces and patches
     RecordCommandBuffers();
 
     // render visible faces

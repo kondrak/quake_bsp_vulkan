@@ -38,10 +38,15 @@ public:
     bool Init(const char *title, int x, int y, int w, int h);
     void Destroy();
 
+    // start rendering frame and setup all necessary structs
     VkResult RenderStart();
+    // command buffer submission to render queue
     VkResult Submit(const std::vector<VkCommandBuffer> &commandBuffers);
+    // render queue presentation
     VkResult Present(bool uiVisible);
+    // fetch current renderable surface size directly from Vulkan surface
     Math::Vector2f WindowSize();
+    // rebuild entire swap chain
     bool RecreateSwapChain(const VkCommandPool &commandPool, const vk::RenderPass &renderPasss);
 
     SDL_Window *window = nullptr;

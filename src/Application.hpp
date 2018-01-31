@@ -51,7 +51,7 @@ private:
     StatsUI *m_q3stats = nullptr; // map stats UI
     uint8_t  m_debugRenderState = RenderMapStats;
 
-    std::map< KeyCode, bool > m_keyStates;
+    std::map<KeyCode, bool> m_keyStates;
 };
 
 #endif
