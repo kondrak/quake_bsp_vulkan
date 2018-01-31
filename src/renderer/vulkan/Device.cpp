@@ -52,7 +52,7 @@ namespace vk
         VkSurfaceFormatKHR surfaceFormat = {};
         VkPresentModeKHR presentMode = {};
         VkExtent2D extent = {};
-        VkExtent2D currentSize = { swapChain->extent.width, swapChain->extent.height };
+        VkExtent2D currentSize = swapChain->extent;
         getSwapChainInfo(device.physical, surface, &scInfo);
         getSwapSurfaceFormat(scInfo, &surfaceFormat);
         getSwapPresentMode(scInfo, &presentMode);
