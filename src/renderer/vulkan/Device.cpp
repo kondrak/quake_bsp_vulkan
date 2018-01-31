@@ -46,9 +46,8 @@ namespace vk
         return device;
     }
 
-    SwapChain createSwapChain(const Device &device, const VkSurfaceKHR &surface, const VkSwapchainKHR &oldSwapchain)
+    VkResult createSwapChain(const Device &device, const VkSurfaceKHR &surface, SwapChain *swapChain, VkSwapchainKHR oldSwapchain)
     {
-        SwapChain swapChain;
         SwapChainInfo scInfo = {};
         VkSurfaceFormatKHR surfaceFormat = {};
         VkPresentModeKHR presentMode = {};
@@ -88,17 +87,22 @@ namespace vk
         scCreateInfo.clipped = VK_TRUE;
         scCreateInfo.oldSwapchain = oldSwapchain;
 
-        VK_VERIFY(vkCreateSwapchainKHR(device.logical, &scCreateInfo, nullptr, &swapChain.sc));
-        swapChain.format = surfaceFormat.format;
-        swapChain.extent = extent;
+        VK_VERIFY(vkCreateSwapchainKHR(device.logical, &scCreateInfo, nullptr, &swapChain->sc));
+        swapChain->format = surfaceFormat.format;
+        swapChain->extent = extent;
 
         // retrieve swap chain images
-        VK_VERIFY(vkGetSwapchainImagesKHR(device.logical, swapChain.sc, &imageCount, nullptr));
+        VK_VERIFY(vkGetSwapchainImagesKHR(device.logical, swapChain->sc, &imageCount, nullptr));
         LOG_MESSAGE_ASSERT(imageCount != 0, "No available images in the swap chain?");
-        swapChain.images.resize(imageCount);
-        VK_VERIFY(vkGetSwapchainImagesKHR(device.logical, swapChain.sc, &imageCount, swapChain.images.data()));
+        swapChain->images.resize(imageCount);
 
-        return swapChain;
+        VkResult result = vkGetSwapchainImagesKHR(device.logical, swapChain->sc, &imageCount, swapChain->images.data());
+
+        // release old swap chain if it was specified
+        if(oldSwapchain != VK_NULL_HANDLE)
+            vkDestroySwapchainKHR(device.logical, oldSwapchain, nullptr);
+
+        return result;
     }
 
     VkResult selectPhysicalDevice(const VkInstance &instance, const VkSurfaceKHR &surface, Device *device)

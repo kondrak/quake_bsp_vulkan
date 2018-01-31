@@ -17,6 +17,6 @@ namespace vk
     };
 
 
-    Device    createDevice(const VkInstance &instance, const VkSurfaceKHR &surface);
-    SwapChain createSwapChain(const Device &device, const VkSurfaceKHR &surface, const VkSwapchainKHR &oldSwapchain);
+    Device   createDevice(const VkInstance &instance, const VkSurfaceKHR &surface);
+    VkResult createSwapChain(const Device &device, const VkSurfaceKHR &surface, SwapChain *swapChain, VkSwapchainKHR oldSwapchain);
 }

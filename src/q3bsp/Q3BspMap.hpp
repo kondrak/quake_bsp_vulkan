@@ -93,7 +93,7 @@ private:
     std::vector<VkCommandBuffer> m_commandBuffers;
 
     // all faces and patches use shared vertex buffer info and descriptor set layout
-    vk::VertexBufferInfo m_vbInfo;
+    vk::VertexBufferInfo  m_vbInfo;
     VkDescriptorSetLayout m_dsLayout;
 };
 

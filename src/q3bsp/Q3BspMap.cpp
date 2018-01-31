@@ -112,8 +112,6 @@ void Q3BspMap::Init()
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inVertex, VK_FORMAT_R32G32B32_SFLOAT, 0));
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inTexCoord, VK_FORMAT_R32G32_SFLOAT, sizeof(vec3f)));
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inTexCoordLightmap, VK_FORMAT_R32G32_SFLOAT, sizeof(vec3f) + sizeof(vec2f)));
-
-    // descriptor set layout is common for the entire BSP
     CreateDescriptorSetLayout();
 
     // single shared uniform buffer
@@ -132,7 +130,7 @@ void Q3BspMap::Init()
             m_renderFaces.back().index = patchArrayIdx;
             CreatePatch(f);
 
-            // generate necessary VBOs for current patch
+            // generate Vulkan buffers for current patch
             CreateBuffersForPatch(patchArrayIdx);
             ++patchArrayIdx;
         }
@@ -140,7 +138,7 @@ void Q3BspMap::Init()
         {
             m_renderFaces.back().index = faceArrayIdx;
 
-            // generate necessary VBOs for current face
+            // generate Vulkan buffers for current face
             CreateBuffersForFace(f, faceArrayIdx);
         }
 
@@ -163,7 +161,7 @@ void Q3BspMap::OnRender()
 {
     // update uniform buffers
     m_ubo.ModelViewProjectionMatrix = g_renderContext.ModelViewProjectionMatrix;
-    m_frustum.OnRender();
+    m_frustum.UpdatePlanes();
 
     void *data;
     vmaMapMemory(g_renderContext.device.allocator, m_renderBuffers.uniformBuffer.allocation, &data);

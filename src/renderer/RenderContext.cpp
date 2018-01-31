@@ -41,11 +41,7 @@ void RenderContext::Destroy()
         vkDeviceWaitIdle(device.logical);
         DestroyFramebuffers();
         DestroyImageViews();
-        if (m_depthBuffer.image != VK_NULL_HANDLE)
-        {
-            vmaDestroyImage(device.allocator, m_depthBuffer.image, m_depthBuffer.allocation);
-            vkDestroyImageView(device.logical, m_depthBuffer.imageView, nullptr);
-        }
+        DestroyDepthBuffer();
 
         TextureManager::GetInstance()->ReleaseTextures();
 
@@ -124,20 +120,11 @@ bool RenderContext::RecreateSwapChain(const VkCommandPool &commandPool, const vk
     DestroyFramebuffers();
     DestroyImageViews();
 
-    VkSwapchainKHR oldSwapChain = swapChain.sc;
-    swapChain = vk::createSwapChain(device, m_surface, oldSwapChain);
-    vkDestroySwapchainKHR(device.logical, oldSwapChain, nullptr);
-    if (swapChain.sc == VK_NULL_HANDLE) return false;
+    VK_VERIFY(vk::createSwapChain(device, m_surface, &swapChain, swapChain.sc));
 
+    DestroyDepthBuffer();
+    CreateDepthBuffer(commandPool);
     if (!CreateImageViews()) return false;
-
-    if (m_depthBuffer.image != VK_NULL_HANDLE)
-    {
-        vmaDestroyImage(device.allocator, m_depthBuffer.image, m_depthBuffer.allocation);
-        vkDestroyImageView(device.logical, m_depthBuffer.imageView, nullptr);
-    }
-    m_depthBuffer = vk::createDepthBuffer(device, swapChain, commandPool);
-
     if (!CreateFramebuffers(renderPass)) return false;
 
     return true;
@@ -152,14 +139,26 @@ bool RenderContext::InitVulkan()
 
     device = vk::createDevice(m_instance, m_surface);
     VK_VERIFY(vk::createAllocator(device, &device.allocator));
-
-    swapChain = vk::createSwapChain(device, m_surface, VK_NULL_HANDLE);
-    if (swapChain.sc == VK_NULL_HANDLE) return false;
+    VK_VERIFY(vk::createSwapChain(device, m_surface, &swapChain, VK_NULL_HANDLE));
 
     if (!CreateImageViews()) return false;
     CreateSemaphores();
 
     return true;
+}
+
+void RenderContext::CreateDepthBuffer(const VkCommandPool &commandPool)
+{
+    m_depthBuffer = vk::createDepthBuffer(device, swapChain, commandPool);
+}
+
+void RenderContext::DestroyDepthBuffer()
+{
+    if (m_depthBuffer.image != VK_NULL_HANDLE)
+    {
+        vmaDestroyImage(device.allocator, m_depthBuffer.image, m_depthBuffer.allocation);
+        vkDestroyImageView(device.logical, m_depthBuffer.imageView, nullptr);
+    }
 }
 
 bool RenderContext::CreateImageViews()

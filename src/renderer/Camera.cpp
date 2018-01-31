@@ -30,7 +30,7 @@ Camera::Camera(const Math::Vector3f &position,
     SetMode(CAM_DOF6);
 }
 
-void Camera::OnRender()
+void Camera::UpdateView()
 {
     // view matrix
     Math::MakeView(m_viewMatrix, m_position, m_viewVector, m_upVector);
@@ -85,7 +85,7 @@ void Camera::SetMode(CameraMode cm)
     if (m_mode != cm)
     {
         m_mode = cm;
-        UpdateProjectionMatrix();
+        UpdateProjection();
     }
 }
 
@@ -182,7 +182,7 @@ void Camera::OnMouseMove(int x, int y)
     m_rightVector.QuickNormalize();
 }
 
-void Camera::UpdateProjectionMatrix()
+void Camera::UpdateProjection()
 {
     switch (m_mode)
     {

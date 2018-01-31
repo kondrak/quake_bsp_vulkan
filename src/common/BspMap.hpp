@@ -10,13 +10,8 @@
 class BspMap
 {
 public:
-    BspMap(bool bspValid) : m_bspValid(bspValid)
-    {
-    }
-
-    virtual ~BspMap()
-    {
-    }
+    BspMap(bool bspValid) : m_bspValid(bspValid) {}
+    virtual ~BspMap() {}
 
     virtual void Init() = 0;
     virtual void OnRender()        = 0;  // perform rendering
@@ -36,6 +31,5 @@ protected:
     bool     m_bspValid;
     BspStats m_mapStats;
 };
-
 
 #endif

@@ -70,6 +70,8 @@ public:
     Math::Matrix4f ModelViewProjectionMatrix; // global MVP used to orient the entire world
 private:
     bool InitVulkan();
+    void CreateDepthBuffer(const VkCommandPool &commandPool);
+    void DestroyDepthBuffer();
     bool CreateImageViews();
     void DestroyImageViews();
     bool CreateFramebuffers(const vk::RenderPass &renderPass);

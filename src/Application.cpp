@@ -31,6 +31,7 @@ void Application::OnWindowResize(int newWidth, int newHeight)
 void Application::OnWindowMinimized(bool minimized)
 {
     m_noRedraw = minimized;
+    // force swap chain rebuilding when restoring the window
     if (!minimized)
         OnWindowResize(g_renderContext.width, g_renderContext.height);
 }
@@ -87,7 +88,7 @@ void Application::OnRender()
     }
 
     // render the bsp
-    g_cameraDirector.GetActiveCamera()->OnRender();
+    g_cameraDirector.GetActiveCamera()->UpdateView();
     m_q3map->OnRender();
 
     // render map stats

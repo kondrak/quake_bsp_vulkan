@@ -3,7 +3,7 @@
 
 extern RenderContext g_renderContext;
 
-void Frustum::OnRender()
+void Frustum::UpdatePlanes()
 {
     // extract each plane from MVP matrix
     ExtractPlane(m_planes[0], g_renderContext.ModelViewProjectionMatrix,  1);

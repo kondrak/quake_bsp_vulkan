@@ -15,7 +15,7 @@ struct Plane
 class Frustum
 {
 public:
-    void OnRender();
+    void UpdatePlanes();
     bool BoxInFrustum(const Math::Vector3f *vertices);
 
 private:

@@ -24,7 +24,7 @@ public:
            const Math::Vector3f &right,
            const Math::Vector3f &view);
 
-    void OnRender();
+    void UpdateView();
     void RotateCamera(float angle, float x, float y, float z);
     void RotateCamera(const Math::Quaternion &q);
     void Move(const Math::Vector3f &Direction);
@@ -43,7 +43,7 @@ public:
 
     void OnMouseMove(int x, int y);
 
-    void UpdateProjectionMatrix();
+    void UpdateProjection();
     const Math::Matrix4f &ProjectionMatrix() const { return m_projectionMatrix; }
     const Math::Matrix4f &ViewMatrix() const { return m_viewMatrix; }
 
