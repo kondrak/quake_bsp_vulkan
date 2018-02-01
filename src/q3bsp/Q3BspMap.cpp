@@ -515,7 +515,7 @@ void Q3BspMap::CreateBuffersForFace(const Q3BspFaceLump &face, int idx)
                            &meshVertices[face.meshvert], sizeof(Q3BspMeshVertLump) * face.n_meshverts, &faceBuffer.indexBuffer);
     // check if both the texture and lightmap exist and if not - replace them with missing/white texture stubs
     const vk::Texture *colorTex = m_textures[faces[idx].texture] ? *m_textures[faces[idx].texture] : *m_missingTex;
-    const vk::Texture lmap = faces[idx].lm_index >= 0 ? m_lightmapTextures[faces[idx].lm_index] : m_whiteTex;
+    const vk::Texture &lmap = faces[idx].lm_index >= 0 ? m_lightmapTextures[faces[idx].lm_index] : m_whiteTex;
 
     const vk::Texture *textureSet[2] = { colorTex, &lmap };
     CreateDescriptor(textureSet, &faceBuffer.descriptor);
@@ -548,7 +548,7 @@ void Q3BspMap::CreateBuffersForPatch(int idx)
                                    &biquadPatch.m_indices[row * 2 * (tessLevel + 1)], sizeof(Q3BspMeshVertLump) * 2 * (tessLevel + 1), &pb.indexBuffer);
             // check if both the texture and lightmap exist and if not - replace them with missing/white texture stubs
             const vk::Texture *colorTex = m_textures[patch->textureIdx] ? *m_textures[patch->textureIdx] : *m_missingTex;
-            const vk::Texture lmap = patch->lightmapIdx >= 0 ? m_lightmapTextures[patch->lightmapIdx] : m_whiteTex;
+            const vk::Texture &lmap = patch->lightmapIdx >= 0 ? m_lightmapTextures[patch->lightmapIdx] : m_whiteTex;
 
             // create Vulkan descriptor
             const vk::Texture *textureSet[] = { colorTex, &lmap };
