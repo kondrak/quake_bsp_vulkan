@@ -7,7 +7,6 @@
 #include "renderer/vulkan/Image.hpp"
 #include "renderer/vulkan/Pipeline.hpp"
 #include <SDL.h>
-#include <SDL_syswm.h>
 #include <SDL_vulkan.h>
 
 

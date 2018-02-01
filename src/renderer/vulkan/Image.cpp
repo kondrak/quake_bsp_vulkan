@@ -30,7 +30,24 @@ namespace vk
         copyBufferToImage(device, commandPool, stagingBuffer.buffer, dstTex->image, imageWidth, imageHeight);
         transitionImageLayout(device, commandPool, *dstTex, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-        freeBuffer(device, &stagingBuffer);
+        freeBuffer(device, stagingBuffer);
+    }
+
+    void createTexture(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
+    {
+        createTextureImage(device, commandPool, dstTex, data, width, height);
+        VK_VERIFY(createImageView(device, dstTex->image, VK_IMAGE_ASPECT_COLOR_BIT, &dstTex->imageView, dstTex->format));
+        VK_VERIFY(createTextureSampler(device, dstTex));
+    }
+
+    void releaseTexture(const Device &device, Texture &texture)
+    {
+        if (texture.image != VK_NULL_HANDLE)
+            vmaDestroyImage(device.allocator, texture.image, texture.allocation);
+        if (texture.imageView != VK_NULL_HANDLE)
+            vkDestroyImageView(device.logical, texture.imageView, nullptr);
+        if (texture.sampler != VK_NULL_HANDLE)
+            vkDestroySampler(device.logical, texture.sampler, nullptr);
     }
 
     VkResult createImageView(const Device &device, const VkImage &image, VkImageAspectFlags aspectFlags, VkImageView *imageView, VkFormat format)
@@ -76,23 +93,7 @@ namespace vk
         return vkCreateSampler(device.logical, &samplerInfo, nullptr, &texture->sampler);
     }
 
-    void createTexture(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
-    {
-        createTextureImage(device, commandPool, dstTex, data, width, height);
-        VK_VERIFY(createImageView(device, dstTex->image, VK_IMAGE_ASPECT_COLOR_BIT, &dstTex->imageView, dstTex->format));
-        VK_VERIFY(createTextureSampler(device, dstTex));
-    }
-
-    void releaseTexture(const Device &device, Texture *texture)
-    {
-        if (texture->image != VK_NULL_HANDLE)
-            vmaDestroyImage(device.allocator, texture->image, texture->allocation);
-        if (texture->imageView != VK_NULL_HANDLE)
-            vkDestroyImageView(device.logical, texture->imageView, nullptr);
-        if (texture->sampler != VK_NULL_HANDLE)
-            vkDestroySampler(device.logical, texture->sampler, nullptr);
-    }
-
+    // helper functions
     Texture createDepthBuffer(const Device &device, const SwapChain &swapChain, const VkCommandPool &commandPool)
     {
         Texture depthTexture;

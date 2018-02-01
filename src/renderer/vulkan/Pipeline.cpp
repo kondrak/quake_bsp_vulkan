@@ -62,7 +62,7 @@ namespace vk
         return shader;
     }
 
-    VkResult createPipeline(const Device &device, const SwapChain &swapChain, const RenderPass &renderPass, const VertexBufferInfo *vbInfo, const VkDescriptorSetLayout *descriptorLayout, Pipeline *pipeline, const char **shaders)
+    VkResult createPipeline(const Device &device, const SwapChain &swapChain, const RenderPass &renderPass, const VkDescriptorSetLayout &descriptorLayout, const VertexBufferInfo *vbInfo, Pipeline *pipeline, const char **shaders)
     {
         ShaderProgram shader = loadShader(device, shaders[0], shaders[1]);
 
@@ -172,7 +172,7 @@ namespace vk
         VkPipelineLayoutCreateInfo plCreateInfo = {};
         plCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         plCreateInfo.setLayoutCount = 1;
-        plCreateInfo.pSetLayouts = descriptorLayout;
+        plCreateInfo.pSetLayouts = &descriptorLayout;
         plCreateInfo.pushConstantRangeCount = 0;
         plCreateInfo.pPushConstantRanges = nullptr;
 

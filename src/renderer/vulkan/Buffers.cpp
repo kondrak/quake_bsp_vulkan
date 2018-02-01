@@ -47,9 +47,9 @@ namespace vk
         return vmaCreateBuffer(device.allocator, &bcInfo, &vmallocInfo, &dstBuffer->buffer, &dstBuffer->allocation, nullptr);
     }
 
-    void freeBuffer(const Device &device, Buffer *buffer)
+    void freeBuffer(const Device &device, Buffer &buffer)
     {
-        vmaDestroyBuffer(device.allocator, buffer->buffer, buffer->allocation);
+        vmaDestroyBuffer(device.allocator, buffer.buffer, buffer.allocation);
     }
 
     VkResult createStagingBuffer(const Device &device, VkDeviceSize size, Buffer *dstBuffer)
@@ -80,7 +80,7 @@ namespace vk
         VK_VERIFY(createBuffer(device, size, dstBuffer, dstOpts));
 
         copyBuffer(device, commandPool, stagingBuffer.buffer, dstBuffer->buffer, size);
-        freeBuffer(device, &stagingBuffer);
+        freeBuffer(device, stagingBuffer);
     }
 
     void createIndexBuffer(const Device &device, const VkCommandPool &commandPool, const void *data, VkDeviceSize size, Buffer *dstBuffer)
@@ -101,7 +101,7 @@ namespace vk
         VK_VERIFY(createBuffer(device, size, dstBuffer, dstOpts));
 
         copyBuffer(device, commandPool, stagingBuffer.buffer, dstBuffer->buffer, size);
-        freeBuffer(device, &stagingBuffer);
+        freeBuffer(device, stagingBuffer);
     }
 
     VkResult createUniformBuffer(const Device &device, VkDeviceSize size, Buffer *dstBuffer)

@@ -26,7 +26,7 @@ GameTexture::~GameTexture()
     if (m_textureData != nullptr)
         stbi_image_free(m_textureData);
 
-    vk::releaseTexture(g_renderContext.device, &m_vkTexture);
+    vk::releaseTexture(g_renderContext.device, m_vkTexture);
 }
 
 bool GameTexture::Load(const VkCommandPool &commandPool, bool filtering)

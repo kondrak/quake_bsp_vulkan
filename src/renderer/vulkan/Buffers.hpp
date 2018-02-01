@@ -35,7 +35,7 @@ namespace vk
     VkVertexInputAttributeDescription getAttributeDescription(uint32_t location, VkFormat format, uint32_t offset);
     // shader buffers and generic Vulkan buffer creation
     VkResult createBuffer(const Device &device, VkDeviceSize size, Buffer *dstBuffer, const BufferOptions &bOpts);
-    void     freeBuffer(const Device &device, Buffer *buffer);
+    void     freeBuffer(const Device &device, Buffer &buffer);
     VkResult createStagingBuffer(const Device &device, VkDeviceSize size, Buffer *dstBuffer);
     void     createVertexBuffer(const Device &device, const VkCommandPool &commandPool, const void *data, VkDeviceSize size, Buffer *dstBuffer);
     void     createIndexBuffer(const Device &device, const VkCommandPool &commandPool, const void *data, VkDeviceSize size, Buffer *dstBuffer);

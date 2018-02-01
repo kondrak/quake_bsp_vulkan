@@ -29,8 +29,8 @@ Q3BspMap::~Q3BspMap()
     for (auto &it : m_renderBuffers.m_faceBuffers)
     {
         vkDestroyDescriptorPool(g_renderContext.device.logical, it.second.descriptor.pool, nullptr);
-        vk::freeBuffer(g_renderContext.device, &it.second.vertexBuffer);
-        vk::freeBuffer(g_renderContext.device, &it.second.indexBuffer);
+        vk::freeBuffer(g_renderContext.device, it.second.vertexBuffer);
+        vk::freeBuffer(g_renderContext.device, it.second.indexBuffer);
     }
 
     for (auto &it : m_renderBuffers.m_patchBuffers)
@@ -38,19 +38,19 @@ Q3BspMap::~Q3BspMap()
         for (auto &it2 : it.second)
         {
             vkDestroyDescriptorPool(g_renderContext.device.logical, it2.descriptor.pool, nullptr);
-            vk::freeBuffer(g_renderContext.device, &it2.vertexBuffer);
-            vk::freeBuffer(g_renderContext.device, &it2.indexBuffer);
+            vk::freeBuffer(g_renderContext.device, it2.vertexBuffer);
+            vk::freeBuffer(g_renderContext.device, it2.indexBuffer);
         }
     }
 
     for (size_t i = 0; i < lightMaps.size(); ++i)
     {
-        vk::releaseTexture(g_renderContext.device, &m_lightmapTextures[i]);
+        vk::releaseTexture(g_renderContext.device, m_lightmapTextures[i]);
     }
     delete[] m_lightmapTextures;
 
-    vk::freeBuffer(g_renderContext.device, &m_renderBuffers.uniformBuffer);
-    vk::releaseTexture(g_renderContext.device, &m_whiteTex);
+    vk::freeBuffer(g_renderContext.device, m_renderBuffers.uniformBuffer);
+    vk::releaseTexture(g_renderContext.device, m_whiteTex);
     vk::freeCommandBuffers(g_renderContext.device, m_commandPool, m_commandBuffers);
     vk::destroyRenderPass(g_renderContext.device, m_renderPass);
     vkDestroyCommandPool(g_renderContext.device.logical, m_commandPool, nullptr);
@@ -494,8 +494,8 @@ void Q3BspMap::RebuildPipelines()
 
     // todo: pipeline derivatives https://github.com/SaschaWillems/Vulkan/blob/master/examples/pipelines/pipelines.cpp
     const char *shaders[] = { "res/Basic_vert.spv", "res/Basic_frag.spv" };
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, &m_vbInfo, &m_dsLayout, &m_facesPipeline, shaders));
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, &m_vbInfo, &m_dsLayout, &m_patchPipeline, shaders));
+    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, m_dsLayout, &m_vbInfo, &m_facesPipeline, shaders));
+    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, m_dsLayout, &m_vbInfo, &m_patchPipeline, shaders));
 }
 
 void Q3BspMap::CreateBuffersForFace(const Q3BspFaceLump &face, int idx)

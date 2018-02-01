@@ -26,7 +26,7 @@ namespace vk
     };
 
 
-    VkResult createPipeline(const Device &device, const SwapChain &swapChain, const RenderPass &renderPass, const VertexBufferInfo *vbInfo, const VkDescriptorSetLayout *descriptorLayout, Pipeline *pipeline, const char **shaders);
+    VkResult createPipeline(const Device &device, const SwapChain &swapChain, const RenderPass &renderPass, const VkDescriptorSetLayout &descriptorLayout, const VertexBufferInfo *vbInfo, Pipeline *pipeline, const char **shaders);
     void     destroyPipeline(const Device &device, Pipeline &pipeline);
     VkResult createRenderPass(const Device &device, const SwapChain &swapChain, RenderPass *renderPass);
     void     destroyRenderPass(const Device &device, RenderPass &renderPass);
