@@ -10,24 +10,24 @@ namespace vk
     static void copyBufferToImage(const Device &device, const VkCommandPool &commandPool, const VkBuffer &buffer, const VkImage &image, uint32_t width, uint32_t height);
     static VkResult createImage(const Device &device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, Texture *texture);
 
-    void createTextureImage(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *pixels, uint32_t imageWidth, uint32_t imageHeight)
+    void createTextureImage(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
     {
         Buffer stagingBuffer;
-        uint32_t imageSize = imageWidth * imageHeight * (dstTex->format == VK_FORMAT_R8G8B8_UNORM ? 3 : 4);
+        uint32_t imageSize = width * height * (dstTex->format == VK_FORMAT_R8G8B8_UNORM ? 3 : 4);
 
         VK_VERIFY(createStagingBuffer(device, imageSize, &stagingBuffer));
 
-        void *data;
-        vmaMapMemory(device.allocator, stagingBuffer.allocation, &data);
-        memcpy(data, pixels, (size_t)imageSize);
+        void *imgData;
+        vmaMapMemory(device.allocator, stagingBuffer.allocation, &imgData);
+        memcpy(imgData, data, (size_t)imageSize);
         vmaUnmapMemory(device.allocator, stagingBuffer.allocation);
 
-        VK_VERIFY(createImage(device, imageWidth, imageHeight, dstTex->format,
+        VK_VERIFY(createImage(device, width, height, dstTex->format,
                               VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, dstTex));
         // copy buffers
         transitionImageLayout(device, commandPool, *dstTex, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        copyBufferToImage(device, commandPool, stagingBuffer.buffer, dstTex->image, imageWidth, imageHeight);
+        copyBufferToImage(device, commandPool, stagingBuffer.buffer, dstTex->image, width, height);
         transitionImageLayout(device, commandPool, *dstTex, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         freeBuffer(device, stagingBuffer);
