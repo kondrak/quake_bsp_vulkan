@@ -3,6 +3,7 @@
 
 #include "Math.hpp"
 #include "renderer/vulkan/Buffers.hpp"
+#include "renderer/vulkan/CmdBuffer.hpp"
 #include "renderer/vulkan/Device.hpp"
 #include "renderer/vulkan/Image.hpp"
 #include "renderer/vulkan/Pipeline.hpp"
@@ -40,7 +41,7 @@ public:
     // start rendering frame and setup all necessary structs
     VkResult RenderStart();
     // command buffer submission to render queue
-    VkResult Submit(const std::vector<VkCommandBuffer> &commandBuffers);
+    VkResult Submit(const vk::CmdBufferList &commandBuffers);
     // render queue presentation
     VkResult Present(bool uiVisible);
     // fetch current renderable surface size directly from Vulkan surface

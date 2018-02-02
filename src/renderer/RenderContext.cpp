@@ -82,7 +82,7 @@ VkResult RenderContext::RenderStart()
     return result;
 }
 
-VkResult RenderContext::Submit(const std::vector<VkCommandBuffer> &commandBuffers)
+VkResult RenderContext::Submit(const vk::CmdBufferList &commandBuffers)
 {
     VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submitInfo.pWaitDstStageMask = waitStages;

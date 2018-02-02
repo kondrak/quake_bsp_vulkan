@@ -249,10 +249,17 @@ void Q3BspMap::CalculateVisibleFaces(const Math::Vector3f &cameraPosition)
             if (HasRenderFlag(Q3RenderSkipMissingTex) && !m_textures[faces[idx].texture])
                 continue;
 
-            if ((face->type == FaceTypePolygon || face->type == FaceTypeMesh) && std::find(m_visibleFaces.begin(), m_visibleFaces.end(), face) == m_visibleFaces.end())
+            if ((face->type == FaceTypePolygon || face->type == FaceTypeMesh) &&
+                std::find(m_visibleFaces.begin(), m_visibleFaces.end(), face) == m_visibleFaces.end())
+            {
                 m_visibleFaces.push_back(face);
-            if (face->type == FaceTypePatch && std::find(m_visiblePatches.begin(), m_visiblePatches.end(), idx) == m_visiblePatches.end())
+            }
+
+            if (face->type == FaceTypePatch &&
+                std::find(m_visiblePatches.begin(), m_visiblePatches.end(), idx) == m_visiblePatches.end())
+            {
                 m_visiblePatches.push_back(idx);
+            }
         }
     }
 

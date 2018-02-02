@@ -50,7 +50,7 @@ namespace vk
         return vkCreateCommandPool(device.logical, &cpCreateInfo, nullptr, commandPool);
     }
 
-    VkResult createCommandBuffers(const Device &device, const VkCommandPool &commandPool, std::vector<VkCommandBuffer> &commandBuffers, size_t fbCount)
+    VkResult createCommandBuffers(const Device &device, const VkCommandPool &commandPool, CmdBufferList &commandBuffers, size_t fbCount)
     {
         commandBuffers.resize(fbCount);
 
@@ -63,7 +63,7 @@ namespace vk
         return vkAllocateCommandBuffers(device.logical, &allocInfo, commandBuffers.data());
     }
 
-    void freeCommandBuffers(const Device &device, const VkCommandPool &commandPool, std::vector<VkCommandBuffer> &commandBuffers)
+    void freeCommandBuffers(const Device &device, const VkCommandPool &commandPool, CmdBufferList &commandBuffers)
     {
         if (!commandBuffers.empty())
             vkFreeCommandBuffers(device.logical, commandPool, (size_t)commandBuffers.size(), commandBuffers.data());

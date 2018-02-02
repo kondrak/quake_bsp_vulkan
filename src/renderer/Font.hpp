@@ -58,7 +58,7 @@ private:
     vk::Pipeline   m_pipeline;
     vk::RenderPass m_renderPass;
     VkCommandPool  m_commandPool;
-    std::vector<VkCommandBuffer> m_commandBuffers;
+    vk::CmdBufferList m_commandBuffers;
 
     vk::VertexBufferInfo m_vbInfo;
 

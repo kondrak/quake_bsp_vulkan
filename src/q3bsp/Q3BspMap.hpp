@@ -90,7 +90,7 @@ private:
     vk::Pipeline   m_patchPipeline; // used for rendering curves/patches
     vk::RenderPass m_renderPass;
     VkCommandPool  m_commandPool = VK_NULL_HANDLE;
-    std::vector<VkCommandBuffer> m_commandBuffers;
+    vk::CmdBufferList m_commandBuffers;
 
     // all faces and patches use shared vertex buffer info and descriptor set layout
     vk::VertexBufferInfo  m_vbInfo;
