@@ -10,12 +10,14 @@
 
 namespace vk
 {
+    // Vulkan buffer with assigned allocator
     struct Buffer
     {
         VkBuffer      buffer     = VK_NULL_HANDLE;
         VmaAllocation allocation = VK_NULL_HANDLE;
     };
 
+    // helper struct
     struct BufferOptions
     {
         VkBufferUsageFlags usage = 0;
@@ -24,6 +26,7 @@ namespace vk
         VmaAllocationCreateFlags vmaFlags = 0;
     };
 
+    // helper struct
     struct VertexBufferInfo
     {
         std::vector<VkVertexInputBindingDescription> bindingDescriptions;
