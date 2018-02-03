@@ -1,6 +1,5 @@
 #include "q3bsp/Q3BspMap.hpp"
 #include "q3bsp/Q3BspPatch.hpp"
-#include "renderer/GameTexture.hpp"
 #include "renderer/TextureManager.hpp"
 #include "renderer/vulkan/CmdBuffer.hpp"
 #include "renderer/vulkan/Pipeline.hpp"
@@ -66,9 +65,10 @@ void Q3BspMap::Init()
     VK_VERIFY(vk::createRenderPass(g_renderContext.device, g_renderContext.swapChain, &m_renderPass));
     VK_VERIFY(vk::createCommandPool(g_renderContext.device, &m_commandPool));
 
-    if (g_renderContext.frameBuffers.empty())
-        g_renderContext.RecreateSwapChain(m_commandPool, m_renderPass);
+    // build the swap chain
+    g_renderContext.RecreateSwapChain(m_commandPool, m_renderPass);
 
+    // stub missing texture used if original Quake assets are missing
     m_missingTex = TextureManager::GetInstance()->LoadTexture("res/missing.png", m_commandPool);
 
     // load textures
@@ -205,7 +205,7 @@ int Q3BspMap::FindCameraLeaf(const Math::Vector3f & cameraPosition) const
                           planes[nodes[leafIndex].plane].normal.y,
                           planes[nodes[leafIndex].plane].normal.z,
                           planes[nodes[leafIndex].plane].dist, 
-                          cameraPosition ) == Math::PointInFrontOfPlane)
+                          cameraPosition) == Math::PointInFrontOfPlane)
         {
             leafIndex = nodes[leafIndex].children.x;
         }

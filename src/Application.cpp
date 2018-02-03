@@ -58,11 +58,11 @@ void Application::OnStart(int argc, char **argv)
     if (!m_q3map)
         m_q3map = new Q3BspMap(false);
 
-    Math::Vector3f startPos;
     m_q3map->Init();
     m_q3map->ToggleRenderFlag(Q3RenderUseLightmaps);
 
     // try to locate the first info_player_deathmatch entity and place the camera there
+    Math::Vector3f startPos;
     if (m_q3map->Valid())
         startPos = FindPlayerStart(static_cast<Q3BspMap *>(m_q3map)->entities.ents);
 
