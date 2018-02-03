@@ -194,7 +194,7 @@ bool Q3BspMap::ClusterVisible(int cameraCluster, int testCluster) const
 }
 
 // determine which bsp leaf camera resides in
-int Q3BspMap::FindCameraLeaf(const Math::Vector3f & cameraPosition) const
+int Q3BspMap::FindCameraLeaf(const Math::Vector3f &cameraPosition) const
 {
     int leafIndex = 0;
 
