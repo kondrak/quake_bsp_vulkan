@@ -66,7 +66,9 @@ namespace vk
     void freeCommandBuffers(const Device &device, const VkCommandPool &commandPool, CmdBufferList &commandBuffers)
     {
         if (!commandBuffers.empty())
+        {
             vkFreeCommandBuffers(device.logical, commandPool, (size_t)commandBuffers.size(), commandBuffers.data());
-        commandBuffers.clear();
+            commandBuffers.clear();
+        }
     }
 }
