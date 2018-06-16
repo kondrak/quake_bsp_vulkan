@@ -236,7 +236,7 @@ bool RenderContext::CreateFramebuffers(const vk::RenderPass &renderPass)
 
 void RenderContext::DestroyFramebuffers()
 {
-    for (VkImage &fb : frameBuffers)
+    for (VkFramebuffer &fb : frameBuffers)
     {
         vkDestroyFramebuffer(device.logical, fb, nullptr);
     }
