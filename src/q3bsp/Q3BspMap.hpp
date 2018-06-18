@@ -59,7 +59,7 @@ private:
     void CreatePatch(const Q3BspFaceLump &f);
 
     // Vulkan draw call builder and pipeline builder
-    void RecordCommandBuffers();
+    void Draw();
     void RebuildPipelines();
 
     // Vulkan buffer creation
@@ -88,9 +88,6 @@ private:
     UniformBufferObject m_ubo;
     vk::Pipeline   m_facesPipeline; // used for rendering standard faces
     vk::Pipeline   m_patchPipeline; // used for rendering curves/patches
-    vk::RenderPass m_renderPass;
-    VkCommandPool  m_commandPool = VK_NULL_HANDLE;
-    vk::CmdBufferList m_commandBuffers;
 
     // all faces and patches use shared vertex buffer info and descriptor set layout
     vk::VertexBufferInfo  m_vbInfo;

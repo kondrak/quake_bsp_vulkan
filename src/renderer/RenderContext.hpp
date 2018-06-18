@@ -41,23 +41,22 @@ public:
     // start rendering frame and setup all necessary structs
     VkResult RenderStart();
     // command buffer submission to render queue
-    VkResult Submit(const vk::CmdBufferList &commandBuffers);
+    VkResult Submit();
     // render queue presentation
-    VkResult Present(bool uiVisible);
+    VkResult Present();
     // fetch current renderable surface size directly from Vulkan surface
     Math::Vector2f WindowSize();
     // rebuild entire swap chain
-    bool RecreateSwapChain(const VkCommandPool &commandPool, const vk::RenderPass &renderPasss);
+    bool RecreateSwapChain();
 
     SDL_Window *window = nullptr;
 
     // Vulkan global objects
     vk::Device device;
     vk::SwapChain swapChain;
-    std::vector<VkFramebuffer> frameBuffers;
-    VkSubmitInfo submitInfo = {};
-    VkSemaphore renderFinishedSemaphore;
-    VkSemaphore renderUIFinishedSemaphore;
+    vk::RenderPass renderPass;
+    VkCommandPool   commandPool = VK_NULL_HANDLE;
+    VkCommandBuffer activeCmdBuffer = VK_NULL_HANDLE;
 
     float fov = 75.f * PIdiv180;
     float nearPlane = 0.1f;
@@ -83,17 +82,28 @@ private:
     void DestroyImageViews();
     bool CreateFramebuffers(const vk::RenderPass &renderPass);
     void DestroyFramebuffers();
+    void CreateFences();
     void CreateSemaphores();
 
     // Vulkan instance and surface
     VkInstance   m_instance = VK_NULL_HANDLE;
     VkSurfaceKHR m_surface  = VK_NULL_HANDLE;
 
+    // Vulkan framebuffers
+    std::vector<VkFramebuffer> m_frameBuffers;
+
     // Vulkan image views
     std::vector<VkImageView> m_imageViews;
 
+    // command buffers
+    std::vector<VkCommandBuffer> m_commandBuffers;
+
+    // command buffer double buffering fences
+    std::vector<VkFence> m_fences;
     // semaphore: signal when next image is available for rendering
     VkSemaphore m_imageAvailableSemaphore;
+    // semaphore: signal when rendering to current command buffer is complete
+    VkSemaphore m_renderFinishedSemaphore;
 
     // depth buffer texture
     vk::Texture m_depthBuffer;

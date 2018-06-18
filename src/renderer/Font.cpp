@@ -21,14 +21,9 @@ Font::Font(const char *tex) : m_scale(1.f, 1.f), m_position(0.0f, 0.0f, 0.0f), m
     m_pipeline.topology  = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     m_pipeline.blendMode = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
     m_pipeline.depthTestEnable = VK_FALSE;
-    // do not clear frame buffers when rendering text
-    m_renderPass.colorLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-
-    VK_VERIFY(vk::createRenderPass(g_renderContext.device, g_renderContext.swapChain, &m_renderPass));
-    VK_VERIFY(vk::createCommandPool(g_renderContext.device, &m_commandPool));
 
     // load font texture
-    m_texture = TextureManager::GetInstance()->LoadTexture(tex, m_commandPool, false);
+    m_texture = TextureManager::GetInstance()->LoadTexture(tex, g_renderContext.commandPool, false);
     LOG_MESSAGE_ASSERT(m_texture, "Could not load font texture: " << tex);
 
     // setup vertex attributes
@@ -38,11 +33,10 @@ Font::Font(const char *tex) : m_scale(1.f, 1.f), m_position(0.0f, 0.0f, 0.0f), m
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inColor, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 5));
 
     // create vertex buffer and Vulkan descriptor
-    vk::createVertexBuffer(g_renderContext.device, m_commandPool, &m_charBuffer, sizeof(Glyph) * MAX_CHARS, &m_vertexBuffer);
+    vk::createVertexBuffer(g_renderContext.device, g_renderContext.commandPool, &m_charBuffer, sizeof(Glyph) * MAX_CHARS, &m_vertexBuffer);
     CreateDescriptor(*m_texture, &m_descriptor);
 
     RebuildPipeline();
-    VK_VERIFY(vk::createCommandBuffers(g_renderContext.device, m_commandPool, m_commandBuffers, g_renderContext.frameBuffers.size()));
 }
 
 Font::~Font()
@@ -53,9 +47,6 @@ Font::~Font()
     vkDestroyDescriptorSetLayout(g_renderContext.device.logical, m_descriptor.setLayout, nullptr);
     vkDestroyDescriptorPool(g_renderContext.device.logical, m_descriptor.pool, nullptr);
     vk::freeBuffer(g_renderContext.device, m_vertexBuffer);
-    vk::destroyRenderPass(g_renderContext.device, m_renderPass);
-    vk::freeCommandBuffers(g_renderContext.device, m_commandPool, m_commandBuffers);
-    vkDestroyCommandPool(g_renderContext.device.logical, m_commandPool, nullptr);
 }
 
 void Font::RenderText(const std::string &text, float x, float y, float z, float r, float g, float b)
@@ -81,9 +72,9 @@ void Font::RenderText(const std::string &text, const Math::Vector3f &position, c
     Math::Vector3f pos = position;
 
     LOG_MESSAGE_ASSERT(m_charCount + text.length() < MAX_CHARS, "Too many chars");
-    m_charCount += text.length();
+    m_charCount += (int)text.length();
 
-    for (size_t i = 0; i < text.length(); i++)
+    for (int i = 0; i < text.length(); i++)
     {
         int cu = text[i] - 32;
 
@@ -111,14 +102,7 @@ void Font::RenderFinish()
     vmaUnmapMemory(g_renderContext.device.allocator, m_vertexBuffer.allocation);
 
     // update command buffers with new characters
-    RecordCommandBuffers();
-
-    // submit: UI must wait for bsp rendering to complete and use it's own semaphore to signal that it finished rendering itself
-    g_renderContext.submitInfo.pWaitSemaphores = &g_renderContext.renderFinishedSemaphore;
-    g_renderContext.submitInfo.waitSemaphoreCount = 1;
-    g_renderContext.submitInfo.signalSemaphoreCount = 1;
-    g_renderContext.submitInfo.pSignalSemaphores = &g_renderContext.renderUIFinishedSemaphore;
-    VK_VERIFY(g_renderContext.Submit(m_commandBuffers));
+    Draw();
 }
 
 void Font::RebuildPipeline()
@@ -128,7 +112,7 @@ void Font::RebuildPipeline()
 
     // todo: pipeline derivatives https://github.com/SaschaWillems/Vulkan/blob/master/examples/pipelines/pipelines.cpp
     const char *shaders[] = { "res/Font_vert.spv", "res/Font_frag.spv" };
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, m_descriptor.setLayout, &m_vbInfo, &m_pipeline, shaders));
+    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.renderPass, m_descriptor.setLayout, &m_vbInfo, &m_pipeline, shaders));
 }
 
 void Font::DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int offset, const Math::Vector3f &color)
@@ -161,46 +145,17 @@ void Font::DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int
     }
 }
 
-void Font::RecordCommandBuffers()
+void Font::Draw()
 {
-    for (size_t i = 0; i < m_commandBuffers.size(); ++i)
-    {
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-        beginInfo.pInheritanceInfo = nullptr;
+    vkCmdBindPipeline(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.pipeline);
 
-        VkResult result = vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo);
-        LOG_MESSAGE_ASSERT(result == VK_SUCCESS, "Could not begin command buffer: " << result);
+    // queue all pending characters
+    VkDeviceSize offsets[] = { 0 };
+    vkCmdBindVertexBuffers(g_renderContext.activeCmdBuffer, 0, 1, &m_vertexBuffer.buffer, offsets);
+    vkCmdBindDescriptorSets(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.layout, 0, 1, &m_descriptor.set, 0, nullptr);
 
-        VkClearValue clearColors[2];
-        clearColors[0].color = { 0.f, 0.f, 0.f, 1.f };
-        clearColors[1].depthStencil = { 1.0f, 0 };
-        VkRenderPassBeginInfo renderBeginInfo = {};
-        renderBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderBeginInfo.renderPass = m_renderPass.renderPass;
-        renderBeginInfo.framebuffer = g_renderContext.frameBuffers[i];
-        renderBeginInfo.renderArea.offset = { 0, 0 };
-        renderBeginInfo.renderArea.extent = g_renderContext.swapChain.extent;
-        renderBeginInfo.clearValueCount = 2;
-        renderBeginInfo.pClearValues = clearColors;
-
-        vkCmdBeginRenderPass(m_commandBuffers[i], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.pipeline);
-
-        // queue all pending characters
-        VkDeviceSize offsets[] = { 0 };
-        vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_vertexBuffer.buffer, offsets);
-        vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.layout, 0, 1, &m_descriptor.set, 0, nullptr);
-
-        for (int j = 0; j < m_charCount; j++)
-            vkCmdDraw(m_commandBuffers[i], 4, 1, j * 4, 0);
-
-        vkCmdEndRenderPass(m_commandBuffers[i]);
-
-        result = vkEndCommandBuffer(m_commandBuffers[i]);
-        LOG_MESSAGE_ASSERT(result == VK_SUCCESS, "Error recording command buffer: " << result);
-    }
+    for (int j = 0; j < m_charCount; j++)
+        vkCmdDraw(g_renderContext.activeCmdBuffer, 4, 1, j * 4, 0);
 }
 
 void Font::CreateDescriptor(const vk::Texture *texture, vk::Descriptor *descriptor)

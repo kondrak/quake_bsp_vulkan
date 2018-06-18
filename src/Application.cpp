@@ -106,7 +106,9 @@ void Application::OnRender()
         break;
     }
 
-    renderResult = g_renderContext.Present(m_debugRenderState == RenderMapStats);
+    // submit graphics queue and present it to screen
+    VK_VERIFY(g_renderContext.Submit());
+    renderResult = g_renderContext.Present();
 
     // recreate swapchain if it's out of date
     if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR)
