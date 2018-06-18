@@ -38,7 +38,6 @@ Keyword list:
 
 TODO
 -------
-- drop vkQueueWaitIdle() every frame and double buffer command buffers
 - add MSAA
 - use pipeline derivatives
 - Linux build!

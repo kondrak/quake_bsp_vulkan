@@ -9,11 +9,9 @@
 
 namespace vk
 {
-    typedef std::vector<VkCommandBuffer> CmdBufferList;
-
     VkCommandBuffer beginOneTimeCommand(const Device &device, const VkCommandPool &commandPool);
     void endOneTimeCommand(const Device &device, const VkCommandBuffer &commandBuffer, const VkCommandPool &commandPool, const VkQueue &graphicsQueue);
     VkResult createCommandPool(const Device &device, VkCommandPool *commandPool);
-    VkResult createCommandBuffers(const Device &device, const VkCommandPool &commandPool, CmdBufferList &commandBuffers, size_t fbCount);
-    void freeCommandBuffers(const Device &device, const VkCommandPool &commandPool, CmdBufferList &commandBuffers);
+    VkResult createCommandBuffers(const Device &device, const VkCommandPool &commandPool, std::vector<VkCommandBuffer> &commandBuffers, size_t cmdBuffCount);
+    void freeCommandBuffers(const Device &device, const VkCommandPool &commandPool, std::vector<VkCommandBuffer> &commandBuffers);
 }

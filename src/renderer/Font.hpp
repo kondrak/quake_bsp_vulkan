@@ -43,7 +43,7 @@ private:
         GlyphVertex verts[4];
     };
 
-    void RecordCommandBuffers();
+    void Draw();
     void CreateDescriptor(const vk::Texture *texture, vk::Descriptor *descriptor);
     // single character draw
     void DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int offset, const Math::Vector3f &color);
@@ -56,10 +56,6 @@ private:
 
     // Vulkan buffers
     vk::Pipeline   m_pipeline;
-    vk::RenderPass m_renderPass;
-    VkCommandPool  m_commandPool;
-    vk::CmdBufferList m_commandBuffers;
-
     vk::VertexBufferInfo m_vbInfo;
 
     vk::Buffer     m_vertexBuffer;

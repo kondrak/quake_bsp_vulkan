@@ -50,9 +50,6 @@ Q3BspMap::~Q3BspMap()
 
     vk::freeBuffer(g_renderContext.device, m_renderBuffers.uniformBuffer);
     vk::releaseTexture(g_renderContext.device, m_whiteTex);
-    vk::freeCommandBuffers(g_renderContext.device, m_commandPool, m_commandBuffers);
-    vk::destroyRenderPass(g_renderContext.device, m_renderPass);
-    vkDestroyCommandPool(g_renderContext.device.logical, m_commandPool, nullptr);
     vkDestroyDescriptorSetLayout(g_renderContext.device.logical, m_dsLayout, nullptr);
 }
 
@@ -62,14 +59,8 @@ void Q3BspMap::Init()
     m_facesPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     m_patchPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 
-    VK_VERIFY(vk::createRenderPass(g_renderContext.device, g_renderContext.swapChain, &m_renderPass));
-    VK_VERIFY(vk::createCommandPool(g_renderContext.device, &m_commandPool));
-
-    // build the swap chain
-    g_renderContext.RecreateSwapChain(m_commandPool, m_renderPass);
-
     // stub missing texture used if original Quake assets are missing
-    m_missingTex = TextureManager::GetInstance()->LoadTexture("res/missing.png", m_commandPool);
+    m_missingTex = TextureManager::GetInstance()->LoadTexture("res/missing.png", g_renderContext.commandPool);
 
     // load textures
     LoadTextures();
@@ -146,12 +137,11 @@ void Q3BspMap::Init()
         m_renderFaces.back().type = f.type;
     }
 
-    m_mapStats.totalVertices = vertices.size();
-    m_mapStats.totalFaces    = faces.size();
+    m_mapStats.totalVertices = (int)vertices.size();
+    m_mapStats.totalFaces    = (int)faces.size();
     m_mapStats.totalPatches  = patchArrayIdx;
 
     RebuildPipelines();
-    VK_VERIFY(vk::createCommandBuffers(g_renderContext.device, m_commandPool, m_commandBuffers, g_renderContext.frameBuffers.size()));
 
     // set the scale-down uniform
     m_ubo.worldScaleFactor = 1.f / Q3BspMap::s_worldScale;
@@ -169,15 +159,12 @@ void Q3BspMap::OnRender()
     vmaUnmapMemory(g_renderContext.device.allocator, m_renderBuffers.uniformBuffer.allocation);
 
     // record new set of command buffers including only visible faces and patches
-    RecordCommandBuffers();
-
-    // render visible faces
-    VK_VERIFY(g_renderContext.Submit(m_commandBuffers));
+    Draw();
 }
 
 void Q3BspMap::OnWindowChanged()
 {
-    g_renderContext.RecreateSwapChain(m_commandPool, m_renderPass);
+    g_renderContext.RecreateSwapChain();
     RebuildPipelines();
 }
 
@@ -263,8 +250,8 @@ void Q3BspMap::CalculateVisibleFaces(const Math::Vector3f &cameraPosition)
         }
     }
 
-    m_mapStats.visibleFaces = m_visibleFaces.size();
-    m_mapStats.visiblePatches = m_visiblePatches.size();
+    m_mapStats.visibleFaces   = (int)m_visibleFaces.size();
+    m_mapStats.visiblePatches = (int)m_visiblePatches.size();
 }
 
 void Q3BspMap::ToggleRenderFlag(int flag)
@@ -309,14 +296,14 @@ void Q3BspMap::LoadTextures()
 
         nameJPG.append(".jpg");
 
-        m_textures[f.texture] = TextureManager::GetInstance()->LoadTexture(nameJPG.c_str(), m_commandPool);
+        m_textures[f.texture] = TextureManager::GetInstance()->LoadTexture(nameJPG.c_str(), g_renderContext.commandPool);
 
         if (m_textures[f.texture] == nullptr)
         {
             std::string nameTGA = textures[f.texture].name;
             nameTGA.append(".tga");
 
-            m_textures[f.texture] = TextureManager::GetInstance()->LoadTexture(nameTGA.c_str(), m_commandPool);
+            m_textures[f.texture] = TextureManager::GetInstance()->LoadTexture(nameTGA.c_str(), g_renderContext.commandPool);
 
             if (m_textures[f.texture] == nullptr)
             {
@@ -344,13 +331,13 @@ void Q3BspMap::LoadLightmaps()
             memcpy(rgba_lmap + j, lightMaps[i].map + k, 3);
 
         // Create texture from bsp lightmap data
-        vk::createTexture(g_renderContext.device, m_commandPool, &m_lightmapTextures[i], rgba_lmap, 128, 128);
+        vk::createTexture(g_renderContext.device, g_renderContext.commandPool, &m_lightmapTextures[i], rgba_lmap, 128, 128);
     }
 
     // Create white texture for if no lightmap specified
     unsigned char white[] = { 255, 255, 255, 255 };
 
-    vk::createTexture(g_renderContext.device, m_commandPool, &m_whiteTex, white, 1, 1);
+    vk::createTexture(g_renderContext.device, g_renderContext.commandPool, &m_whiteTex, white, 1, 1);
 }
 
 // tweak lightmap gamma settings
@@ -427,69 +414,39 @@ void Q3BspMap::CreatePatch(const Q3BspFaceLump &f)
     m_patches.push_back(newPatch);
 }
 
-void Q3BspMap::RecordCommandBuffers()
+void Q3BspMap::Draw()
 {
-    for (size_t i = 0; i < m_commandBuffers.size(); ++i)
+    // queue standard faces
+    vkCmdBindPipeline(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_facesPipeline.pipeline);
+
+    for (auto &f : m_visibleFaces)
     {
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-        beginInfo.pInheritanceInfo = nullptr;
+        FaceBuffers &fb = m_renderBuffers.m_faceBuffers[f->index];
 
-        VkResult result = vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo);
-        LOG_MESSAGE_ASSERT(result == VK_SUCCESS, "Could not begin command buffer: " << result);
+        VkBuffer vertexBuffers[] = { fb.vertexBuffer.buffer };
+        VkDeviceSize offsets[] = { 0 };
+        vkCmdBindVertexBuffers(g_renderContext.activeCmdBuffer, 0, 1, vertexBuffers, offsets);
+        // quake 3 bsp requires uint32 for index type - 16 is too small
+        vkCmdBindIndexBuffer(g_renderContext.activeCmdBuffer, fb.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindDescriptorSets(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_facesPipeline.layout, 0, 1, &fb.descriptor.set, 0, nullptr);
+        vkCmdDrawIndexed(g_renderContext.activeCmdBuffer, fb.indexCount, 1, 0, 0, 0);
+    }
 
-        VkClearValue clearColors[2];
-        clearColors[0].color = { 0.f, 0.f, 0.f, 1.f };
-        clearColors[1].depthStencil = { 1.0f, 0 };
-        VkRenderPassBeginInfo renderBeginInfo = {};
-        renderBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderBeginInfo.renderPass = m_renderPass.renderPass;
-        renderBeginInfo.framebuffer = g_renderContext.frameBuffers[i];
-        renderBeginInfo.renderArea.offset = { 0, 0 };
-        renderBeginInfo.renderArea.extent = g_renderContext.swapChain.extent;
-        renderBeginInfo.clearValueCount = 2;
-        renderBeginInfo.pClearValues = clearColors;
+    // queue patches
+    vkCmdBindPipeline(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.pipeline);
 
-        vkCmdBeginRenderPass(m_commandBuffers[i], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-        // queue standard faces
-        vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_facesPipeline.pipeline);
-
-        for (auto &f : m_visibleFaces)
+    for (auto &pi : m_visiblePatches)
+    {
+        for (auto &p : m_renderBuffers.m_patchBuffers[pi])
         {
-            FaceBuffers &fb = m_renderBuffers.m_faceBuffers[f->index];
-
-            VkBuffer vertexBuffers[] = { fb.vertexBuffer.buffer };
+            VkBuffer vertexBuffers[] = { p.vertexBuffer.buffer };
             VkDeviceSize offsets[] = { 0 };
-            vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, vertexBuffers, offsets);
+            vkCmdBindVertexBuffers(g_renderContext.activeCmdBuffer, 0, 1, vertexBuffers, offsets);
             // quake 3 bsp requires uint32 for index type - 16 is too small
-            vkCmdBindIndexBuffer(m_commandBuffers[i], fb.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-            vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_facesPipeline.layout, 0, 1, &fb.descriptor.set, 0, nullptr);
-            vkCmdDrawIndexed(m_commandBuffers[i], fb.indexCount, 1, 0, 0, 0);
+            vkCmdBindIndexBuffer(g_renderContext.activeCmdBuffer, p.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+            vkCmdBindDescriptorSets(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.layout, 0, 1, &p.descriptor.set, 0, nullptr);
+            vkCmdDrawIndexed(g_renderContext.activeCmdBuffer, p.indexCount, 1, 0, 0, 0);
         }
-
-        // queue patches
-        vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.pipeline);
-
-        for (auto &pi : m_visiblePatches)
-        {
-            for (auto &p : m_renderBuffers.m_patchBuffers[pi])
-            {
-                VkBuffer vertexBuffers[] = { p.vertexBuffer.buffer };
-                VkDeviceSize offsets[] = { 0 };
-                vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, vertexBuffers, offsets);
-                // quake 3 bsp requires uint32 for index type - 16 is too small
-                vkCmdBindIndexBuffer(m_commandBuffers[i], p.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-                vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.layout, 0, 1, &p.descriptor.set, 0, nullptr);
-                vkCmdDrawIndexed(m_commandBuffers[i], p.indexCount, 1, 0, 0, 0);
-            }
-        }
-
-        vkCmdEndRenderPass(m_commandBuffers[i]);
-
-        result = vkEndCommandBuffer(m_commandBuffers[i]);
-        LOG_MESSAGE_ASSERT(result == VK_SUCCESS, "Error recording command buffer: " << result);
     }
 }
 
@@ -501,8 +458,8 @@ void Q3BspMap::RebuildPipelines()
 
     // todo: pipeline derivatives https://github.com/SaschaWillems/Vulkan/blob/master/examples/pipelines/pipelines.cpp
     const char *shaders[] = { "res/Basic_vert.spv", "res/Basic_frag.spv" };
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, m_dsLayout, &m_vbInfo, &m_facesPipeline, shaders));
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, m_renderPass, m_dsLayout, &m_vbInfo, &m_patchPipeline, shaders));
+    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.renderPass, m_dsLayout, &m_vbInfo, &m_facesPipeline, shaders));
+    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.renderPass, m_dsLayout, &m_vbInfo, &m_patchPipeline, shaders));
 }
 
 void Q3BspMap::CreateBuffersForFace(const Q3BspFaceLump &face, int idx)
@@ -516,9 +473,9 @@ void Q3BspMap::CreateBuffersForFace(const Q3BspFaceLump &face, int idx)
     faceBuffer.indexCount  = face.n_meshverts;
 
     // vertex buffer and index buffer with staging buffer
-    vk::createVertexBuffer(g_renderContext.device, m_commandPool,
+    vk::createVertexBuffer(g_renderContext.device, g_renderContext.commandPool,
                            &(vertices[face.vertex].position), sizeof(Q3BspVertexLump) * face.n_vertexes, &faceBuffer.vertexBuffer);
-     vk::createIndexBuffer(g_renderContext.device, m_commandPool,
+     vk::createIndexBuffer(g_renderContext.device, g_renderContext.commandPool,
                            &meshVertices[face.meshvert], sizeof(Q3BspMeshVertLump) * face.n_meshverts, &faceBuffer.indexBuffer);
     // check if both the texture and lightmap exist and if not - replace them with missing/white texture stubs
     const vk::Texture *colorTex = m_textures[faces[idx].texture] ? *m_textures[faces[idx].texture] : *m_missingTex;
@@ -530,7 +487,7 @@ void Q3BspMap::CreateBuffersForFace(const Q3BspFaceLump &face, int idx)
 
 void Q3BspMap::CreateBuffersForPatch(int idx)
 {
-    int numPatches = m_patches[idx]->quadraticPatches.size();
+    int numPatches = (int)m_patches[idx]->quadraticPatches.size();
 
     for (int i = 0; i < numPatches; i++)
     {
@@ -538,7 +495,7 @@ void Q3BspMap::CreateBuffersForPatch(int idx)
         auto *patch       = m_patches[idx];
         auto &biquadPatch = patch->quadraticPatches[i];
         auto &patchBuffer = m_renderBuffers.m_patchBuffers[idx];
-        int numVerts  = biquadPatch.m_vertices.size();
+        int numVerts  = (int)biquadPatch.m_vertices.size();
         int tessLevel = biquadPatch.m_tesselationLevel;
 
         for (int row = 0; row < tessLevel; ++row)
@@ -549,9 +506,9 @@ void Q3BspMap::CreateBuffersForPatch(int idx)
             pb.indexCount  = 2 * (tessLevel + 1);
 
             // vertex buffer and index buffer with staging buffer
-            vk::createVertexBuffer(g_renderContext.device, m_commandPool,
+            vk::createVertexBuffer(g_renderContext.device, g_renderContext.commandPool,
                                    &biquadPatch.m_vertices[0].position, sizeof(Q3BspVertexLump) * numVerts, &pb.vertexBuffer);
-             vk::createIndexBuffer(g_renderContext.device, m_commandPool,
+             vk::createIndexBuffer(g_renderContext.device, g_renderContext.commandPool,
                                    &biquadPatch.m_indices[row * 2 * (tessLevel + 1)], sizeof(Q3BspMeshVertLump) * 2 * (tessLevel + 1), &pb.indexBuffer);
             // check if both the texture and lightmap exist and if not - replace them with missing/white texture stubs
             const vk::Texture *colorTex = m_textures[patch->textureIdx] ? *m_textures[patch->textureIdx] : *m_missingTex;
