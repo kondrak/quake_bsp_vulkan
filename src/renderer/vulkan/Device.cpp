@@ -145,7 +145,7 @@ namespace vk
         deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
         deviceCreateInfo.ppEnabledExtensionNames = devExtensions.data();
-        deviceCreateInfo.enabledExtensionCount = devExtensions.size();
+        deviceCreateInfo.enabledExtensionCount = (uint32_t)devExtensions.size();
 
         // a single queue can draw and present? Provide single create info, otherwise create two separate queues
         if (device->queueFamilyIndex == device->presentFamilyIndex)
@@ -203,7 +203,7 @@ namespace vk
                 vkGetPhysicalDeviceQueueFamilyProperties(devices[i], &queueFamilyCount, queueFamilies);
 
                 // secondary check - device is OK if there's at least on queue with VK_QUEUE_GRAPHICS_BIT set
-                for (size_t j = 0; j < queueFamilyCount; ++j)
+                for (uint32_t j = 0; j < queueFamilyCount; ++j)
                 {
                     // check if this queue family has support for presentation
                     VkBool32 presentSupported;
