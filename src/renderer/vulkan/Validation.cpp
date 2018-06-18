@@ -14,7 +14,23 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags,
                                                     const char* layerPrefix, const char* msg,
                                                     void* userData)
 {
-    LOG_MESSAGE_ASSERT(false, "VULKAN ERROR: " << msg);
+    switch (flags)
+    {
+    case VK_DEBUG_REPORT_INFORMATION_BIT_EXT:
+        LOG_MESSAGE("VULKAN INFO: " << msg);
+        break;
+    case VK_DEBUG_REPORT_DEBUG_BIT_EXT:
+        LOG_MESSAGE("VULKAN DEBUG: " << msg);
+        break;
+    case VK_DEBUG_REPORT_WARNING_BIT_EXT:
+        LOG_MESSAGE_ASSERT(false, "VULKAN WARNING: " << msg);
+        break;
+    case VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT:
+        LOG_MESSAGE_ASSERT(false, "VULKAN PERFORMANCE: " << msg);
+        break;
+    default:
+        LOG_MESSAGE_ASSERT(false, "VULKAN ERROR: " << msg);
+    }
     return VK_FALSE;
 }
 
@@ -26,7 +42,8 @@ namespace vk
 
         VkDebugReportCallbackCreateInfoEXT callbackInfo = {};
         callbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-        callbackInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
+        callbackInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | 
+                             VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
         callbackInfo.pfnCallback = debugCallback;
 
         vkCreateDebugReportCallbackEXT(instance, &callbackInfo, nullptr, &validationLayerCallback);
