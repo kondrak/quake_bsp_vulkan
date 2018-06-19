@@ -38,6 +38,7 @@ namespace vk
         VkPhysicalDevice physical  = VK_NULL_HANDLE;
         VkDevice         logical   = VK_NULL_HANDLE;
         VmaAllocator     allocator = VK_NULL_HANDLE;
+        VkPhysicalDeviceProperties properties = {};
 
         VkQueue graphicsQueue = VK_NULL_HANDLE;
         VkQueue presentQueue  = VK_NULL_HANDLE;

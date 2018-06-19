@@ -48,6 +48,8 @@ public:
     Math::Vector2f WindowSize();
     // rebuild entire swap chain
     bool RecreateSwapChain();
+    // toggle MSAA on/off, return current setting
+    VkSampleCountFlagBits ToggleMSAA();
 
     SDL_Window *window = nullptr;
 
@@ -75,12 +77,14 @@ public:
 
     Math::Matrix4f ModelViewProjectionMatrix; // global MVP used to orient the entire world
 private:
-    bool InitVulkan();
-    void CreateDepthBuffer(const VkCommandPool &commandPool);
-    void DestroyDepthBuffer();
+    bool InitVulkan(); 
+    void CreateDrawBuffers();
+    void DestroyDrawBuffers();
+    void CreateMSAABuffers();
+    void DestroyMSAABuffers();
     bool CreateImageViews();
     void DestroyImageViews();
-    bool CreateFramebuffers(const vk::RenderPass &renderPass);
+    bool CreateFramebuffers();
     void DestroyFramebuffers();
     void CreateFences();
     void CreateSemaphores();
@@ -107,6 +111,11 @@ private:
 
     // depth buffer texture
     vk::Texture m_depthBuffer;
+
+    // render targets for color and depth used with MSAA (if sample count > 1)
+    VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+    vk::Texture m_msaaColor;
+    vk::Texture m_msaaDepth;
 
     // handle submission from multiple render passes
     uint32_t m_imageIndex;

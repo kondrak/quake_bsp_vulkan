@@ -8,7 +8,7 @@ namespace vk
     // internal helpers
     static void transitionImageLayout(const Device &device, const VkCommandPool &commandPool, const Texture &texture, const VkImageLayout &oldLayout, const VkImageLayout &newLayout);
     static void copyBufferToImage(const Device &device, const VkCommandPool &commandPool, const VkBuffer &buffer, const VkImage &image, uint32_t width, uint32_t height);
-    static VkResult createImage(const Device &device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, Texture *texture);
+    static VkResult createImage(const Device &device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VmaMemoryUsage memUsage, Texture *texture);
 
     void createTextureImage(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
     {
@@ -23,8 +23,7 @@ namespace vk
         vmaUnmapMemory(device.allocator, stagingBuffer.allocation);
 
         VK_VERIFY(createImage(device, width, height, dstTex->format,
-                              VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, dstTex));
+                              VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VMA_MEMORY_USAGE_GPU_ONLY, dstTex));
         // copy buffers
         transitionImageLayout(device, commandPool, *dstTex, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         copyBufferToImage(device, commandPool, stagingBuffer.buffer, dstTex->image, width, height);
@@ -94,12 +93,27 @@ namespace vk
     }
 
     // helper functions
-    Texture createDepthBuffer(const Device &device, const SwapChain &swapChain, const VkCommandPool &commandPool)
+    Texture createColorBuffer(const Device &device, const SwapChain &swapChain, const VkCommandPool &commandPool, VkSampleCountFlagBits sampleCount)
+    {
+        Texture colorTexture;
+        colorTexture.format = swapChain.format;
+        colorTexture.sampleCount = sampleCount;
+
+        VK_VERIFY(createImage(device, swapChain.extent.width, swapChain.extent.height, colorTexture.format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, &colorTexture));
+        VK_VERIFY(createImageView(device, colorTexture.image, VK_IMAGE_ASPECT_COLOR_BIT, &colorTexture.imageView, colorTexture.format));
+
+        transitionImageLayout(device, commandPool, colorTexture, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+        return colorTexture;
+    }
+
+    Texture createDepthBuffer(const Device &device, const SwapChain &swapChain, const VkCommandPool &commandPool, VkSampleCountFlagBits sampleCount)
     {
         Texture depthTexture;
         depthTexture.format = VK_FORMAT_D32_SFLOAT;
+        depthTexture.sampleCount = sampleCount;
 
-        VK_VERIFY(createImage(device, swapChain.extent.width, swapChain.extent.height, depthTexture.format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &depthTexture));
+        VK_VERIFY(createImage(device, swapChain.extent.width, swapChain.extent.height, depthTexture.format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, &depthTexture));
         VK_VERIFY(createImageView(device, depthTexture.image, VK_IMAGE_ASPECT_DEPTH_BIT, &depthTexture.imageView, depthTexture.format));
 
         transitionImageLayout(device, commandPool, depthTexture, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
@@ -155,6 +169,13 @@ namespace vk
             srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         }
+        else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        {
+            imgBarrier.srcAccessMask = 0;
+            imgBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        }
         else
         {
             LOG_MESSAGE_ASSERT(false, "Invalid stage");
@@ -185,7 +206,7 @@ namespace vk
         endOneTimeCommand(device, cmdBuffer, commandPool, device.graphicsQueue);
     }
 
-    VkResult createImage(const Device &device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, Texture *texture)
+    VkResult createImage(const Device &device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VmaMemoryUsage memUsage, Texture *texture)
     {
         VkImageCreateInfo imageInfo = {};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -200,11 +221,11 @@ namespace vk
         imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         imageInfo.usage = usage;
         imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.samples = texture->sampleCount;
         imageInfo.flags = 0;
 
         VmaAllocationCreateInfo vmallocInfo = {};
-        vmallocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+        vmallocInfo.usage = memUsage;
 
         return vmaCreateImage(device.allocator, &imageInfo, &vmallocInfo, &texture->image, &texture->allocation, nullptr);
     }

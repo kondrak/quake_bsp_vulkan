@@ -27,7 +27,7 @@ namespace vk
     // internal helper functions for device and swapchain creation
     static VkResult selectPhysicalDevice(const VkInstance &instance, const VkSurfaceKHR &surface, Device *device);
     static VkResult createLogicalDevice(Device *device);
-    static VkPhysicalDevice getBestPhysicalDevice(const VkPhysicalDevice *devices, size_t count, const VkSurfaceKHR &surface, Device *device);
+    static void getBestPhysicalDevice(const VkPhysicalDevice *devices, size_t count, const VkSurfaceKHR &surface, Device *device);
     static bool deviceExtensionsSupported(const VkPhysicalDevice &device, const char **requested, size_t count);
     static void getSwapChainInfo(const VkPhysicalDevice devices, const VkSurfaceKHR &surface, SwapChainInfo *scInfo);
     static void getSwapSurfaceFormat(const SwapChainInfo &scInfo, VkSurfaceFormatKHR *surfaceFormat);
@@ -120,7 +120,7 @@ namespace vk
         VkPhysicalDevice *physicalDevices = new VkPhysicalDevice[physicalDeviceCount];
         VK_VERIFY(vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDevices));
 
-        device->physical = getBestPhysicalDevice(physicalDevices, physicalDeviceCount, surface, device);
+        getBestPhysicalDevice(physicalDevices, physicalDeviceCount, surface, device);
         LOG_MESSAGE_ASSERT(device->physical != VK_NULL_HANDLE, "Could not find a suitable physical device!");
 
         delete[] physicalDevices;
@@ -168,7 +168,7 @@ namespace vk
         return vkCreateDevice(device->physical, &deviceCreateInfo, nullptr, &device->logical);
     }
 
-    VkPhysicalDevice getBestPhysicalDevice(const VkPhysicalDevice *devices, size_t count, const VkSurfaceKHR &surface, Device *device)
+    void getBestPhysicalDevice(const VkPhysicalDevice *devices, size_t count, const VkSurfaceKHR &surface, Device *device)
     {
         VkPhysicalDeviceProperties deviceProperties;
         VkPhysicalDeviceFeatures deviceFeatures;
@@ -224,14 +224,15 @@ namespace vk
                     if (device->presentFamilyIndex >= 0 && device->queueFamilyIndex >= 0)
                     {
                         delete[] queueFamilies;
-                        return devices[i];
+                        device->physical = devices[i];
+                        device->properties = deviceProperties;
+                        return;
                     }
                 }
 
                 delete[] queueFamilies;
             }
         }
-        return VK_NULL_HANDLE;
     }
 
     bool deviceExtensionsSupported(const VkPhysicalDevice &device, const char **requested, size_t count)

@@ -128,7 +128,7 @@ namespace vk
         VkPipelineMultisampleStateCreateInfo  msCreateInfo = {};
         msCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         msCreateInfo.sampleShadingEnable = VK_FALSE;
-        msCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+        msCreateInfo.rasterizationSamples = renderPass.sampleCount;
         msCreateInfo.minSampleShading = 1.f;
         msCreateInfo.pSampleMask = nullptr;
         msCreateInfo.alphaToCoverageEnable = VK_FALSE;
@@ -216,23 +216,25 @@ namespace vk
 
     VkResult createRenderPass(const Device &device, const SwapChain &swapChain, RenderPass *renderPass)
     {
-        VkAttachmentDescription attachmentDesc = {};
-        attachmentDesc.format = swapChain.format;
-        attachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
-        attachmentDesc.loadOp = renderPass->colorLoadOp;
-        attachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        attachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        attachmentDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        bool msaaEnabled = renderPass->sampleCount != VK_SAMPLE_COUNT_1_BIT;
 
-        VkAttachmentReference attachmentRef = {};
-        attachmentRef.attachment = 0;
-        attachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        VkAttachmentDescription colorAttachmentDesc = {};
+        colorAttachmentDesc.format = swapChain.format;
+        colorAttachmentDesc.samples = renderPass->sampleCount;
+        colorAttachmentDesc.loadOp = renderPass->colorLoadOp;
+        colorAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        // treat this attachment as an interim color stage if MSAA is enabled
+        if (msaaEnabled)
+            colorAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        else
+            colorAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentDescription depthAttachmentDesc = {};
         depthAttachmentDesc.format = VK_FORMAT_D32_SFLOAT;
-        depthAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
+        depthAttachmentDesc.samples = renderPass->sampleCount;
         depthAttachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         depthAttachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -240,21 +242,53 @@ namespace vk
         depthAttachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         depthAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
+        // resolve color and depth targets used if MSAA is enabled
+        VkAttachmentDescription colorAttachmentResolveMSAA = {};
+        colorAttachmentResolveMSAA.format = swapChain.format;
+        colorAttachmentResolveMSAA.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachmentResolveMSAA.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentResolveMSAA.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachmentResolveMSAA.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentResolveMSAA.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachmentResolveMSAA.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachmentResolveMSAA.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+        VkAttachmentDescription depthAttachmentResolveMSAA = {};
+        depthAttachmentResolveMSAA.format = VK_FORMAT_D32_SFLOAT;
+        depthAttachmentResolveMSAA.samples = VK_SAMPLE_COUNT_1_BIT;
+        depthAttachmentResolveMSAA.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        depthAttachmentResolveMSAA.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        depthAttachmentResolveMSAA.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        depthAttachmentResolveMSAA.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachmentResolveMSAA.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        depthAttachmentResolveMSAA.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference colorAttachmentRef = {};
+        colorAttachmentRef.attachment = 0;
+        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
         VkAttachmentReference depthAttachmentRef = {};
         depthAttachmentRef.attachment = 1;
         depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
+        VkAttachmentReference colorAttachmentResolveMSAARef = {};
+        colorAttachmentResolveMSAARef.attachment = 2;
+        colorAttachmentResolveMSAARef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
         VkSubpassDescription subpassDesc = {};
         subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpassDesc.colorAttachmentCount = 1;
-        subpassDesc.pColorAttachments = &attachmentRef;
+        subpassDesc.pColorAttachments = &colorAttachmentRef;
         subpassDesc.pDepthStencilAttachment = &depthAttachmentRef;
+        if (msaaEnabled)
+            subpassDesc.pResolveAttachments = &colorAttachmentResolveMSAARef;
 
-        VkAttachmentDescription attachments[] = { attachmentDesc, depthAttachmentDesc };
+        VkAttachmentDescription attachments[] = { colorAttachmentDesc, depthAttachmentDesc };
+        VkAttachmentDescription attachmentsMSAA[] = { colorAttachmentDesc, depthAttachmentDesc, colorAttachmentResolveMSAA, depthAttachmentResolveMSAA };
         VkRenderPassCreateInfo rpCreateInfo = {};
         rpCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        rpCreateInfo.attachmentCount = 2;
-        rpCreateInfo.pAttachments = attachments;
+        rpCreateInfo.attachmentCount = msaaEnabled ? 4 : 2;
+        rpCreateInfo.pAttachments = msaaEnabled ? attachmentsMSAA : attachments;
         rpCreateInfo.subpassCount = 1;
         rpCreateInfo.pSubpasses = &subpassDesc;
 
