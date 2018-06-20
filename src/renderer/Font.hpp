@@ -27,7 +27,7 @@ public:
     void RenderFinish();
     void RebuildPipeline();
 private:
-    static const int MAX_CHARS = 300;
+    static const int MAX_CHARS = 350;
 
     // vertex data for character
     struct GlyphVertex
