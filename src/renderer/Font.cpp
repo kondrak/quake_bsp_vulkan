@@ -107,7 +107,6 @@ void Font::RenderFinish()
 
 void Font::RebuildPipeline()
 {
-    vkDeviceWaitIdle(g_renderContext.device.logical);
     vk::destroyPipeline(g_renderContext.device, m_pipeline);
 
     // todo: pipeline derivatives https://github.com/SaschaWillems/Vulkan/blob/master/examples/pipelines/pipelines.cpp

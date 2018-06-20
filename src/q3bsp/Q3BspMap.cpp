@@ -264,6 +264,7 @@ void Q3BspMap::ToggleRenderFlag(int flag)
     case Q3RenderShowWireframe:
         m_facesPipeline.mode = set ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
         m_patchPipeline.mode = set ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
+        vkDeviceWaitIdle(g_renderContext.device.logical);
         RebuildPipelines();
         break;
     case Q3RenderShowLightmaps:
@@ -452,7 +453,6 @@ void Q3BspMap::Draw()
 
 void Q3BspMap::RebuildPipelines()
 {
-    vkDeviceWaitIdle(g_renderContext.device.logical);
     vk::destroyPipeline(g_renderContext.device, m_facesPipeline);
     vk::destroyPipeline(g_renderContext.device, m_patchPipeline);
 
