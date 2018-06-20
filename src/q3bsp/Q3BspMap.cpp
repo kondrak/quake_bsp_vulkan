@@ -21,7 +21,6 @@ Q3BspMap::~Q3BspMap()
         delete it;
 
     // release all allocated Vulkan resources
-    vkDeviceWaitIdle(g_renderContext.device.logical);
     vk::destroyPipeline(g_renderContext.device, m_facesPipeline);
     vk::destroyPipeline(g_renderContext.device, m_patchPipeline);
 
