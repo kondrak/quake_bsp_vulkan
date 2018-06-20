@@ -35,4 +35,4 @@ Keyword list:
 - texture mapping with and without filtering
 - 3rd party memory allocation handling using VMA
 - validation layers defaulted to debug builds
-- Multisampling (MSAA) support defaulting to maximum sample count supported by hardware
+- Multisampling (MSAA) defaulting to maximum sample count supported by hardware
