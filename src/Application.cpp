@@ -26,6 +26,7 @@ void Application::OnWindowResize(int newWidth, int newHeight)
         g_renderContext.left  = -g_renderContext.scrRatio;
         g_renderContext.right =  g_renderContext.scrRatio;
 
+        g_renderContext.RecreateSwapChain();
         m_q3map->OnWindowChanged();
         m_q3stats->OnWindowChanged();
     }

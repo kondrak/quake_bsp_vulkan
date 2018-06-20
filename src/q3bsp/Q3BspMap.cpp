@@ -163,7 +163,6 @@ void Q3BspMap::OnRender()
 
 void Q3BspMap::OnWindowChanged()
 {
-    g_renderContext.RecreateSwapChain();
     RebuildPipelines();
 }
 
