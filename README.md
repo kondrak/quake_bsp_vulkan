@@ -7,7 +7,7 @@ This is a BSP tree Vulkan renderer written in C++ and a port of the same viewer 
 
 Building
 -----
-The project works out of the box with latest Vulkan SDK (tested against SDK 1.0.65.1 and corresponding runtime) and Visual Studio 2015+
+The project should work out of the box with latest Vulkan SDK (tested against SDK 1.0.65.1 and corresponding runtime) and Visual Studio 2015+
 
 Usage
 -----
@@ -27,17 +27,12 @@ This project uses following external libraries:
 
 Vulkan code overview
 -------
-For people interested in learning Vulkan and jumping into core features, the `renderer/vulkan` folder contains all files related to creating buffers, instances, surfaces and command lists. Note that this is not an attempt at writing an overly abstract rendering engine and few settings are tailored for this particular project. Core BSP and overlay rendering is done in `src/Q3BspMap.cpp` and `src/renderer/Font.cpp`. Vulkan handles global to the entire application (instance, device, etc.) are stored in `src/RenderContext.cpp`.
+For people interested in learning Vulkan and jumping into core features, the `renderer/vulkan` folder contains all files related to creating buffers, instances, surfaces and command lists. Note that this is not an attempt at writing an overly abstract rendering engine and few settings are tailored for this particular project. Core BSP and overlay rendering is done in `src/Q3BspMap.cpp` and `src/renderer/Font.cpp`. Global Vulkan handles (instance, device, etc.) are stored in `src/RenderContext.cpp`.
 
 Keyword list:
-- multiple pipeline and renderpass rendering with separate command pools and buffers
+- multiple pipeline rendering
 - immediate screen updates with double buffering and semaphore scheduling
 - texture mapping with and without filtering
 - 3rd party memory allocation handling using VMA
 - validation layers defaulted to debug builds
-
-TODO
--------
-- add MSAA
-- use pipeline derivatives
-- Linux build!
+- Multisampling (MSAA) support defaulting to maximum sample count supported by hardware
