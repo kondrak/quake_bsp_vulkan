@@ -7,7 +7,7 @@ This is a BSP tree Vulkan renderer written in C++ and a port of the same viewer 
 
 Building
 -----
-The project should work out of the box with latest Vulkan SDK (tested against SDK 1.0.65.1 and corresponding runtime) and Visual Studio 2015+
+The project should work out of the box with latest Vulkan SDK (tested against SDK 1.1.73.0 and corresponding runtime) and Visual Studio 2015+
 
 Usage
 -----
