@@ -12,7 +12,6 @@ static const int NUM_CMDBUFFERS = 2;
 // Returns the maximum sample count usable by the platform
 static VkSampleCountFlagBits getMaxUsableSampleCount(const VkPhysicalDeviceProperties &deviceProperties)
 {
-#undef min
     VkSampleCountFlags counts = std::min(deviceProperties.limits.framebufferColorSampleCounts, deviceProperties.limits.framebufferDepthSampleCounts);
     if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
     if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
@@ -86,7 +85,6 @@ void RenderContext::Destroy()
 
 VkResult RenderContext::RenderStart()
 {
-#undef max
     VkResult result = vkAcquireNextImageKHR(device.logical, swapChain.sc, UINT64_MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &m_imageIndex);
     activeCmdBuffer = m_commandBuffers[m_imageIndex];
  
@@ -169,8 +167,6 @@ Math::Vector2f RenderContext::WindowSize()
     // fallback if WM sets extent dimensions to max uint32
     if (surfaceCaps.currentExtent.width == std::numeric_limits<uint32_t>::max())
     {
-#undef min
-#undef max
         // fetch current window width and height from SDL, since we can't rely on WM in this case
         SDL_GetWindowSize(window, &width, &height);
         float w = (float)std::max(surfaceCaps.minImageExtent.width,  std::min(surfaceCaps.maxImageExtent.width,  (uint32_t)width));

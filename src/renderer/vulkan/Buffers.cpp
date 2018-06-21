@@ -1,9 +1,6 @@
 #include "renderer/vulkan/Buffers.hpp"
 #include "renderer/vulkan/CmdBuffer.hpp"
 #include "Utils.hpp"
-#undef min
-#undef max
-#define VMA_IMPLEMENTATION
 #include "renderer/vulkan/vk_mem_alloc.h"
 
 namespace vk

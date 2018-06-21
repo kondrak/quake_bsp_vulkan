@@ -1,15 +1,6 @@
 #pragma once
 struct SDL_Window;
 
-#ifdef _WIN32
-    #define VK_USE_PLATFORM_WIN32_KHR
-#endif
-
-// enable validation layers in debug builds by default
-#ifndef NDEBUG
-    #define VALIDATION_LAYERS_ON
-#endif
-
 #include <vulkan/vulkan.h>
 #include "renderer/vulkan/vk_mem_alloc.h"
 

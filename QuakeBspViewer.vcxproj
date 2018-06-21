@@ -34,6 +34,7 @@
     <ClCompile Include="src\renderer\vulkan\Image.cpp" />
     <ClCompile Include="src\renderer\vulkan\Pipeline.cpp" />
     <ClCompile Include="src\renderer\vulkan\Validation.cpp" />
+    <ClCompile Include="src\renderer\vulkan\VkCommon.cpp" />
     <ClCompile Include="src\StringHelpers.cpp" />
     <ClCompile Include="src\Utils.cpp" />
   </ItemGroup>

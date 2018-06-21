@@ -318,8 +318,6 @@ namespace vk
 
     void getSwapExtent(const SwapChainInfo &scInfo, VkExtent2D *swapExtent, const VkExtent2D &currentSize)
     {
-#undef min
-#undef max
         if (scInfo.surfaceCaps.currentExtent.width != std::numeric_limits<uint32_t>::max())
         {
             *swapExtent = scInfo.surfaceCaps.currentExtent;
