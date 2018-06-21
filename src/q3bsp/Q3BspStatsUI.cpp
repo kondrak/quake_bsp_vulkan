@@ -100,6 +100,11 @@ void Q3StatsUI::OnRender()
     m_font->RenderText("F7 - use frustum culling", keysX, keysY - ySpacing * 7.f, 0.f);
     m_font->SetColor(Math::Vector3f(1.f, 1.f, 1.f));
 
+    if (m_map->HasRenderFlag(Q3Multisampling))
+        m_font->SetColor(Math::Vector3f(0.f, 1.f, 0.f));
+    m_font->RenderText("F8 - multisampling (MSAA)", keysX, keysY - ySpacing * 8.f, 0.f);
+    m_font->SetColor(Math::Vector3f(1.f, 1.f, 1.f));
+
     m_font->RenderFinish();
 }
 

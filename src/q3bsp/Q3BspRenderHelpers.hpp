@@ -18,7 +18,8 @@ enum Q3BspRenderFlags
     Q3RenderAlphaTest      = 1 << 3,
     Q3RenderSkipMissingTex = 1 << 4,
     Q3RenderSkipPVS        = 1 << 5,
-    Q3RenderSkipFC         = 1 << 6
+    Q3RenderSkipFC         = 1 << 6,
+    Q3Multisampling        = 1 << 7
 };
 
 

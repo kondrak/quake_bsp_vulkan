@@ -23,6 +23,7 @@ namespace vk
     {
         VkRenderPass renderPass = VK_NULL_HANDLE;
         VkAttachmentLoadOp colorLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT;
     };
 
 

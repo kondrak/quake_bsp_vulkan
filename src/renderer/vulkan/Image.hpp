@@ -15,6 +15,7 @@ namespace vk
         VmaAllocation allocation = VK_NULL_HANDLE;
         VkImageView   imageView  = VK_NULL_HANDLE;
         VkSampler sampler   = VK_NULL_HANDLE;
+        VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT;
         VkFormat  format    = VK_FORMAT_R8G8B8A8_UNORM;
         VkFilter  minFilter = VK_FILTER_LINEAR;
         VkFilter  magFilter = VK_FILTER_LINEAR;
@@ -26,5 +27,6 @@ namespace vk
     void releaseTexture(const Device &device, Texture &texture);
     VkResult createImageView(const Device &device, const VkImage &image, VkImageAspectFlags aspectFlags, VkImageView *imageView, VkFormat format);
     VkResult createTextureSampler(const Device &device, Texture *texture);
-    Texture  createDepthBuffer(const Device &device, const SwapChain &swapChain, const VkCommandPool &commandPool);
+    Texture  createColorBuffer(const Device &device, const SwapChain &swapChain, const VkCommandPool &commandPool, VkSampleCountFlagBits sampleCount);
+    Texture  createDepthBuffer(const Device &device, const SwapChain &swapChain, const VkCommandPool &commandPool, VkSampleCountFlagBits sampleCount);
 }

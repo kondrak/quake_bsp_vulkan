@@ -26,6 +26,7 @@ void Application::OnWindowResize(int newWidth, int newHeight)
         g_renderContext.left  = -g_renderContext.scrRatio;
         g_renderContext.right =  g_renderContext.scrRatio;
 
+        g_renderContext.RecreateSwapChain();
         m_q3map->OnWindowChanged();
         m_q3stats->OnWindowChanged();
     }
@@ -129,6 +130,7 @@ void Application::OnUpdate(float dt)
 
 void Application::OnTerminate()
 {
+    vkDeviceWaitIdle(g_renderContext.device.logical);
     delete m_q3stats;
     delete m_q3map;
 }
@@ -168,6 +170,12 @@ void Application::OnKeyPress(KeyCode key)
         break;
     case KEY_F7:
         m_q3map->ToggleRenderFlag(Q3RenderSkipFC);
+        break;
+    case KEY_F8:
+        m_q3map->ToggleRenderFlag(Q3Multisampling);
+        g_renderContext.ToggleMSAA();
+        m_q3map->OnWindowChanged();
+        m_q3stats->OnWindowChanged();
         break;
     case KEY_TILDE:
         m_debugRenderState++;
