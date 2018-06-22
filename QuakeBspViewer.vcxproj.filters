@@ -105,7 +105,7 @@
     <ClCompile Include="src\renderer\GameTexture.cpp">
       <Filter>Source Files\renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\vulkan\VkCommon.cpp">
+    <ClCompile Include="src\renderer\vulkan\VkMemAlloc.cpp">
       <Filter>Source Files\renderer\vulkan</Filter>
     </ClCompile>
   </ItemGroup>
