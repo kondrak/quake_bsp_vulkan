@@ -80,6 +80,18 @@ namespace vk
         freeBuffer(device, stagingBuffer);
     }
 
+    void createVertexBufferStaged(const Device &device, const VkCommandPool &commandPool, VkDeviceSize size, const Buffer &stagingBuffer, Buffer *dstBuffer)
+    {
+        BufferOptions dstOpts;
+        dstOpts.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+        dstOpts.memFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        dstOpts.vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY;
+
+        VK_VERIFY(createBuffer(device, size, dstBuffer, dstOpts));
+
+        copyBuffer(device, commandPool, stagingBuffer.buffer, dstBuffer->buffer, size);
+    }
+
     void createIndexBuffer(const Device &device, const VkCommandPool &commandPool, const void *data, VkDeviceSize size, Buffer *dstBuffer)
     {
         Buffer stagingBuffer;
@@ -99,6 +111,18 @@ namespace vk
 
         copyBuffer(device, commandPool, stagingBuffer.buffer, dstBuffer->buffer, size);
         freeBuffer(device, stagingBuffer);
+    }
+
+    void createIndexBufferStaged(const Device &device, const VkCommandPool &commandPool, VkDeviceSize size, const Buffer &stagingBuffer, Buffer *dstBuffer)
+    {
+        BufferOptions dstOpts;
+        dstOpts.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+        dstOpts.memFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        dstOpts.vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY;
+
+        VK_VERIFY(createBuffer(device, size, dstBuffer, dstOpts));
+
+        copyBuffer(device, commandPool, stagingBuffer.buffer, dstBuffer->buffer, size);
     }
 
     VkResult createUniformBuffer(const Device &device, VkDeviceSize size, Buffer *dstBuffer)
