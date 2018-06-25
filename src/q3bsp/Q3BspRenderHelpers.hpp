@@ -44,11 +44,11 @@ struct Q3FaceRenderable
 // Vulkan buffers and descriptor for a single face in the BSP
 struct FaceBuffers
 {
-    vk::Buffer vertexBuffer;
-    vk::Buffer indexBuffer;
     vk::Descriptor descriptor;
     int vertexCount = 0;
     int indexCount  = 0;
+    int vertexOffset = 0;
+    int indexOffset  = 0;
 };
 
 

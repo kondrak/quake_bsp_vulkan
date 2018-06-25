@@ -27,8 +27,6 @@ Q3BspMap::~Q3BspMap()
     for (auto &it : m_renderBuffers.m_faceBuffers)
     {
         vkDestroyDescriptorPool(g_renderContext.device.logical, it.second.descriptor.pool, nullptr);
-        vk::freeBuffer(g_renderContext.device, it.second.vertexBuffer);
-        vk::freeBuffer(g_renderContext.device, it.second.indexBuffer);
     }
 
     for (auto &it : m_renderBuffers.m_patchBuffers)
@@ -36,10 +34,12 @@ Q3BspMap::~Q3BspMap()
         for (auto &it2 : it.second)
         {
             vkDestroyDescriptorPool(g_renderContext.device.logical, it2.descriptor.pool, nullptr);
-            vk::freeBuffer(g_renderContext.device, it2.vertexBuffer);
-            vk::freeBuffer(g_renderContext.device, it2.indexBuffer);
         }
     }
+    vk::freeBuffer(g_renderContext.device, m_faceVertexBuffer);
+    vk::freeBuffer(g_renderContext.device, m_faceIndexBuffer);
+    vk::freeBuffer(g_renderContext.device, m_patchVertexBuffer);
+    vk::freeBuffer(g_renderContext.device, m_patchIndexBuffer);
 
     for (size_t i = 0; i < lightMaps.size(); ++i)
     {
@@ -110,7 +110,17 @@ void Q3BspMap::Init()
     int faceArrayIdx  = 0;
     int patchArrayIdx = 0;
 
-    for (const auto &f : faces)
+    int numFaceVerts = 0;
+    int numFaceIndexes = 0;
+    int numPatchVerts = 0;
+    int numPatchIndexes = 0;
+
+    // data agregators for vertex and index buffer creation
+    std::vector<Q3BspFaceLump*> faceData;
+    std::vector<Q3BspBiquadPatch*> patchData;
+    std::vector<int> patchIndexData;
+
+    for (auto &f : faces)
     {
         m_renderFaces.push_back(Q3FaceRenderable());
 
@@ -121,7 +131,7 @@ void Q3BspMap::Init()
             CreatePatch(f);
 
             // generate Vulkan buffers for current patch
-            CreateBuffersForPatch(patchArrayIdx);
+            CreateDescriptorsForPatch(patchArrayIdx, numPatchVerts, numPatchIndexes, patchData, patchIndexData);
             ++patchArrayIdx;
         }
         else
@@ -129,12 +139,20 @@ void Q3BspMap::Init()
             m_renderFaces.back().index = faceArrayIdx;
 
             // generate Vulkan buffers for current face
-            CreateBuffersForFace(f, faceArrayIdx);
+            CreateDescriptorsForFace(f, faceArrayIdx, numFaceVerts, numFaceIndexes);
+            faceData.push_back(&f);
+            numFaceVerts += f.n_vertexes;
+            numFaceIndexes += f.n_meshverts;
         }
 
         ++faceArrayIdx;
         m_renderFaces.back().type = f.type;
     }
+
+    // create single, large index and vertex buffers for faces and patches
+    // this is several magnitudes faster than separate buffers for each face/patch
+    CreatePatchBuffers(patchData, numPatchVerts, numPatchIndexes);
+    CreateFaceBuffers(faceData, numFaceVerts, numFaceIndexes);
 
     m_mapStats.totalVertices = (int)vertices.size();
     m_mapStats.totalFaces    = (int)faces.size();
@@ -415,36 +433,34 @@ void Q3BspMap::CreatePatch(const Q3BspFaceLump &f)
 
 void Q3BspMap::Draw()
 {
-    // queue standard faces
+    VkBuffer vertexBuffers[] = { m_faceVertexBuffer.buffer, m_patchVertexBuffer.buffer };
+    VkDeviceSize offsets[] = { 0 };
+
+    // draw regular faces
     vkCmdBindPipeline(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_facesPipeline.pipeline);
+    vkCmdBindVertexBuffers(g_renderContext.activeCmdBuffer, 0, 1, vertexBuffers, offsets);
+    // quake 3 bsp requires uint32 for index type - 16 is too small
+    vkCmdBindIndexBuffer(g_renderContext.activeCmdBuffer, m_faceIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
     for (auto &f : m_visibleFaces)
     {
         FaceBuffers &fb = m_renderBuffers.m_faceBuffers[f->index];
-
-        VkBuffer vertexBuffers[] = { fb.vertexBuffer.buffer };
-        VkDeviceSize offsets[] = { 0 };
-        vkCmdBindVertexBuffers(g_renderContext.activeCmdBuffer, 0, 1, vertexBuffers, offsets);
-        // quake 3 bsp requires uint32 for index type - 16 is too small
-        vkCmdBindIndexBuffer(g_renderContext.activeCmdBuffer, fb.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
         vkCmdBindDescriptorSets(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_facesPipeline.layout, 0, 1, &fb.descriptor.set, 0, nullptr);
-        vkCmdDrawIndexed(g_renderContext.activeCmdBuffer, fb.indexCount, 1, 0, 0, 0);
+        vkCmdDrawIndexed(g_renderContext.activeCmdBuffer, fb.indexCount, 1, fb.indexOffset, fb.vertexOffset, 0);
     }
 
-    // queue patches
+    // draw patches
     vkCmdBindPipeline(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.pipeline);
+    vkCmdBindVertexBuffers(g_renderContext.activeCmdBuffer, 0, 1, &vertexBuffers[1], offsets);
+    // quake 3 bsp requires uint32 for index type - 16 is too small
+    vkCmdBindIndexBuffer(g_renderContext.activeCmdBuffer, m_patchIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
     for (auto &pi : m_visiblePatches)
     {
         for (auto &p : m_renderBuffers.m_patchBuffers[pi])
         {
-            VkBuffer vertexBuffers[] = { p.vertexBuffer.buffer };
-            VkDeviceSize offsets[] = { 0 };
-            vkCmdBindVertexBuffers(g_renderContext.activeCmdBuffer, 0, 1, vertexBuffers, offsets);
-            // quake 3 bsp requires uint32 for index type - 16 is too small
-            vkCmdBindIndexBuffer(g_renderContext.activeCmdBuffer, p.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
             vkCmdBindDescriptorSets(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.layout, 0, 1, &p.descriptor.set, 0, nullptr);
-            vkCmdDrawIndexed(g_renderContext.activeCmdBuffer, p.indexCount, 1, 0, 0, 0);
+            vkCmdDrawIndexed(g_renderContext.activeCmdBuffer, p.indexCount, 1, p.indexOffset, p.vertexOffset, 0);
         }
     }
 }
@@ -460,7 +476,7 @@ void Q3BspMap::RebuildPipelines()
     VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.renderPass, m_dsLayout, &m_vbInfo, &m_patchPipeline, shaders));
 }
 
-void Q3BspMap::CreateBuffersForFace(const Q3BspFaceLump &face, int idx)
+void Q3BspMap::CreateDescriptorsForFace(const Q3BspFaceLump &face, int idx, int vertexOffset, int indexOffset)
 {
     if (face.type == FaceTypeBillboard)
         return;
@@ -469,12 +485,9 @@ void Q3BspMap::CreateBuffersForFace(const Q3BspFaceLump &face, int idx)
     faceBuffer.descriptor.setLayout = m_dsLayout;
     faceBuffer.vertexCount = face.n_vertexes;
     faceBuffer.indexCount  = face.n_meshverts;
+    faceBuffer.vertexOffset = vertexOffset;
+    faceBuffer.indexOffset = indexOffset;
 
-    // vertex buffer and index buffer with staging buffer
-    vk::createVertexBuffer(g_renderContext.device, g_renderContext.commandPool,
-                           &(vertices[face.vertex].position), sizeof(Q3BspVertexLump) * face.n_vertexes, &faceBuffer.vertexBuffer);
-     vk::createIndexBuffer(g_renderContext.device, g_renderContext.commandPool,
-                           &meshVertices[face.meshvert], sizeof(Q3BspMeshVertLump) * face.n_meshverts, &faceBuffer.indexBuffer);
     // check if both the texture and lightmap exist and if not - replace them with missing/white texture stubs
     const vk::Texture *colorTex = m_textures[faces[idx].texture] ? *m_textures[faces[idx].texture] : *m_missingTex;
     const vk::Texture &lmap = faces[idx].lm_index >= 0 ? m_lightmapTextures[faces[idx].lm_index] : m_whiteTex;
@@ -483,7 +496,7 @@ void Q3BspMap::CreateBuffersForFace(const Q3BspFaceLump &face, int idx)
     CreateDescriptor(textureSet, &faceBuffer.descriptor);
 }
 
-void Q3BspMap::CreateBuffersForPatch(int idx)
+void Q3BspMap::CreateDescriptorsForPatch(int idx, int &vertexOffset, int &indexOffset, std::vector<Q3BspBiquadPatch*> &vertexData, std::vector<int> &indexData)
 {
     int numPatches = (int)m_patches[idx]->quadraticPatches.size();
 
@@ -495,6 +508,7 @@ void Q3BspMap::CreateBuffersForPatch(int idx)
         auto &patchBuffer = m_renderBuffers.m_patchBuffers[idx];
         int numVerts  = (int)biquadPatch.m_vertices.size();
         int tessLevel = biquadPatch.m_tesselationLevel;
+        vertexData.push_back(&biquadPatch);
 
         for (int row = 0; row < tessLevel; ++row)
         {
@@ -502,12 +516,11 @@ void Q3BspMap::CreateBuffersForPatch(int idx)
             pb.descriptor.setLayout = m_dsLayout;
             pb.vertexCount = numVerts;
             pb.indexCount  = 2 * (tessLevel + 1);
+            pb.vertexOffset = vertexOffset;
+            pb.indexOffset  = indexOffset;
+            indexOffset += 2 * (tessLevel + 1);
+            indexData.push_back(row * 2 * (tessLevel + 1));
 
-            // vertex buffer and index buffer with staging buffer
-            vk::createVertexBuffer(g_renderContext.device, g_renderContext.commandPool,
-                                   &biquadPatch.m_vertices[0].position, sizeof(Q3BspVertexLump) * numVerts, &pb.vertexBuffer);
-             vk::createIndexBuffer(g_renderContext.device, g_renderContext.commandPool,
-                                   &biquadPatch.m_indices[row * 2 * (tessLevel + 1)], sizeof(Q3BspMeshVertLump) * 2 * (tessLevel + 1), &pb.indexBuffer);
             // check if both the texture and lightmap exist and if not - replace them with missing/white texture stubs
             const vk::Texture *colorTex = m_textures[patch->textureIdx] ? *m_textures[patch->textureIdx] : *m_missingTex;
             const vk::Texture &lmap = patch->lightmapIdx >= 0 ? m_lightmapTextures[patch->lightmapIdx] : m_whiteTex;
@@ -518,7 +531,88 @@ void Q3BspMap::CreateBuffersForPatch(int idx)
 
             patchBuffer.emplace_back(pb);
         }
+
+        vertexOffset += numVerts;
     }
+}
+
+void Q3BspMap::CreateFaceBuffers(const std::vector<Q3BspFaceLump*> &faceData, int vertexCount, int indexCount)
+{
+    vk::Buffer stagingBuffer;
+    size_t copyOffset = 0;
+    // vertex buffer
+    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspVertexLump) * vertexCount, &stagingBuffer);
+
+    void *dst;
+    vmaMapMemory(g_renderContext.device.allocator, stagingBuffer.allocation, &dst);
+    for (auto &f : faceData)
+    {
+        memcpy((char*)dst + copyOffset, &(vertices[f->vertex].position), sizeof(Q3BspVertexLump) * f->n_vertexes);
+        copyOffset += sizeof(Q3BspVertexLump) * f->n_vertexes;
+    }
+    vmaUnmapMemory(g_renderContext.device.allocator, stagingBuffer.allocation);
+
+    vk::createVertexBufferStaged(g_renderContext.device, g_renderContext.commandPool,
+                                 sizeof(Q3BspVertexLump) * vertexCount, stagingBuffer, &m_faceVertexBuffer);
+    freeBuffer(g_renderContext.device, stagingBuffer);
+
+    // index buffer
+    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspMeshVertLump) * indexCount, &stagingBuffer);
+
+    copyOffset = 0;
+    vmaMapMemory(g_renderContext.device.allocator, stagingBuffer.allocation, &dst);
+    for (auto &f : faceData)
+    {
+        memcpy((char*)dst + copyOffset, &meshVertices[f->meshvert], sizeof(Q3BspMeshVertLump) * f->n_meshverts);
+        copyOffset += sizeof(Q3BspMeshVertLump) * f->n_meshverts;
+    }
+    vmaUnmapMemory(g_renderContext.device.allocator, stagingBuffer.allocation);
+
+    vk::createIndexBufferStaged(g_renderContext.device, g_renderContext.commandPool,
+                                sizeof(Q3BspMeshVertLump) * indexCount, stagingBuffer, &m_faceIndexBuffer);
+    freeBuffer(g_renderContext.device, stagingBuffer);
+}
+
+void Q3BspMap::CreatePatchBuffers(const std::vector<Q3BspBiquadPatch*> &patchData, int vertexCount, int indexCount)
+{
+    vk::Buffer stagingBuffer;
+    size_t copyOffset = 0;
+
+    // vertex buffer
+    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspVertexLump) * vertexCount, &stagingBuffer);
+
+    void *dst;
+    vmaMapMemory(g_renderContext.device.allocator, stagingBuffer.allocation, &dst);
+    for (auto &p : patchData)
+    {
+        memcpy((char*)dst + copyOffset, &p->m_vertices[0].position, sizeof(Q3BspVertexLump) * p->m_vertices.size());
+        copyOffset += sizeof(Q3BspVertexLump) * p->m_vertices.size();
+    }
+    vmaUnmapMemory(g_renderContext.device.allocator, stagingBuffer.allocation);
+
+    vk::createVertexBufferStaged(g_renderContext.device, g_renderContext.commandPool,
+                                 sizeof(Q3BspVertexLump) * vertexCount, stagingBuffer, &m_patchVertexBuffer);
+    freeBuffer(g_renderContext.device, stagingBuffer);
+
+    // index buffer
+    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspMeshVertLump) * indexCount, &stagingBuffer);
+
+    copyOffset = 0;
+    vmaMapMemory(g_renderContext.device.allocator, stagingBuffer.allocation, &dst);
+    for (auto &f : patchData)
+    {
+        int tessLevel = f->m_tesselationLevel;
+        for (int row = 0; row < tessLevel; ++row)
+        {
+            memcpy((char*)dst + copyOffset, &f->m_indices[row * 2 * (tessLevel + 1)], sizeof(Q3BspMeshVertLump) * 2 * (tessLevel + 1));
+            copyOffset += sizeof(Q3BspMeshVertLump) * 2 * (tessLevel + 1);
+        }
+    }
+    vmaUnmapMemory(g_renderContext.device.allocator, stagingBuffer.allocation);
+
+    vk::createIndexBufferStaged(g_renderContext.device, g_renderContext.commandPool,
+                                sizeof(Q3BspMeshVertLump) * indexCount, stagingBuffer, &m_patchIndexBuffer);
+    freeBuffer(g_renderContext.device, stagingBuffer);
 }
 
 void Q3BspMap::CreateDescriptorSetLayout()
