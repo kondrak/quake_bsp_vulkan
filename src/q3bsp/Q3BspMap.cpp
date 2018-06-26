@@ -31,11 +31,9 @@ Q3BspMap::~Q3BspMap()
 
     for (auto &it : m_renderBuffers.m_patchBuffers)
     {
-        for (auto &it2 : it.second)
-        {
-            vkDestroyDescriptorPool(g_renderContext.device.logical, it2.descriptor.pool, nullptr);
-        }
+        vkDestroyDescriptorPool(g_renderContext.device.logical, it.second[0].descriptor.pool, nullptr);
     }
+
     vk::freeBuffer(g_renderContext.device, m_faceVertexBuffer);
     vk::freeBuffer(g_renderContext.device, m_faceIndexBuffer);
     vk::freeBuffer(g_renderContext.device, m_patchVertexBuffer);
@@ -457,9 +455,9 @@ void Q3BspMap::Draw()
 
     for (auto &pi : m_visiblePatches)
     {
+        vkCmdBindDescriptorSets(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.layout, 0, 1, &m_renderBuffers.m_patchBuffers[pi][0].descriptor.set, 0, nullptr);
         for (auto &p : m_renderBuffers.m_patchBuffers[pi])
         {
-            vkCmdBindDescriptorSets(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.layout, 0, 1, &p.descriptor.set, 0, nullptr);
             vkCmdDrawIndexed(g_renderContext.activeCmdBuffer, p.indexCount, 1, p.indexOffset, p.vertexOffset, 0);
         }
     }
@@ -498,27 +496,32 @@ void Q3BspMap::CreateDescriptorsForFace(const Q3BspFaceLump &face, int idx, int 
 
 void Q3BspMap::CreateDescriptorsForPatch(int idx, int &vertexOffset, int &indexOffset, std::vector<Q3BspBiquadPatch*> &vertexData, std::vector<int> &indexData)
 {
-    int numPatches = (int)m_patches[idx]->quadraticPatches.size();
+    auto *patch = m_patches[idx];
+    int numPatches = (int)patch->quadraticPatches.size();
+
+    // check if both the texture and lightmap exist and if not - replace them with missing/white texture stubs
+    const vk::Texture *colorTex = m_textures[patch->textureIdx] ? *m_textures[patch->textureIdx] : *m_missingTex;
+    const vk::Texture &lmap = patch->lightmapIdx >= 0 ? m_lightmapTextures[patch->lightmapIdx] : m_whiteTex;
+    const vk::Texture *textureSet[] = { colorTex, &lmap };
+
+    // create Vulkan descriptor
+    vk::Descriptor patchDescriptor;
+    patchDescriptor.setLayout = m_dsLayout;
+    CreateDescriptor(textureSet, &patchDescriptor);
 
     for (int i = 0; i < numPatches; i++)
     {
         // shorthand references so the code is easier to read
-        auto *patch       = m_patches[idx];
         auto &biquadPatch = patch->quadraticPatches[i];
         auto &patchBuffer = m_renderBuffers.m_patchBuffers[idx];
         int numVerts  = (int)biquadPatch.m_vertices.size();
         int tessLevel = biquadPatch.m_tesselationLevel;
         vertexData.push_back(&biquadPatch);
 
-        // check if both the texture and lightmap exist and if not - replace them with missing/white texture stubs
-        const vk::Texture *colorTex = m_textures[patch->textureIdx] ? *m_textures[patch->textureIdx] : *m_missingTex;
-        const vk::Texture &lmap = patch->lightmapIdx >= 0 ? m_lightmapTextures[patch->lightmapIdx] : m_whiteTex;
-        const vk::Texture *textureSet[] = { colorTex, &lmap };
-
         for (int row = 0; row < tessLevel; ++row)
         {
             FaceBuffers pb;
-            pb.descriptor.setLayout = m_dsLayout;
+            pb.descriptor = patchDescriptor;
             pb.vertexCount = numVerts;
             pb.indexCount  = 2 * (tessLevel + 1);
             pb.vertexOffset = vertexOffset;
@@ -526,8 +529,6 @@ void Q3BspMap::CreateDescriptorsForPatch(int idx, int &vertexOffset, int &indexO
             indexOffset += pb.indexCount;
             indexData.push_back(row * pb.indexCount);
 
-            // create Vulkan descriptor
-            CreateDescriptor(textureSet, &pb.descriptor);
             patchBuffer.emplace_back(pb);
         }
 
