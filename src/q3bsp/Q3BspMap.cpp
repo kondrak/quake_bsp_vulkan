@@ -24,16 +24,6 @@ Q3BspMap::~Q3BspMap()
     vk::destroyPipeline(g_renderContext.device, m_facesPipeline);
     vk::destroyPipeline(g_renderContext.device, m_patchPipeline);
 
-    for (auto &it : m_renderBuffers.m_faceBuffers)
-    {
-        vkDestroyDescriptorPool(g_renderContext.device.logical, it.second.descriptor.pool, nullptr);
-    }
-
-    for (auto &it : m_renderBuffers.m_patchBuffers)
-    {
-        vkDestroyDescriptorPool(g_renderContext.device.logical, it.second[0].descriptor.pool, nullptr);
-    }
-
     vk::freeBuffer(g_renderContext.device, m_faceVertexBuffer);
     vk::freeBuffer(g_renderContext.device, m_faceIndexBuffer);
     vk::freeBuffer(g_renderContext.device, m_patchVertexBuffer);
@@ -47,6 +37,7 @@ Q3BspMap::~Q3BspMap()
 
     vk::freeBuffer(g_renderContext.device, m_renderBuffers.uniformBuffer);
     vk::releaseTexture(g_renderContext.device, m_whiteTex);
+    vkDestroyDescriptorPool(g_renderContext.device.logical, m_descriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(g_renderContext.device.logical, m_dsLayout, nullptr);
 }
 
@@ -101,6 +92,9 @@ void Q3BspMap::Init()
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inTexCoord, VK_FORMAT_R32G32_SFLOAT, sizeof(vec3f)));
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inTexCoordLightmap, VK_FORMAT_R32G32_SFLOAT, sizeof(vec3f) + sizeof(vec2f)));
     CreateDescriptorSetLayout();
+
+    // create descriptor pool shared between all visible faces (one descriptor per visible face)
+    CreateDescriptorPool((uint32_t)faces.size());
 
     // single shared uniform buffer
     VK_VERIFY(vk::createUniformBuffer(g_renderContext.device, sizeof(UniformBufferObject), &m_renderBuffers.uniformBuffer));
@@ -481,6 +475,7 @@ void Q3BspMap::CreateDescriptorsForFace(const Q3BspFaceLump &face, int idx, int 
 
     auto &faceBuffer = m_renderBuffers.m_faceBuffers[idx];
     faceBuffer.descriptor.setLayout = m_dsLayout;
+    faceBuffer.descriptor.pool = m_descriptorPool;
     faceBuffer.vertexCount = face.n_vertexes;
     faceBuffer.indexCount  = face.n_meshverts;
     faceBuffer.vertexOffset = vertexOffset;
@@ -507,6 +502,7 @@ void Q3BspMap::CreateDescriptorsForPatch(int idx, int &vertexOffset, int &indexO
     // create Vulkan descriptor
     vk::Descriptor patchDescriptor;
     patchDescriptor.setLayout = m_dsLayout;
+    patchDescriptor.pool = m_descriptorPool;
     CreateDescriptor(textureSet, &patchDescriptor);
 
     for (int i = 0; i < numPatches; i++)
@@ -641,25 +637,27 @@ void Q3BspMap::CreateDescriptorSetLayout()
     VK_VERIFY(vkCreateDescriptorSetLayout(g_renderContext.device.logical, &layoutInfo, nullptr, &m_dsLayout));
 }
 
-void Q3BspMap::CreateDescriptor(const vk::Texture **textures, vk::Descriptor *descriptor)
+void Q3BspMap::CreateDescriptorPool(uint32_t numDescriptors)
 {
-    // create descriptor pool
     VkDescriptorPoolSize poolSizes[3];
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSizes[0].descriptorCount = 1;
+    poolSizes[0].descriptorCount = numDescriptors;
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[1].descriptorCount = 1;
+    poolSizes[1].descriptorCount = numDescriptors;
     poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[2].descriptorCount = 1;
+    poolSizes[2].descriptorCount = numDescriptors;
 
     VkDescriptorPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = 3;
     poolInfo.pPoolSizes = poolSizes;
-    poolInfo.maxSets = 1;
+    poolInfo.maxSets = numDescriptors;
 
-    VK_VERIFY(vkCreateDescriptorPool(g_renderContext.device.logical, &poolInfo, nullptr, &descriptor->pool));
+    VK_VERIFY(vkCreateDescriptorPool(g_renderContext.device.logical, &poolInfo, nullptr, &m_descriptorPool));
+}
 
+void Q3BspMap::CreateDescriptor(const vk::Texture **textures, vk::Descriptor *descriptor)
+{
     // create descriptor set
     VK_VERIFY(vk::createDescriptorSet(g_renderContext.device, descriptor));
     VkDescriptorBufferInfo bufferInfo = {};
