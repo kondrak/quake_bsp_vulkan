@@ -122,7 +122,7 @@ void Q3BspMap::Init()
             m_renderFaces.back().index = patchArrayIdx;
             CreatePatch(f);
 
-            // generate Vulkan buffers for current patch
+            // generate Vulkan descriptors for current patch
             CreateDescriptorsForPatch(patchArrayIdx, numPatchVerts, numPatchIndexes, patchData, patchIndexData);
             ++patchArrayIdx;
         }
@@ -130,7 +130,7 @@ void Q3BspMap::Init()
         {
             m_renderFaces.back().index = faceArrayIdx;
 
-            // generate Vulkan buffers for current face
+            // generate Vulkan descriptors for current face
             CreateDescriptorsForFace(f, faceArrayIdx, numFaceVerts, numFaceIndexes);
             faceData.push_back(&f);
             numFaceVerts += f.n_vertexes;
