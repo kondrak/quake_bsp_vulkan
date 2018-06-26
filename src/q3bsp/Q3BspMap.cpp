@@ -518,8 +518,8 @@ void Q3BspMap::CreateDescriptorsForPatch(int idx, int &vertexOffset, int &indexO
             pb.indexCount  = 2 * (tessLevel + 1);
             pb.vertexOffset = vertexOffset;
             pb.indexOffset  = indexOffset;
-            indexOffset += 2 * (tessLevel + 1);
-            indexData.push_back(row * 2 * (tessLevel + 1));
+            indexOffset += pb.indexCount;
+            indexData.push_back(row * pb.indexCount);
 
             // check if both the texture and lightmap exist and if not - replace them with missing/white texture stubs
             const vk::Texture *colorTex = m_textures[patch->textureIdx] ? *m_textures[patch->textureIdx] : *m_missingTex;
@@ -538,81 +538,75 @@ void Q3BspMap::CreateDescriptorsForPatch(int idx, int &vertexOffset, int &indexO
 
 void Q3BspMap::CreateFaceBuffers(const std::vector<Q3BspFaceLump*> &faceData, int vertexCount, int indexCount)
 {
-    vk::Buffer stagingBuffer;
-    size_t copyOffset = 0;
-    // vertex buffer
-    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspVertexLump) * vertexCount, &stagingBuffer);
+    vk::Buffer vertexStaging, indexStaging;
+    size_t vertexOffset = 0, indexOffset  = 0;
 
-    void *dst;
-    vmaMapMemory(g_renderContext.device.allocator, stagingBuffer.allocation, &dst);
+    // staging buffer for vertex data
+    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspVertexLump) * vertexCount, &vertexStaging);
+    // staging buffer for index data
+    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspMeshVertLump) * indexCount, &indexStaging);
+
+    void *dstV, *dstI;
+    vmaMapMemory(g_renderContext.device.allocator, vertexStaging.allocation, &dstV);
+    vmaMapMemory(g_renderContext.device.allocator, indexStaging.allocation, &dstI);
     for (auto &f : faceData)
     {
-        memcpy((char*)dst + copyOffset, &(vertices[f->vertex].position), sizeof(Q3BspVertexLump) * f->n_vertexes);
-        copyOffset += sizeof(Q3BspVertexLump) * f->n_vertexes;
-    }
-    vmaUnmapMemory(g_renderContext.device.allocator, stagingBuffer.allocation);
+        memcpy((char*)dstV + vertexOffset, &(vertices[f->vertex].position), sizeof(Q3BspVertexLump) * f->n_vertexes);
+        memcpy((char*)dstI + indexOffset, &meshVertices[f->meshvert], sizeof(Q3BspMeshVertLump) * f->n_meshverts);
 
+        vertexOffset += sizeof(Q3BspVertexLump) * f->n_vertexes;
+        indexOffset  += sizeof(Q3BspMeshVertLump) * f->n_meshverts;
+    }
+    vmaUnmapMemory(g_renderContext.device.allocator, vertexStaging.allocation);
+    vmaUnmapMemory(g_renderContext.device.allocator, indexStaging.allocation);
+
+    // create rendering buffers
     vk::createVertexBufferStaged(g_renderContext.device, g_renderContext.commandPool,
-                                 sizeof(Q3BspVertexLump) * vertexCount, stagingBuffer, &m_faceVertexBuffer);
-    freeBuffer(g_renderContext.device, stagingBuffer);
+                                 sizeof(Q3BspVertexLump) * vertexCount, vertexStaging, &m_faceVertexBuffer);
+     vk::createIndexBufferStaged(g_renderContext.device, g_renderContext.commandPool,
+                                 sizeof(Q3BspMeshVertLump) * indexCount, indexStaging, &m_faceIndexBuffer);
 
-    // index buffer
-    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspMeshVertLump) * indexCount, &stagingBuffer);
-
-    copyOffset = 0;
-    vmaMapMemory(g_renderContext.device.allocator, stagingBuffer.allocation, &dst);
-    for (auto &f : faceData)
-    {
-        memcpy((char*)dst + copyOffset, &meshVertices[f->meshvert], sizeof(Q3BspMeshVertLump) * f->n_meshverts);
-        copyOffset += sizeof(Q3BspMeshVertLump) * f->n_meshverts;
-    }
-    vmaUnmapMemory(g_renderContext.device.allocator, stagingBuffer.allocation);
-
-    vk::createIndexBufferStaged(g_renderContext.device, g_renderContext.commandPool,
-                                sizeof(Q3BspMeshVertLump) * indexCount, stagingBuffer, &m_faceIndexBuffer);
-    freeBuffer(g_renderContext.device, stagingBuffer);
+    freeBuffer(g_renderContext.device, vertexStaging);
+    freeBuffer(g_renderContext.device, indexStaging);
 }
 
 void Q3BspMap::CreatePatchBuffers(const std::vector<Q3BspBiquadPatch*> &patchData, int vertexCount, int indexCount)
 {
-    vk::Buffer stagingBuffer;
-    size_t copyOffset = 0;
+    vk::Buffer vertexStaging, indexStaging;
+    size_t vertexOffset = 0, indexOffset = 0;
 
-    // vertex buffer
-    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspVertexLump) * vertexCount, &stagingBuffer);
+    // staging buffer for vertex data
+    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspVertexLump) * vertexCount, &vertexStaging);
+    // staging buffer for index data
+    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspMeshVertLump) * indexCount, &indexStaging);
 
-    void *dst;
-    vmaMapMemory(g_renderContext.device.allocator, stagingBuffer.allocation, &dst);
+    void *dstV, *dstI;
+    vmaMapMemory(g_renderContext.device.allocator, vertexStaging.allocation, &dstV);
+    vmaMapMemory(g_renderContext.device.allocator, indexStaging.allocation, &dstI);
     for (auto &p : patchData)
     {
-        memcpy((char*)dst + copyOffset, &p->m_vertices[0].position, sizeof(Q3BspVertexLump) * p->m_vertices.size());
-        copyOffset += sizeof(Q3BspVertexLump) * p->m_vertices.size();
-    }
-    vmaUnmapMemory(g_renderContext.device.allocator, stagingBuffer.allocation);
+        memcpy((char*)dstV + vertexOffset, &p->m_vertices[0].position, sizeof(Q3BspVertexLump) * p->m_vertices.size());
+        vertexOffset += sizeof(Q3BspVertexLump) * p->m_vertices.size();
 
-    vk::createVertexBufferStaged(g_renderContext.device, g_renderContext.commandPool,
-                                 sizeof(Q3BspVertexLump) * vertexCount, stagingBuffer, &m_patchVertexBuffer);
-    freeBuffer(g_renderContext.device, stagingBuffer);
-
-    // index buffer
-    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspMeshVertLump) * indexCount, &stagingBuffer);
-
-    copyOffset = 0;
-    vmaMapMemory(g_renderContext.device.allocator, stagingBuffer.allocation, &dst);
-    for (auto &f : patchData)
-    {
-        int tessLevel = f->m_tesselationLevel;
+        int tessLevel = p->m_tesselationLevel;
+        int indexCount = 2 * (tessLevel + 1);
         for (int row = 0; row < tessLevel; ++row)
         {
-            memcpy((char*)dst + copyOffset, &f->m_indices[row * 2 * (tessLevel + 1)], sizeof(Q3BspMeshVertLump) * 2 * (tessLevel + 1));
-            copyOffset += sizeof(Q3BspMeshVertLump) * 2 * (tessLevel + 1);
+            memcpy((char*)dstI + indexOffset, &p->m_indices[row * indexCount], sizeof(Q3BspMeshVertLump) * indexCount);
+            indexOffset += sizeof(Q3BspMeshVertLump) * indexCount;
         }
     }
-    vmaUnmapMemory(g_renderContext.device.allocator, stagingBuffer.allocation);
+    vmaUnmapMemory(g_renderContext.device.allocator, vertexStaging.allocation);
+    vmaUnmapMemory(g_renderContext.device.allocator, indexStaging.allocation);
 
-    vk::createIndexBufferStaged(g_renderContext.device, g_renderContext.commandPool,
-                                sizeof(Q3BspMeshVertLump) * indexCount, stagingBuffer, &m_patchIndexBuffer);
-    freeBuffer(g_renderContext.device, stagingBuffer);
+    // create rendering buffers
+    vk::createVertexBufferStaged(g_renderContext.device, g_renderContext.commandPool,
+                                 sizeof(Q3BspVertexLump) * vertexCount, vertexStaging, &m_patchVertexBuffer);
+     vk::createIndexBufferStaged(g_renderContext.device, g_renderContext.commandPool,
+                                 sizeof(Q3BspMeshVertLump) * indexCount, indexStaging, &m_patchIndexBuffer);
+
+    freeBuffer(g_renderContext.device, vertexStaging);
+    freeBuffer(g_renderContext.device, indexStaging);
 }
 
 void Q3BspMap::CreateDescriptorSetLayout()
