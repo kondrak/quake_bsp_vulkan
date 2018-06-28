@@ -331,7 +331,7 @@ bool RenderContext::CreateImageViews()
 
     for (size_t i = 0; i < swapChain.images.size(); ++i)
     {
-        VkResult result = vk::createImageView(device, swapChain.images[i], VK_IMAGE_ASPECT_COLOR_BIT, &m_imageViews[i], swapChain.format);
+        VkResult result = vk::createImageView(device, swapChain.images[i], VK_IMAGE_ASPECT_COLOR_BIT, &m_imageViews[i], swapChain.format, 1);
 
         if (result != VK_SUCCESS)
         {

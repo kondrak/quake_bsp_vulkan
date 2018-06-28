@@ -1,6 +1,7 @@
 #include "renderer/RenderContext.hpp"
 #include "renderer/GameTexture.hpp"
 #include "stb_image/stb_image.h"
+#include <algorithm>
 
 extern RenderContext  g_renderContext;
 
@@ -42,6 +43,8 @@ bool GameTexture::Load(const VkCommandPool &commandPool, bool filtering)
     }
 
     m_vkTexture.format = m_components == 3 ? VK_FORMAT_R8G8B8_UNORM : VK_FORMAT_R8G8B8A8_UNORM;
+    // calculate number of mipmaps to generate for given texture dimensions
+    m_vkTexture.mipLevels = (uint32_t)std::floor(std::log2(std::max(m_width, m_height))) + 1;
 
     vk::createTexture(g_renderContext.device, commandPool, &m_vkTexture, m_textureData, m_width, m_height);
 

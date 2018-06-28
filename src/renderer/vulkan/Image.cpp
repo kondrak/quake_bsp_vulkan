@@ -9,6 +9,7 @@ namespace vk
     static void transitionImageLayout(const Device &device, const VkCommandPool &commandPool, const Texture &texture, const VkImageLayout &oldLayout, const VkImageLayout &newLayout);
     static void copyBufferToImage(const Device &device, const VkCommandPool &commandPool, const VkBuffer &buffer, const VkImage &image, uint32_t width, uint32_t height);
     static VkResult createImage(const Device &device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VmaMemoryUsage memUsage, Texture *texture);
+    static void generateMipmaps(const Device &device, const VkCommandPool &commandPool, const Texture &texture, uint32_t width, uint32_t height);
 
     void createTextureImage(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
     {
@@ -22,12 +23,20 @@ namespace vk
         memcpy(imgData, data, (size_t)imageSize);
         vmaUnmapMemory(device.allocator, stagingBuffer.allocation);
 
-        VK_VERIFY(createImage(device, width, height, dstTex->format,
-                              VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VMA_MEMORY_USAGE_GPU_ONLY, dstTex));
+        VkImageUsageFlags imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+        // set extra image usage flag if we're dealing with mipmapped image - will need it for copying data between mip levels
+        if (dstTex->mipLevels > 1)
+            imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+
+        VK_VERIFY(createImage(device, width, height, dstTex->format, VK_IMAGE_TILING_OPTIMAL, imageUsage, VMA_MEMORY_USAGE_GPU_ONLY, dstTex));
         // copy buffers
         transitionImageLayout(device, commandPool, *dstTex, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         copyBufferToImage(device, commandPool, stagingBuffer.buffer, dstTex->image, width, height);
-        transitionImageLayout(device, commandPool, *dstTex, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        if (dstTex->mipLevels > 1)
+            generateMipmaps(device, commandPool, *dstTex, width, height);
+        else
+            transitionImageLayout(device, commandPool, *dstTex, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         freeBuffer(device, stagingBuffer);
     }
@@ -35,7 +44,7 @@ namespace vk
     void createTexture(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
     {
         createTextureImage(device, commandPool, dstTex, data, width, height);
-        VK_VERIFY(createImageView(device, dstTex->image, VK_IMAGE_ASPECT_COLOR_BIT, &dstTex->imageView, dstTex->format));
+        VK_VERIFY(createImageView(device, dstTex->image, VK_IMAGE_ASPECT_COLOR_BIT, &dstTex->imageView, dstTex->format, dstTex->mipLevels));
         VK_VERIFY(createTextureSampler(device, dstTex));
     }
 
@@ -49,7 +58,7 @@ namespace vk
             vkDestroySampler(device.logical, texture.sampler, nullptr);
     }
 
-    VkResult createImageView(const Device &device, const VkImage &image, VkImageAspectFlags aspectFlags, VkImageView *imageView, VkFormat format)
+    VkResult createImageView(const Device &device, const VkImage &image, VkImageAspectFlags aspectFlags, VkImageView *imageView, VkFormat format, uint32_t mipLevels)
     {
         VkImageViewCreateInfo ivCreateInfo = {};
         ivCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -64,7 +73,7 @@ namespace vk
         ivCreateInfo.subresourceRange.baseArrayLayer = 0;
         ivCreateInfo.subresourceRange.baseMipLevel = 0;
         ivCreateInfo.subresourceRange.layerCount = 1;
-        ivCreateInfo.subresourceRange.levelCount = 1;
+        ivCreateInfo.subresourceRange.levelCount = mipLevels;
 
         return vkCreateImageView(device.logical, &ivCreateInfo, nullptr, imageView);
     }
@@ -84,10 +93,10 @@ namespace vk
         samplerInfo.unnormalizedCoordinates = VK_FALSE;
         samplerInfo.compareEnable = VK_FALSE;
         samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        samplerInfo.mipLodBias = 0.f;
-        samplerInfo.minLod = 0.f;
-        samplerInfo.maxLod = 0.f;
+        samplerInfo.mipmapMode = texture->mipmapMode;
+        samplerInfo.mipLodBias = texture->mipLodBias;
+        samplerInfo.minLod = texture->mipMinLod;
+        samplerInfo.maxLod = (float)texture->mipLevels;
 
         return vkCreateSampler(device.logical, &samplerInfo, nullptr, &texture->sampler);
     }
@@ -100,7 +109,7 @@ namespace vk
         colorTexture.sampleCount = sampleCount;
 
         VK_VERIFY(createImage(device, swapChain.extent.width, swapChain.extent.height, colorTexture.format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, &colorTexture));
-        VK_VERIFY(createImageView(device, colorTexture.image, VK_IMAGE_ASPECT_COLOR_BIT, &colorTexture.imageView, colorTexture.format));
+        VK_VERIFY(createImageView(device, colorTexture.image, VK_IMAGE_ASPECT_COLOR_BIT, &colorTexture.imageView, colorTexture.format, colorTexture.mipLevels));
 
         transitionImageLayout(device, commandPool, colorTexture, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
@@ -114,7 +123,7 @@ namespace vk
         depthTexture.sampleCount = sampleCount;
 
         VK_VERIFY(createImage(device, swapChain.extent.width, swapChain.extent.height, depthTexture.format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, &depthTexture));
-        VK_VERIFY(createImageView(device, depthTexture.image, VK_IMAGE_ASPECT_DEPTH_BIT, &depthTexture.imageView, depthTexture.format));
+        VK_VERIFY(createImageView(device, depthTexture.image, VK_IMAGE_ASPECT_DEPTH_BIT, &depthTexture.imageView, depthTexture.format, depthTexture.mipLevels));
 
         transitionImageLayout(device, commandPool, depthTexture, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
@@ -137,7 +146,7 @@ namespace vk
         imgBarrier.subresourceRange.baseMipLevel = 0; // no mip mapping levels
         imgBarrier.subresourceRange.baseArrayLayer = 0;
         imgBarrier.subresourceRange.layerCount = 1;
-        imgBarrier.subresourceRange.levelCount = 1;
+        imgBarrier.subresourceRange.levelCount = texture.mipLevels;
 
         if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
         {
@@ -214,7 +223,7 @@ namespace vk
         imageInfo.extent.width = width;
         imageInfo.extent.height = height;
         imageInfo.extent.depth = 1;
-        imageInfo.mipLevels = 1; // no mipmapping
+        imageInfo.mipLevels = texture->mipLevels;
         imageInfo.arrayLayers = 1;
         imageInfo.format = format;
         imageInfo.tiling = tiling;
@@ -228,5 +237,65 @@ namespace vk
         vmallocInfo.usage = memUsage;
 
         return vmaCreateImage(device.allocator, &imageInfo, &vmallocInfo, &texture->image, &texture->allocation, nullptr);
+    }
+
+    void generateMipmaps(const Device &device, const VkCommandPool &commandPool, const Texture &texture, uint32_t width, uint32_t height)
+    {
+        int32_t mipWidth  = width;
+        int32_t mipHeight = height;
+        VkCommandBuffer cmdBuffer = beginOneTimeCommand(device, commandPool);
+
+        VkImageMemoryBarrier imgBarrier = {};
+        imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        imgBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        imgBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        imgBarrier.image = texture.image;
+        imgBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imgBarrier.subresourceRange.baseArrayLayer = 0;
+        imgBarrier.subresourceRange.layerCount = 1;
+        imgBarrier.subresourceRange.levelCount = 1;
+
+        // copy rescaled mip data between consecutive levels (each higher level is half the size of the previous level)
+        for (uint32_t i = 1; i < texture.mipLevels; ++i)
+        {
+            imgBarrier.subresourceRange.baseMipLevel = i - 1;
+            imgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            imgBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            imgBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+            vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imgBarrier);
+
+            VkImageBlit blit = {};
+            blit.srcOffsets[0] = { 0, 0, 0 };
+            blit.srcOffsets[1] = { mipWidth, mipHeight, 1 };
+            blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            blit.srcSubresource.mipLevel = i - 1;
+            blit.srcSubresource.baseArrayLayer = 0;
+            blit.srcSubresource.layerCount = 1;
+            blit.dstOffsets[0] = { 0, 0, 0 };
+            blit.dstOffsets[1] = { mipWidth >> 1, mipHeight >> 1, 1 }; // each mip level is half the size of the previous level
+            blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            blit.dstSubresource.mipLevel = i;
+            blit.dstSubresource.baseArrayLayer = 0;
+            blit.dstSubresource.layerCount = 1;
+
+            // src image == dst image, because we're blitting between different mip levels of the same image
+            vkCmdBlitImage(cmdBuffer, texture.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                      texture.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, texture.mipmapFilter);
+            // avoid zero-sized mip levels
+            if ( mipWidth > 1)  mipWidth >>= 1;
+            if (mipHeight > 1) mipHeight >>= 1;
+        }
+
+        imgBarrier.subresourceRange.baseMipLevel = texture.mipLevels - 1;
+        imgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imgBarrier);
+
+        endOneTimeCommand(device, cmdBuffer, commandPool, device.graphicsQueue);
     }
 }
