@@ -48,6 +48,9 @@ void Q3BspMap::Init()
     m_patchPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     m_facesPipeline.cache = g_renderContext.pipelineCache;
     m_patchPipeline.cache = g_renderContext.pipelineCache;
+    // use pipeline derivatives to create patch pipeline using faces pipeline as base
+    m_facesPipeline.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
+    m_patchPipeline.flags = VK_PIPELINE_CREATE_DERIVATIVE_BIT;
 
     // stub missing texture used if original Quake assets are missing
     m_missingTex = TextureManager::GetInstance()->LoadTexture("res/missing.png", g_renderContext.commandPool);
@@ -178,9 +181,9 @@ void Q3BspMap::RebuildPipeline()
     vk::destroyPipeline(g_renderContext.device, m_facesPipeline);
     vk::destroyPipeline(g_renderContext.device, m_patchPipeline);
 
-    // todo: pipeline cache and derivatives https://github.com/SaschaWillems/Vulkan/blob/master/examples/pipelines/pipelines.cpp
     const char *shaders[] = { "res/Basic_vert.spv", "res/Basic_frag.spv" };
     VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.renderPass, m_dsLayout, &m_vbInfo, &m_facesPipeline, shaders));
+    m_patchPipeline.basePipelineHandle = m_facesPipeline.pipeline;
     VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.renderPass, m_dsLayout, &m_vbInfo, &m_patchPipeline, shaders));
 }
 

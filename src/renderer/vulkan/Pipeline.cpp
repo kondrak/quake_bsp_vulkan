@@ -199,9 +199,10 @@ namespace vk
         pCreateInfo.pColorBlendState = &cbsCreateInfo;
         pCreateInfo.pDynamicState = &dsCreateInfo;
         pCreateInfo.layout = pipeline->layout;
+        pCreateInfo.flags = pipeline->flags;
         pCreateInfo.renderPass = renderPass.renderPass;
         pCreateInfo.subpass = 0;
-        pCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
+        pCreateInfo.basePipelineHandle = pipeline->basePipelineHandle;
         pCreateInfo.basePipelineIndex = -1;
 
         VkResult pResult = vkCreateGraphicsPipelines(device.logical, pipeline->cache, 1, &pCreateInfo, nullptr, &pipeline->pipeline);
