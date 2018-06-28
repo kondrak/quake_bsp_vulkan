@@ -167,7 +167,12 @@ namespace vk
         cbsCreateInfo.blendConstants[2] = 0.f;
         cbsCreateInfo.blendConstants[3] = 0.f;
 
+        VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+
         VkPipelineDynamicStateCreateInfo dsCreateInfo = {};
+        dsCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        dsCreateInfo.dynamicStateCount = 2;
+        dsCreateInfo.pDynamicStates = dynamicStates;
 
         VkPipelineLayoutCreateInfo plCreateInfo = {};
         plCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -192,7 +197,7 @@ namespace vk
         pCreateInfo.pMultisampleState = &msCreateInfo;
         pCreateInfo.pDepthStencilState = &dCreateInfo;
         pCreateInfo.pColorBlendState = &cbsCreateInfo;
-        pCreateInfo.pDynamicState = nullptr;
+        pCreateInfo.pDynamicState = &dsCreateInfo;
         pCreateInfo.layout = pipeline->layout;
         pCreateInfo.renderPass = renderPass.renderPass;
         pCreateInfo.subpass = 0;

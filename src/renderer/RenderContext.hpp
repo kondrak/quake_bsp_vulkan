@@ -93,6 +93,10 @@ private:
     VkInstance   m_instance = VK_NULL_HANDLE;
     VkSurfaceKHR m_surface  = VK_NULL_HANDLE;
 
+    // using dynamic states for pipelines, so we need to update viewport and scissor manually
+    VkViewport m_viewport = {};
+    VkRect2D   m_scissor  = {};
+
     // Vulkan framebuffers
     std::vector<VkFramebuffer> m_frameBuffers;
 
