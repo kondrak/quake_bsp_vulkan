@@ -46,6 +46,8 @@ void Q3BspMap::Init()
     // regular faces are simple triangle lists, patches are drawn as triangle strips, so we need extra pipeline
     m_facesPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     m_patchPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+    m_facesPipeline.cache = g_renderContext.pipelineCache;
+    m_patchPipeline.cache = g_renderContext.pipelineCache;
 
     // stub missing texture used if original Quake assets are missing
     m_missingTex = TextureManager::GetInstance()->LoadTexture("res/missing.png", g_renderContext.commandPool);

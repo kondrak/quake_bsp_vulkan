@@ -20,6 +20,7 @@ Font::Font(const char *tex) : m_scale(1.f, 1.f), m_position(0.0f, 0.0f, 0.0f), m
     m_pipeline.cullMode  = VK_CULL_MODE_NONE;
     m_pipeline.topology  = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     m_pipeline.blendMode = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    m_pipeline.cache     = g_renderContext.pipelineCache;
     m_pipeline.depthTestEnable = VK_FALSE;
 
     // load font texture

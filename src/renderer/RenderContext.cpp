@@ -72,6 +72,7 @@ void RenderContext::Destroy()
         }
 
         vk::destroyAllocator(device.allocator);
+        vkDestroyPipelineCache(device.logical, pipelineCache, nullptr);
         vkDestroyDevice(device.logical, nullptr);
         vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 #ifdef VALIDATION_LAYERS_ON
@@ -263,6 +264,7 @@ bool RenderContext::InitVulkan()
 
     CreateFences();
     CreateSemaphores();
+    CreatePipelineCache();
 
     VK_VERIFY(vk::createRenderPass(device, swapChain, &renderPass));
     VK_VERIFY(vk::createCommandPool(device, &commandPool));
@@ -409,4 +411,12 @@ void RenderContext::CreateSemaphores()
 
     VK_VERIFY(vkCreateSemaphore(device.logical, &sCreateInfo, nullptr, &m_imageAvailableSemaphore));
     VK_VERIFY(vkCreateSemaphore(device.logical, &sCreateInfo, nullptr, &m_renderFinishedSemaphore));
+}
+
+void RenderContext::CreatePipelineCache()
+{
+    VkPipelineCacheCreateInfo pcInfo = {};
+    pcInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+
+    VK_VERIFY(vkCreatePipelineCache(device.logical, &pcInfo, nullptr, &pipelineCache));
 }

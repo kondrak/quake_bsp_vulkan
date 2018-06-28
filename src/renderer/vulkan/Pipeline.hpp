@@ -12,6 +12,7 @@ namespace vk
     {
         VkPipelineLayout layout = VK_NULL_HANDLE;
         VkPipeline pipeline = VK_NULL_HANDLE;
+        VkPipelineCache cache = VK_NULL_HANDLE;
         VkPolygonMode mode = VK_POLYGON_MODE_FILL;
         VkCullModeFlags cullMode = VK_CULL_MODE_BACK_BIT;
         VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;

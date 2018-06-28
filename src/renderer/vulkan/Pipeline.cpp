@@ -204,7 +204,7 @@ namespace vk
         pCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
         pCreateInfo.basePipelineIndex = -1;
 
-        VkResult pResult = vkCreateGraphicsPipelines(device.logical, VK_NULL_HANDLE, 1, &pCreateInfo, nullptr, &pipeline->pipeline);
+        VkResult pResult = vkCreateGraphicsPipelines(device.logical, pipeline->cache, 1, &pCreateInfo, nullptr, &pipeline->pipeline);
         vkDestroyShaderModule(device.logical, shader.vertShader, nullptr);
         vkDestroyShaderModule(device.logical, shader.fragShader, nullptr);
 
