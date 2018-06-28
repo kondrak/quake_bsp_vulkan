@@ -14,7 +14,7 @@ public:
     virtual ~StatsUI() {}
 
     virtual void OnRender()        = 0; // perform rendering
-    virtual void OnWindowChanged() = 0; // perform renderer update (rebuild swapchain, pipelines, etc.)
+    virtual void RebuildPipeline() = 0; // rebuild Vulkan pipeline from scratch
 protected:
     BspMap *m_map;
 };

@@ -108,7 +108,7 @@ void Q3StatsUI::OnRender()
     m_font->RenderFinish();
 }
 
-void Q3StatsUI::OnWindowChanged()
+void Q3StatsUI::RebuildPipeline()
 {
     m_font->RebuildPipeline();
 }

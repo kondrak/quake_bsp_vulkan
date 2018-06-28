@@ -14,8 +14,8 @@ public:
     virtual ~BspMap() {}
 
     virtual void Init() = 0;
-    virtual void OnRender()        = 0;  // perform rendering
-    virtual void OnWindowChanged() = 0;  // perform renderer update (rebuild swapchain, pipelines, etc.)
+    virtual void OnRender()        = 0; // perform rendering
+    virtual void RebuildPipeline() = 0; // rebuild Vulkan pipelines from scratch
 
     virtual bool ClusterVisible(int cameraCluster, int testCluster) const    = 0;  // determine bsp cluster visibility
     virtual int  FindCameraLeaf(const Math::Vector3f &cameraPosition) const  = 0;  // return bsp leaf index containing the camera

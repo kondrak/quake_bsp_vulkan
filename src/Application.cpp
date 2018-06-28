@@ -148,8 +148,8 @@ void Application::OnKeyPress(KeyCode key)
     case KEY_F8:
         m_q3map->ToggleRenderFlag(Q3Multisampling);
         g_renderContext.ToggleMSAA();
-        m_q3map->OnWindowChanged();
-        m_q3stats->OnWindowChanged();
+        m_q3map->RebuildPipeline();
+        m_q3stats->RebuildPipeline();
         break;
     case KEY_TILDE:
         m_debugRenderState++;

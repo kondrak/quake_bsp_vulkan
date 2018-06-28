@@ -150,7 +150,7 @@ void Q3BspMap::Init()
     m_mapStats.totalFaces    = (int)faces.size();
     m_mapStats.totalPatches  = patchArrayIdx;
 
-    RebuildPipelines();
+    RebuildPipeline();
 
     // set the scale-down uniform
     m_ubo.worldScaleFactor = 1.f / Q3BspMap::s_worldScale;
@@ -171,9 +171,15 @@ void Q3BspMap::OnRender()
     Draw();
 }
 
-void Q3BspMap::OnWindowChanged()
+void Q3BspMap::RebuildPipeline()
 {
-    RebuildPipelines();
+    vk::destroyPipeline(g_renderContext.device, m_facesPipeline);
+    vk::destroyPipeline(g_renderContext.device, m_patchPipeline);
+
+    // todo: pipeline cache and derivatives https://github.com/SaschaWillems/Vulkan/blob/master/examples/pipelines/pipelines.cpp
+    const char *shaders[] = { "res/Basic_vert.spv", "res/Basic_frag.spv" };
+    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.renderPass, m_dsLayout, &m_vbInfo, &m_facesPipeline, shaders));
+    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.renderPass, m_dsLayout, &m_vbInfo, &m_patchPipeline, shaders));
 }
 
 // determine if a bsp cluster is visible from a given camera cluster
@@ -273,7 +279,7 @@ void Q3BspMap::ToggleRenderFlag(int flag)
         m_facesPipeline.mode = set ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
         m_patchPipeline.mode = set ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
         vkDeviceWaitIdle(g_renderContext.device.logical);
-        RebuildPipelines();
+        RebuildPipeline();
         break;
     case Q3RenderShowLightmaps:
         m_ubo.renderLightmaps = set ? 1 : 0;
@@ -455,17 +461,6 @@ void Q3BspMap::Draw()
             vkCmdDrawIndexed(g_renderContext.activeCmdBuffer, p.indexCount, 1, p.indexOffset, p.vertexOffset, 0);
         }
     }
-}
-
-void Q3BspMap::RebuildPipelines()
-{
-    vk::destroyPipeline(g_renderContext.device, m_facesPipeline);
-    vk::destroyPipeline(g_renderContext.device, m_patchPipeline);
-
-    // todo: pipeline derivatives https://github.com/SaschaWillems/Vulkan/blob/master/examples/pipelines/pipelines.cpp
-    const char *shaders[] = { "res/Basic_vert.spv", "res/Basic_frag.spv" };
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.renderPass, m_dsLayout, &m_vbInfo, &m_facesPipeline, shaders));
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.renderPass, m_dsLayout, &m_vbInfo, &m_patchPipeline, shaders));
 }
 
 void Q3BspMap::CreateDescriptorsForFace(const Q3BspFaceLump &face, int idx, int vertexOffset, int indexOffset)

@@ -27,7 +27,7 @@ public:
 
     void Init();
     void OnRender();
-    void OnWindowChanged();
+    void RebuildPipeline();
 
     bool ClusterVisible(int cameraCluster, int testCluster)   const;
     int  FindCameraLeaf(const Math::Vector3f &cameraPosition) const;
@@ -59,9 +59,8 @@ private:
     void SetLightmapGamma(float gamma);
     void CreatePatch(const Q3BspFaceLump &f);
 
-    // Vulkan draw call builder and pipeline builder
+    // queue data for drawing
     void Draw();
-    void RebuildPipelines();
 
     // Vulkan buffer creation
     void CreateDescriptorsForFace(const Q3BspFaceLump &face, int idx, int vertexOffset, int indexOffset);
