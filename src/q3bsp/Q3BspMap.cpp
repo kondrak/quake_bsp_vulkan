@@ -99,7 +99,12 @@ void Q3BspMap::Init()
     CreateDescriptorSetLayout();
 
     // create descriptor pool shared between all visible faces (one descriptor per visible face)
-    CreateDescriptorPool((uint32_t)faces.size());
+    // allocate at least 1 descriptor in case the list of faces is empty due to missing or broken BSP (to print error msg!)
+    CreateDescriptorPool(std::max((uint32_t)faces.size(), (uint32_t)1));
+
+    // if there are no faces, this means a problem or a missing BSP - abort
+    if (faces.empty())
+        return;
 
     // single shared uniform buffer
     VK_VERIFY(vk::createUniformBuffer(g_renderContext.device, sizeof(UniformBufferObject), &m_renderBuffers.uniformBuffer));
@@ -166,6 +171,10 @@ void Q3BspMap::OnRender()
     // update uniform buffers
     m_ubo.ModelViewProjectionMatrix = g_renderContext.ModelViewProjectionMatrix;
     m_frustum.UpdatePlanes();
+
+    // abort here if there is nothing to draw
+    if (m_visibleFaces.empty() && m_visiblePatches.empty())
+        return;
 
     void *data;
     vmaMapMemory(g_renderContext.device.allocator, m_renderBuffers.uniformBuffer.allocation, &data);
