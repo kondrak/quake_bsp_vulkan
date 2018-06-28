@@ -72,6 +72,7 @@ void RenderContext::Destroy()
         }
 
         vk::destroyAllocator(device.allocator);
+        vkDestroyPipelineCache(device.logical, pipelineCache, nullptr);
         vkDestroyDevice(device.logical, nullptr);
         vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 #ifdef VALIDATION_LAYERS_ON
@@ -88,9 +89,13 @@ VkResult RenderContext::RenderStart()
     VkResult result = vkAcquireNextImageKHR(device.logical, swapChain.sc, UINT64_MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &m_imageIndex);
     activeCmdBuffer = m_commandBuffers[m_imageIndex];
  
-    // swapchain has become incompatible - application has to recreate it
+    // swapchain has become incompatible - need to recreate it
     if (result == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        LOG_MESSAGE("SwapChain incompatible after vkAcquireNextImageKHR - rebuilding!");
+        RecreateSwapChain();
         return result;
+    }
 
     VK_VERIFY(vkWaitForFences(device.logical, 1, &m_fences[m_imageIndex], VK_TRUE, UINT64_MAX));
     vkResetFences(device.logical, 1, &m_fences[m_imageIndex]);
@@ -119,6 +124,9 @@ VkResult RenderContext::RenderStart()
     renderBeginInfo.pClearValues = clearColors;
 
     vkCmdBeginRenderPass(m_commandBuffers[m_imageIndex], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdSetViewport(m_commandBuffers[m_imageIndex], 0, 1, &m_viewport);
+    vkCmdSetScissor(m_commandBuffers[m_imageIndex], 0, 1, &m_scissor);
+
     return VK_SUCCESS;
 }
 
@@ -155,7 +163,16 @@ VkResult RenderContext::Present()
     presentInfo.pImageIndices = &m_imageIndex;
     presentInfo.pResults = nullptr;
 
-    return vkQueuePresentKHR(device.graphicsQueue, &presentInfo);
+    VkResult renderResult = vkQueuePresentKHR(device.graphicsQueue, &presentInfo);
+
+    // recreate swapchain if it's out of date
+    if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR)
+    {
+        LOG_MESSAGE("SwapChain out of date/suboptimal after vkQueuePresentKHR - rebuilding!");
+        RecreateSwapChain();
+    }
+
+    return renderResult;
 }
 
 Math::Vector2f RenderContext::WindowSize()
@@ -200,6 +217,19 @@ bool RenderContext::RecreateSwapChain()
     swapChain.extent = { (uint32_t)width, (uint32_t)height };
     VK_VERIFY(vk::createSwapChain(device, m_surface, &swapChain, swapChain.sc));
 
+    m_viewport.width  = (float)swapChain.extent.width;
+    m_viewport.height = (float)swapChain.extent.height;
+    m_scissor.extent = swapChain.extent;
+
+    // update internal render context dimensions
+    width  = swapChain.extent.width;
+    height = swapChain.extent.height;
+    halfWidth  = width >> 1;
+    halfHeight = height >> 1;
+    scrRatio = m_viewport.width / m_viewport.height;
+    left = -scrRatio;
+    right = scrRatio;
+
     DestroyDrawBuffers();
     CreateDrawBuffers();
     if (!CreateImageViews()) return false;
@@ -221,8 +251,20 @@ bool RenderContext::InitVulkan()
     swapChain.extent = { (uint32_t)width, (uint32_t)height };
     VK_VERIFY(vk::createSwapChain(device, m_surface, &swapChain, VK_NULL_HANDLE));
 
+    m_viewport.x = 0.f;
+    m_viewport.y = 0.f;
+    m_viewport.minDepth = 0.f;
+    m_viewport.maxDepth = 1.f;
+    m_viewport.width  = (float)swapChain.extent.width;
+    m_viewport.height = (float)swapChain.extent.height;
+
+    m_scissor.offset.x = 0;
+    m_scissor.offset.y = 0;
+    m_scissor.extent = swapChain.extent;
+
     CreateFences();
     CreateSemaphores();
+    CreatePipelineCache();
 
     VK_VERIFY(vk::createRenderPass(device, swapChain, &renderPass));
     VK_VERIFY(vk::createCommandPool(device, &commandPool));
@@ -316,7 +358,7 @@ bool RenderContext::CreateFramebuffers()
     fbCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     fbCreateInfo.renderPass = renderPass.renderPass;
     fbCreateInfo.attachmentCount = (m_msaaSamples != VK_SAMPLE_COUNT_1_BIT) ? 4 : 2;
-    fbCreateInfo.width = swapChain.extent.width;
+    fbCreateInfo.width  = swapChain.extent.width;
     fbCreateInfo.height = swapChain.extent.height;
     fbCreateInfo.layers = 1;
 
@@ -369,4 +411,12 @@ void RenderContext::CreateSemaphores()
 
     VK_VERIFY(vkCreateSemaphore(device.logical, &sCreateInfo, nullptr, &m_imageAvailableSemaphore));
     VK_VERIFY(vkCreateSemaphore(device.logical, &sCreateInfo, nullptr, &m_renderFinishedSemaphore));
+}
+
+void RenderContext::CreatePipelineCache()
+{
+    VkPipelineCacheCreateInfo pcInfo = {};
+    pcInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+
+    VK_VERIFY(vkCreatePipelineCache(device.logical, &pcInfo, nullptr, &pipelineCache));
 }

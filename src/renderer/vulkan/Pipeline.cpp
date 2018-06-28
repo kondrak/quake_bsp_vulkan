@@ -167,7 +167,12 @@ namespace vk
         cbsCreateInfo.blendConstants[2] = 0.f;
         cbsCreateInfo.blendConstants[3] = 0.f;
 
+        VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+
         VkPipelineDynamicStateCreateInfo dsCreateInfo = {};
+        dsCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        dsCreateInfo.dynamicStateCount = 2;
+        dsCreateInfo.pDynamicStates = dynamicStates;
 
         VkPipelineLayoutCreateInfo plCreateInfo = {};
         plCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -192,14 +197,15 @@ namespace vk
         pCreateInfo.pMultisampleState = &msCreateInfo;
         pCreateInfo.pDepthStencilState = &dCreateInfo;
         pCreateInfo.pColorBlendState = &cbsCreateInfo;
-        pCreateInfo.pDynamicState = nullptr;
+        pCreateInfo.pDynamicState = &dsCreateInfo;
         pCreateInfo.layout = pipeline->layout;
+        pCreateInfo.flags = pipeline->flags;
         pCreateInfo.renderPass = renderPass.renderPass;
         pCreateInfo.subpass = 0;
-        pCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
+        pCreateInfo.basePipelineHandle = pipeline->basePipelineHandle;
         pCreateInfo.basePipelineIndex = -1;
 
-        VkResult pResult = vkCreateGraphicsPipelines(device.logical, VK_NULL_HANDLE, 1, &pCreateInfo, nullptr, &pipeline->pipeline);
+        VkResult pResult = vkCreateGraphicsPipelines(device.logical, pipeline->cache, 1, &pCreateInfo, nullptr, &pipeline->pipeline);
         vkDestroyShaderModule(device.logical, shader.vertShader, nullptr);
         vkDestroyShaderModule(device.logical, shader.fragShader, nullptr);
 

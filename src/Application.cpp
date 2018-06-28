@@ -14,32 +14,17 @@ void Application::OnWindowResize(int newWidth, int newHeight)
 {
     // fast window resizes return incorrect results from polled event - Vulkan surface query does it better
     Math::Vector2f windowSize = g_renderContext.WindowSize();
+    // skip drawing if either dimension is zero
+    m_noRedraw = !(windowSize.m_x > 0 && windowSize.m_y > 0);
 
-    if (windowSize.m_x > 0 && windowSize.m_y > 0)
-    {
-        m_noRedraw = false;
-        g_renderContext.width  = (int)windowSize.m_x;
-        g_renderContext.height = (int)windowSize.m_y;
-        g_renderContext.halfWidth  = g_renderContext.width >> 1;
-        g_renderContext.halfHeight = g_renderContext.height >> 1;
-        g_renderContext.scrRatio = (float)windowSize.m_x / (float)windowSize.m_y;
-        g_renderContext.left  = -g_renderContext.scrRatio;
-        g_renderContext.right =  g_renderContext.scrRatio;
-
+    // window size changed, current swapchain is invalid, so we need to recreate it
+    if (!m_noRedraw)
         g_renderContext.RecreateSwapChain();
-        m_q3map->OnWindowChanged();
-        m_q3stats->OnWindowChanged();
-    }
-    else
-        m_noRedraw = true;
 }
 
 void Application::OnWindowMinimized(bool minimized)
 {
     m_noRedraw = minimized;
-    // force swap chain rebuilding when restoring the window
-    if (!minimized)
-        OnWindowResize(g_renderContext.width, g_renderContext.height);
 }
 
 void Application::OnStart(int argc, char **argv)
@@ -83,15 +68,9 @@ void Application::OnRender()
     if (m_noRedraw)
         return;
 
-    VkResult renderResult = g_renderContext.RenderStart();
-
-    // incompatile swapchain - recreate it and skip this frame
-    if (renderResult == VK_ERROR_OUT_OF_DATE_KHR)
-    {
-        m_q3map->OnWindowChanged();
-        m_q3stats->OnWindowChanged();
+    // incompatible swapchain - skip this frame
+    if (g_renderContext.RenderStart() == VK_ERROR_OUT_OF_DATE_KHR)
         return;
-    }
 
     // render the bsp
     g_cameraDirector.GetActiveCamera()->UpdateView();
@@ -109,14 +88,9 @@ void Application::OnRender()
 
     // submit graphics queue and present it to screen
     VK_VERIFY(g_renderContext.Submit());
-    renderResult = g_renderContext.Present();
 
-    // recreate swapchain if it's out of date
-    if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR)
-    {
-        m_q3map->OnWindowChanged();
-        m_q3stats->OnWindowChanged();
-    }
+    // present!
+    g_renderContext.Present();
 }
 
 void Application::OnUpdate(float dt)
@@ -174,8 +148,8 @@ void Application::OnKeyPress(KeyCode key)
     case KEY_F8:
         m_q3map->ToggleRenderFlag(Q3Multisampling);
         g_renderContext.ToggleMSAA();
-        m_q3map->OnWindowChanged();
-        m_q3stats->OnWindowChanged();
+        m_q3map->RebuildPipeline();
+        m_q3stats->RebuildPipeline();
         break;
     case KEY_TILDE:
         m_debugRenderState++;

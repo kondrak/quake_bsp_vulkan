@@ -9,6 +9,7 @@
 #include <map>
 
 class  GameTexture;
+class  Q3BspBiquadPatch;
 struct Q3BspPatch;
 
 /*
@@ -26,7 +27,7 @@ public:
 
     void Init();
     void OnRender();
-    void OnWindowChanged();
+    void RebuildPipeline();
 
     bool ClusterVisible(int cameraCluster, int testCluster)   const;
     int  FindCameraLeaf(const Math::Vector3f &cameraPosition) const;
@@ -58,14 +59,16 @@ private:
     void SetLightmapGamma(float gamma);
     void CreatePatch(const Q3BspFaceLump &f);
 
-    // Vulkan draw call builder and pipeline builder
+    // queue data for drawing
     void Draw();
-    void RebuildPipelines();
 
     // Vulkan buffer creation
-    void CreateBuffersForFace(const Q3BspFaceLump &face, int idx);
-    void CreateBuffersForPatch(int idx);
+    void CreateDescriptorsForFace(const Q3BspFaceLump &face, int idx, int vertexOffset, int indexOffset);
+    void CreateDescriptorsForPatch(int idx, int &vertexOffset, int &indexOffset, std::vector<Q3BspBiquadPatch*> &vdata, std::vector<int> &idata);
+    void CreateFaceBuffers(const std::vector<Q3BspFaceLump*> &faceData, int vertexCount, int indexCount);
+    void CreatePatchBuffers(const std::vector<Q3BspBiquadPatch*> &patchData, int vertexCount, int indexCount);
     void CreateDescriptorSetLayout();
+    void CreateDescriptorPool(uint32_t numDescriptors);
     void CreateDescriptor(const vk::Texture **textures, vk::Descriptor *descriptor);
 
     // render data
@@ -92,6 +95,13 @@ private:
     // all faces and patches use shared vertex buffer info and descriptor set layout
     vk::VertexBufferInfo  m_vbInfo;
     VkDescriptorSetLayout m_dsLayout;
+    VkDescriptorPool      m_descriptorPool;
+
+    // store faces and patches in separate buffers
+    vk::Buffer m_faceVertexBuffer;
+    vk::Buffer m_faceIndexBuffer;
+    vk::Buffer m_patchVertexBuffer;
+    vk::Buffer m_patchIndexBuffer;
 };
 
 #endif

@@ -59,6 +59,7 @@ public:
     vk::RenderPass renderPass;
     VkCommandPool   commandPool = VK_NULL_HANDLE;
     VkCommandBuffer activeCmdBuffer = VK_NULL_HANDLE;
+    VkPipelineCache pipelineCache = VK_NULL_HANDLE;
 
     float fov = 75.f * PIdiv180;
     float nearPlane = 0.1f;
@@ -88,10 +89,15 @@ private:
     void DestroyFramebuffers();
     void CreateFences();
     void CreateSemaphores();
+    void CreatePipelineCache();
 
     // Vulkan instance and surface
     VkInstance   m_instance = VK_NULL_HANDLE;
     VkSurfaceKHR m_surface  = VK_NULL_HANDLE;
+
+    // using dynamic states for pipelines, so we need to update viewport and scissor manually
+    VkViewport m_viewport = {};
+    VkRect2D   m_scissor  = {};
 
     // Vulkan framebuffers
     std::vector<VkFramebuffer> m_frameBuffers;

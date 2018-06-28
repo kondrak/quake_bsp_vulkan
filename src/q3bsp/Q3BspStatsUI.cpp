@@ -37,7 +37,7 @@ void Q3StatsUI::OnRender()
 
     std::stringstream statsStream;
     statsStream.precision(5);
-    statsStream << "FPS: " << g_fps << " (" << 1000.f / g_fps << "ms)";
+    statsStream << "FPS: " << g_fps << " (" << (g_fps > 0 ? (1000.f / g_fps) : 0) << "ms)";
     m_font->RenderText(statsStream.str(), statsX, statsY + 6 * ySpacing, 0.f);
 
     statsStream.str("");
@@ -108,7 +108,7 @@ void Q3StatsUI::OnRender()
     m_font->RenderFinish();
 }
 
-void Q3StatsUI::OnWindowChanged()
+void Q3StatsUI::RebuildPipeline()
 {
     m_font->RebuildPipeline();
 }

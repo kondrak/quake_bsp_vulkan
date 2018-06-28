@@ -19,7 +19,7 @@ public:
     }
 
     void OnRender();
-    void OnWindowChanged();
+    void RebuildPipeline();
 private:
     Font *m_font = nullptr;
 };
