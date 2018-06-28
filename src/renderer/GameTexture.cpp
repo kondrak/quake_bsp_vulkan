@@ -10,8 +10,10 @@ GameTexture::GameTexture(const char *filename)
     VkFormatProperties fp = {};
     vkGetPhysicalDeviceFormatProperties(g_renderContext.device.physical, VK_FORMAT_R8G8B8_UNORM, &fp);
 
-    // force rgba if rgb format is not supported by the device
-    if (fp.optimalTilingFeatures > 0)
+    bool canBlitLinear  = (fp.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT) != 0;
+    bool canBlitOptimal = (fp.linearTilingFeatures  & VK_FORMAT_FEATURE_BLIT_DST_BIT) != 0;
+    // force rgba if the device can't blit to rgb format (required by mipmapping)
+    if (canBlitLinear || canBlitOptimal)
     {
         m_textureData = stbi_load(filename, &m_width, &m_height, &m_components, STBI_default);
     }
