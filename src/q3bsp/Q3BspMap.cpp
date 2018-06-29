@@ -43,6 +43,10 @@ Q3BspMap::~Q3BspMap()
 
 void Q3BspMap::Init()
 {
+    // if there are no faces, this means a problem or a missing BSP - abort
+    if (faces.empty())
+        return;
+
     // regular faces are simple triangle lists, patches are drawn as triangle strips, so we need extra pipeline
     m_facesPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     m_patchPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
@@ -98,13 +102,8 @@ void Q3BspMap::Init()
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inTexCoordLightmap, VK_FORMAT_R32G32_SFLOAT, sizeof(vec3f) + sizeof(vec2f)));
     CreateDescriptorSetLayout();
 
-    // create descriptor pool shared between all visible faces (one descriptor per visible face)
-    // allocate at least 1 descriptor in case the list of faces is empty due to missing or broken BSP (to print error msg!)
-    CreateDescriptorPool(std::max((uint32_t)faces.size(), (uint32_t)1));
-
-    // if there are no faces, this means a problem or a missing BSP - abort
-    if (faces.empty())
-        return;
+    // create descriptor pool shared between all visible faces and patches (one descriptor per visible face)
+    CreateDescriptorPool((uint32_t)faces.size());
 
     // single shared uniform buffer
     VK_VERIFY(vk::createUniformBuffer(g_renderContext.device, sizeof(UniformBufferObject), &m_renderBuffers.uniformBuffer));
@@ -168,13 +167,13 @@ void Q3BspMap::Init()
 
 void Q3BspMap::OnRender()
 {
+    // no faces at all in this BSP? something's not right, abort
+    if (faces.empty())
+        return;
+
     // update uniform buffers
     m_ubo.ModelViewProjectionMatrix = g_renderContext.ModelViewProjectionMatrix;
     m_frustum.UpdatePlanes();
-
-    // abort here if there is nothing to draw
-    if (m_visibleFaces.empty() && m_visiblePatches.empty())
-        return;
 
     void *data;
     vmaMapMemory(g_renderContext.device.allocator, m_renderBuffers.uniformBuffer.allocation, &data);
