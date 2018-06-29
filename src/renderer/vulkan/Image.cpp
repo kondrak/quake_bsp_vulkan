@@ -234,6 +234,8 @@ namespace vk
         imageInfo.flags = 0;
 
         VmaAllocationCreateInfo vmallocInfo = {};
+        // make sure memory regions for loaded images do not overlap
+        vmallocInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
         vmallocInfo.usage = memUsage;
 
         return vmaCreateImage(device.allocator, &imageInfo, &vmallocInfo, &texture->image, &texture->allocation, nullptr);
@@ -274,7 +276,8 @@ namespace vk
             blit.srcSubresource.baseArrayLayer = 0;
             blit.srcSubresource.layerCount = 1;
             blit.dstOffsets[0] = { 0, 0, 0 };
-            blit.dstOffsets[1] = { mipWidth >> 1, mipHeight >> 1, 1 }; // each mip level is half the size of the previous level
+            blit.dstOffsets[1] = { mipWidth > 1 ?  mipWidth >> 1 : 1,
+                                  mipHeight > 1 ? mipHeight >> 1 : 1, 1 }; // each mip level is half the size of the previous level
             blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             blit.dstSubresource.mipLevel = i;
             blit.dstSubresource.baseArrayLayer = 0;
@@ -283,6 +286,14 @@ namespace vk
             // src image == dst image, because we're blitting between different mip levels of the same image
             vkCmdBlitImage(cmdBuffer, texture.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                                       texture.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, texture.mipmapFilter);
+
+            imgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+            imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imgBarrier);
+
             // avoid zero-sized mip levels
             if ( mipWidth > 1)  mipWidth >>= 1;
             if (mipHeight > 1) mipHeight >>= 1;

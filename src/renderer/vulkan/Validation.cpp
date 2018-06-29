@@ -23,7 +23,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags,
         LOG_MESSAGE("VULKAN DEBUG: " << msg);
         break;
     case VK_DEBUG_REPORT_WARNING_BIT_EXT:
-        LOG_MESSAGE("VULKAN WARNING: " << msg);
+        LOG_MESSAGE_ASSERT(false, "VULKAN WARNING: " << msg);
         break;
     case VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT:
         LOG_MESSAGE_ASSERT(false, "VULKAN PERFORMANCE: " << msg);
