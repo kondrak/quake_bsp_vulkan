@@ -358,7 +358,8 @@ void Q3BspMap::LoadLightmaps()
         for (int j = 0, k = 0; k < 128 * 128 * 3; j += 4, k += 3)
             memcpy(rgba_lmap + j, lightMaps[i].map + k, 3);
 
-        // Create texture from bsp lightmap data
+        // Create texture from bsp lightmap data (8 mip levels for 128x128 textures)
+        m_lightmapTextures[i].mipLevels = 8;
         vk::createTexture(g_renderContext.device, g_renderContext.commandPool, &m_lightmapTextures[i], rgba_lmap, 128, 128);
     }
 
