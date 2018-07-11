@@ -31,8 +31,10 @@ For people interested in learning Vulkan and jumping into core features, the `re
 
 Keyword list:
 - multiple pipeline rendering
+- pipeline dynamic state, derivatives and cache
 - immediate screen updates with double buffering and semaphore scheduling
 - texture mapping with and without filtering
 - 3rd party memory allocation handling using VMA
-- validation layers defaulted to debug builds
-- Multisampling (MSAA) defaulting to maximum sample count supported by hardware
+- validation layers enabled by default in debug builds
+- multisampling (MSAA) defaulting to maximum sample count supported by hardware
+- mipmapping
