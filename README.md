@@ -21,7 +21,7 @@ Dependencies
 -------
 This project uses following external libraries:
 
-- [stb_image](https://github.com/nothings/stb) library for image handling (c) Sean Barret
+- [stb_image](https://github.com/nothings/stb) library for image handling (c) Sean Barrett
 - SDL2 library for window/input
 - [Vulkan Memory Allocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator) for painless memory management of Vulkan resources
 
@@ -34,7 +34,7 @@ Keyword list:
 - pipeline dynamic state, derivatives and cache
 - immediate screen updates with double buffering and semaphore scheduling (using single, universal queue)
 - texture mapping with and without filtering
-- 3rd party memory allocation handling using VMA
+- memory allocation handled using VMA
 - validation layers enabled by default in debug builds
 - multisampling (MSAA) defaulting to maximum sample count supported by hardware
 - mipmapping
