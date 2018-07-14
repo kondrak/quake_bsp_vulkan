@@ -33,7 +33,7 @@ Keyword list:
 - multiple pipeline rendering
 - pipeline dynamic state, derivatives and cache
 - immediate screen updates with double buffering and semaphore scheduling (using single, universal queue)
-- texture mapping with and without filtering
+- texture mapping (filtered and unfiltered)
 - memory allocation handled using VMA
 - validation layers enabled by default in debug builds
 - multisampling (MSAA) defaulting to maximum sample count supported by hardware
