@@ -32,9 +32,13 @@ For people interested in learning Vulkan and jumping into core features, the `re
 Keyword list:
 - multiple pipeline rendering
 - pipeline dynamic state, derivatives and cache
-- immediate screen updates with double buffering and semaphore scheduling
+- immediate screen updates with double buffering and semaphore scheduling (using single, universal queue)
 - texture mapping with and without filtering
 - 3rd party memory allocation handling using VMA
 - validation layers enabled by default in debug builds
 - multisampling (MSAA) defaulting to maximum sample count supported by hardware
 - mipmapping
+
+Vulkan references
+-------
+- https://www.khronos.org/assets/uploads/developers/library/2016-vulkan-devday-uk/7-Keeping-your-GPU-fed.pdf
