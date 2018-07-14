@@ -21,7 +21,7 @@ Dependencies
 -------
 This project uses following external libraries:
 
-- [stb_image](https://github.com/nothings/stb) library for image handling (c) Sean Barrett
+- [stb_image](https://github.com/nothings/stb) library for texture loading (c) Sean Barrett
 - SDL2 library for window/input
 - [Vulkan Memory Allocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator) for painless memory management of Vulkan resources
 
