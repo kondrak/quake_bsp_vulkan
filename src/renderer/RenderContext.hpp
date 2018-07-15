@@ -111,9 +111,9 @@ private:
     // command buffer double buffering fences
     std::vector<VkFence> m_fences;
     // semaphore: signal when next image is available for rendering
-    VkSemaphore m_imageAvailableSemaphore;
+    std::vector<VkSemaphore> m_imageAvailableSemaphores;
     // semaphore: signal when rendering to current command buffer is complete
-    VkSemaphore m_renderFinishedSemaphore;
+    std::vector<VkSemaphore> m_renderFinishedSemaphores;
 
     // depth buffer texture
     vk::Texture m_depthBuffer;
