@@ -273,7 +273,7 @@ bool RenderContext::InitVulkan()
     CreateDrawBuffers();
     if (!CreateImageViews()) return false;
     if (!CreateFramebuffers()) return false;
- 
+
     // allocate NUM_CMDBUFFERS command buffers (used to be m_frameBuffers.size())
     VK_VERIFY(vk::createCommandBuffers(device, commandPool, m_commandBuffers, NUM_CMDBUFFERS));
 
