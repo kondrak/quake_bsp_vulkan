@@ -6,8 +6,6 @@
 #include "Utils.hpp"
 #include <algorithm>
 
-// use 2 synchronized command buffers for rendering (double buffering)
-static const int NUM_CMDBUFFERS = 2;
 // index of the command buffer that's currently in use
 static int s_currentCmdBuffer = 0;
 
@@ -66,19 +64,11 @@ void RenderContext::Destroy()
 
         vkDestroySwapchainKHR(device.logical, swapChain.sc, nullptr);
 
-        for (VkSemaphore &semaphore : m_imageAvailableSemaphores)
+        for (int i = 0; i < NUM_CMDBUFFERS; ++i)
         {
-            vkDestroySemaphore(device.logical, semaphore, nullptr);
-        }
-
-        for (VkSemaphore &semaphore : m_renderFinishedSemaphores)
-        {
-            vkDestroySemaphore(device.logical, semaphore, nullptr);
-        }
-
-        for (VkFence &fence : m_fences)
-        {
-            vkDestroyFence(device.logical, fence, nullptr);
+            vkDestroySemaphore(device.logical, m_imageAvailableSemaphores[i], nullptr);
+            vkDestroySemaphore(device.logical, m_renderFinishedSemaphores[i], nullptr);
+            vkDestroyFence(device.logical, m_fences[i], nullptr);
         }
 
         vk::destroyAllocator(device.allocator);
@@ -283,7 +273,8 @@ bool RenderContext::InitVulkan()
     CreateDrawBuffers();
     if (!CreateImageViews()) return false;
     if (!CreateFramebuffers()) return false;
-    // allocate 2 command buffers (used to be m_frameBuffers.size())
+ 
+    // allocate NUM_CMDBUFFERS command buffers (used to be m_frameBuffers.size())
     VK_VERIFY(vk::createCommandBuffers(device, commandPool, m_commandBuffers, NUM_CMDBUFFERS));
 
     return true;
@@ -408,11 +399,10 @@ void RenderContext::CreateFences()
     VkFenceCreateInfo fCreateInfo = {};
     fCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-    m_fences.resize(NUM_CMDBUFFERS);
 
-    for (VkFence &fence : m_fences)
+    for (int i = 0; i < NUM_CMDBUFFERS; ++i)
     {
-        VK_VERIFY(vkCreateFence(device.logical, &fCreateInfo, nullptr, &fence));
+        VK_VERIFY(vkCreateFence(device.logical, &fCreateInfo, nullptr, &m_fences[i]));
     }
 }
 
@@ -420,8 +410,6 @@ void RenderContext::CreateSemaphores()
 {
     VkSemaphoreCreateInfo sCreateInfo = {};
     sCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    m_imageAvailableSemaphores.resize(NUM_CMDBUFFERS);
-    m_renderFinishedSemaphores.resize(NUM_CMDBUFFERS);
 
     for (int i = 0; i < NUM_CMDBUFFERS; ++i)
     {
