@@ -2,6 +2,7 @@
 #include "renderer/GameTexture.hpp"
 #include "stb_image/stb_image.h"
 #include <algorithm>
+#include <cmath>
 
 extern RenderContext  g_renderContext;
 

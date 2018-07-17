@@ -14,7 +14,7 @@
     std::stringstream msgStr; \
     msgStr << "[!ASSERT!]: " << msg << "\n"; \
     LogError(msgStr.str().c_str()); \
-    __debugbreak(); \
+    Break(); \
     }
 #else
 #define LOG_MESSAGE(msg)
@@ -23,4 +23,5 @@
 
 
 void LogError(const char *msg);
+void Break();
 #endif
