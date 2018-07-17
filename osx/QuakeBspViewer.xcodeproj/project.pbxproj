@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		E20EDB1C20FDD66400AA234A /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB1120FDD66400AA234A /* Application.cpp */; };
 		E20EDB1D20FDD66400AA234A /* InputHandlers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB1520FDD66400AA234A /* InputHandlers.cpp */; };
-		E20EDB1E20FDD66400AA234A /* DebugOverlay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB1620FDD66400AA234A /* DebugOverlay.cpp */; };
 		E20EDB1F20FDD66400AA234A /* Math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB1720FDD66400AA234A /* Math.cpp */; };
 		E20EDB2020FDD66400AA234A /* Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB1820FDD66400AA234A /* Utils.cpp */; };
 		E20EDB2120FDD66400AA234A /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB1B20FDD66400AA234A /* main.cpp */; };
@@ -32,6 +31,12 @@
 		E20EDB5E20FDDDB900AA234A /* libvulkan.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E20EDB5D20FDDDB900AA234A /* libvulkan.1.dylib */; };
 		E20EDB6020FDDE4900AA234A /* libvulkan.1.1.77.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = E20EDB5F20FDDE4900AA234A /* libvulkan.1.1.77.dylib */; };
 		E20EDB6220FDDE8D00AA234A /* libvulkan.1.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = E20EDB6120FDDE8C00AA234A /* libvulkan.1.dylib */; };
+		E20EDB7320FE35DF00AA234A /* Q3BspLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB6920FE35DF00AA234A /* Q3BspLoader.cpp */; };
+		E20EDB7420FE35DF00AA234A /* Q3BspMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB6A20FE35DF00AA234A /* Q3BspMap.cpp */; };
+		E20EDB7520FE35DF00AA234A /* Q3BspStatsUI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB6E20FE35DF00AA234A /* Q3BspStatsUI.cpp */; };
+		E20EDB7620FE35DF00AA234A /* Q3BspPatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB6F20FE35DF00AA234A /* Q3BspPatch.cpp */; };
+		E20EDB7B20FE362200AA234A /* Frustum.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB7920FE362200AA234A /* Frustum.cpp */; };
+		E20EDB7C20FE362200AA234A /* StringHelpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB7A20FE362200AA234A /* StringHelpers.cpp */; };
 		E289308320FDD1D200074D1A /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E289308220FDD1D200074D1A /* SDL2.framework */; };
 		E2AD3E9420FDD41200EAB4BB /* SDL2.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = E289308220FDD1D200074D1A /* SDL2.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -53,11 +58,9 @@
 
 /* Begin PBXFileReference section */
 		E20EDB1120FDD66400AA234A /* Application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Application.cpp; path = ../src/Application.cpp; sourceTree = "<group>"; };
-		E20EDB1220FDD66400AA234A /* DebugOverlay.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DebugOverlay.hpp; path = ../src/DebugOverlay.hpp; sourceTree = "<group>"; };
 		E20EDB1320FDD66400AA234A /* InputHandlers.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = InputHandlers.hpp; path = ../src/InputHandlers.hpp; sourceTree = "<group>"; };
 		E20EDB1420FDD66400AA234A /* Math.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Math.hpp; path = ../src/Math.hpp; sourceTree = "<group>"; };
 		E20EDB1520FDD66400AA234A /* InputHandlers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = InputHandlers.cpp; path = ../src/InputHandlers.cpp; sourceTree = "<group>"; };
-		E20EDB1620FDD66400AA234A /* DebugOverlay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DebugOverlay.cpp; path = ../src/DebugOverlay.cpp; sourceTree = "<group>"; };
 		E20EDB1720FDD66400AA234A /* Math.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Math.cpp; path = ../src/Math.cpp; sourceTree = "<group>"; };
 		E20EDB1820FDD66400AA234A /* Utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Utils.cpp; path = ../src/Utils.cpp; sourceTree = "<group>"; };
 		E20EDB1920FDD66400AA234A /* Application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Application.hpp; path = ../src/Application.hpp; sourceTree = "<group>"; };
@@ -97,6 +100,22 @@
 		E20EDB5D20FDDDB900AA234A /* libvulkan.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvulkan.1.dylib; path = ../../VulkanSDK/1.1.77.0/macOS/lib/libvulkan.1.dylib; sourceTree = "<group>"; };
 		E20EDB5F20FDDE4900AA234A /* libvulkan.1.1.77.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libvulkan.1.1.77.dylib; path = ../../VulkanSDK/1.1.77.0/macOS/lib/libvulkan.1.1.77.dylib; sourceTree = "<group>"; };
 		E20EDB6120FDDE8C00AA234A /* libvulkan.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvulkan.1.dylib; path = ../../VulkanSDK/1.1.77.0/macOS/lib/libvulkan.1.dylib; sourceTree = "<group>"; };
+		E20EDB6620FE35B600AA234A /* StatsUI.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = StatsUI.hpp; path = ../src/common/StatsUI.hpp; sourceTree = "<group>"; };
+		E20EDB6720FE35B600AA234A /* BspMap.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = BspMap.hpp; path = ../src/common/BspMap.hpp; sourceTree = "<group>"; };
+		E20EDB6920FE35DF00AA234A /* Q3BspLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Q3BspLoader.cpp; path = ../src/q3bsp/Q3BspLoader.cpp; sourceTree = "<group>"; };
+		E20EDB6A20FE35DF00AA234A /* Q3BspMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Q3BspMap.cpp; path = ../src/q3bsp/Q3BspMap.cpp; sourceTree = "<group>"; };
+		E20EDB6B20FE35DF00AA234A /* Q3BspMap.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Q3BspMap.hpp; path = ../src/q3bsp/Q3BspMap.hpp; sourceTree = "<group>"; };
+		E20EDB6C20FE35DF00AA234A /* Q3BspRenderHelpers.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Q3BspRenderHelpers.hpp; path = ../src/q3bsp/Q3BspRenderHelpers.hpp; sourceTree = "<group>"; };
+		E20EDB6D20FE35DF00AA234A /* Q3BspStatsUI.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Q3BspStatsUI.hpp; path = ../src/q3bsp/Q3BspStatsUI.hpp; sourceTree = "<group>"; };
+		E20EDB6E20FE35DF00AA234A /* Q3BspStatsUI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Q3BspStatsUI.cpp; path = ../src/q3bsp/Q3BspStatsUI.cpp; sourceTree = "<group>"; };
+		E20EDB6F20FE35DF00AA234A /* Q3BspPatch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Q3BspPatch.cpp; path = ../src/q3bsp/Q3BspPatch.cpp; sourceTree = "<group>"; };
+		E20EDB7020FE35DF00AA234A /* Q3Bsp.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Q3Bsp.hpp; path = ../src/q3bsp/Q3Bsp.hpp; sourceTree = "<group>"; };
+		E20EDB7120FE35DF00AA234A /* Q3BspPatch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Q3BspPatch.hpp; path = ../src/q3bsp/Q3BspPatch.hpp; sourceTree = "<group>"; };
+		E20EDB7220FE35DF00AA234A /* Q3BspLoader.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Q3BspLoader.hpp; path = ../src/q3bsp/Q3BspLoader.hpp; sourceTree = "<group>"; };
+		E20EDB7720FE362200AA234A /* StringHelpers.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = StringHelpers.hpp; path = ../src/StringHelpers.hpp; sourceTree = "<group>"; };
+		E20EDB7820FE362200AA234A /* Frustum.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Frustum.hpp; path = ../src/Frustum.hpp; sourceTree = "<group>"; };
+		E20EDB7920FE362200AA234A /* Frustum.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Frustum.cpp; path = ../src/Frustum.cpp; sourceTree = "<group>"; };
+		E20EDB7A20FE362200AA234A /* StringHelpers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = StringHelpers.cpp; path = ../src/StringHelpers.cpp; sourceTree = "<group>"; };
 		E289307420FDCB6600074D1A /* QuakeBspViewer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = QuakeBspViewer; sourceTree = BUILT_PRODUCTS_DIR; };
 		E289308220FDD1D200074D1A /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -118,16 +137,20 @@
 		E20EDB1020FDD64700AA234A /* src */ = {
 			isa = PBXGroup;
 			children = (
+				E20EDB6520FE359D00AA234A /* common */,
+				E20EDB6820FE35CB00AA234A /* q3bsp */,
 				E20EDB2320FDD68100AA234A /* renderer */,
 				E20EDB1120FDD66400AA234A /* Application.cpp */,
 				E20EDB1920FDD66400AA234A /* Application.hpp */,
-				E20EDB1620FDD66400AA234A /* DebugOverlay.cpp */,
-				E20EDB1220FDD66400AA234A /* DebugOverlay.hpp */,
+				E20EDB7920FE362200AA234A /* Frustum.cpp */,
+				E20EDB7820FE362200AA234A /* Frustum.hpp */,
 				E20EDB1520FDD66400AA234A /* InputHandlers.cpp */,
 				E20EDB1320FDD66400AA234A /* InputHandlers.hpp */,
 				E20EDB1B20FDD66400AA234A /* main.cpp */,
 				E20EDB1720FDD66400AA234A /* Math.cpp */,
 				E20EDB1420FDD66400AA234A /* Math.hpp */,
+				E20EDB7A20FE362200AA234A /* StringHelpers.cpp */,
+				E20EDB7720FE362200AA234A /* StringHelpers.hpp */,
 				E20EDB1820FDD66400AA234A /* Utils.cpp */,
 				E20EDB1A20FDD66400AA234A /* Utils.hpp */,
 			);
@@ -192,6 +215,32 @@
 				E20EDB5220FDD6D500AA234A /* stb_image.h */,
 			);
 			name = stb_image;
+			sourceTree = "<group>";
+		};
+		E20EDB6520FE359D00AA234A /* common */ = {
+			isa = PBXGroup;
+			children = (
+				E20EDB6720FE35B600AA234A /* BspMap.hpp */,
+				E20EDB6620FE35B600AA234A /* StatsUI.hpp */,
+			);
+			name = common;
+			sourceTree = "<group>";
+		};
+		E20EDB6820FE35CB00AA234A /* q3bsp */ = {
+			isa = PBXGroup;
+			children = (
+				E20EDB7020FE35DF00AA234A /* Q3Bsp.hpp */,
+				E20EDB6920FE35DF00AA234A /* Q3BspLoader.cpp */,
+				E20EDB7220FE35DF00AA234A /* Q3BspLoader.hpp */,
+				E20EDB6A20FE35DF00AA234A /* Q3BspMap.cpp */,
+				E20EDB6B20FE35DF00AA234A /* Q3BspMap.hpp */,
+				E20EDB6F20FE35DF00AA234A /* Q3BspPatch.cpp */,
+				E20EDB7120FE35DF00AA234A /* Q3BspPatch.hpp */,
+				E20EDB6C20FE35DF00AA234A /* Q3BspRenderHelpers.hpp */,
+				E20EDB6E20FE35DF00AA234A /* Q3BspStatsUI.cpp */,
+				E20EDB6D20FE35DF00AA234A /* Q3BspStatsUI.hpp */,
+			);
+			name = q3bsp;
 			sourceTree = "<group>";
 		};
 		E289306B20FDCB6600074D1A = {
@@ -281,6 +330,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E20EDB7520FE35DF00AA234A /* Q3BspStatsUI.cpp in Sources */,
 				E20EDB4C20FDD6AB00AA234A /* Base.cpp in Sources */,
 				E20EDB1C20FDD66400AA234A /* Application.cpp in Sources */,
 				E20EDB1D20FDD66400AA234A /* InputHandlers.cpp in Sources */,
@@ -293,13 +343,17 @@
 				E20EDB4720FDD6AB00AA234A /* Validation.cpp in Sources */,
 				E20EDB4E20FDD6AB00AA234A /* Image.cpp in Sources */,
 				E20EDB4820FDD6AB00AA234A /* Device.cpp in Sources */,
-				E20EDB1E20FDD66400AA234A /* DebugOverlay.cpp in Sources */,
 				E20EDB3120FDD69800AA234A /* Camera.cpp in Sources */,
+				E20EDB7C20FE362200AA234A /* StringHelpers.cpp in Sources */,
 				E20EDB3420FDD69800AA234A /* Font.cpp in Sources */,
+				E20EDB7B20FE362200AA234A /* Frustum.cpp in Sources */,
 				E20EDB3020FDD69800AA234A /* GameTexture.cpp in Sources */,
+				E20EDB7620FE35DF00AA234A /* Q3BspPatch.cpp in Sources */,
 				E20EDB4920FDD6AB00AA234A /* CmdBuffer.cpp in Sources */,
+				E20EDB7420FE35DF00AA234A /* Q3BspMap.cpp in Sources */,
 				E20EDB3220FDD69800AA234A /* CameraDirector.cpp in Sources */,
 				E20EDB2020FDD66400AA234A /* Utils.cpp in Sources */,
+				E20EDB7320FE35DF00AA234A /* Q3BspLoader.cpp in Sources */,
 				E20EDB1F20FDD66400AA234A /* Math.cpp in Sources */,
 				E20EDB3520FDD69800AA234A /* TextureManager.cpp in Sources */,
 			);
