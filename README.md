@@ -13,7 +13,7 @@ Building on MacOS
 -----
 The XCode project requires some additional steps:
 - set the VULKAN_SDK environment variable pointing to downloaded Vulkan SDK location
-- download and install SDL 2.0.8 framework
+- download and install SDL 2.0.8 (or higher) framework
 
 Usage
 -----
