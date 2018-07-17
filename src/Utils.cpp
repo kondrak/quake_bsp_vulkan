@@ -12,3 +12,12 @@ void LogError(const char *msg)
     printf("%s\n", msg);
 #endif
 }
+
+void Break()
+{
+#ifdef _WIN32
+    __debugbreak();
+#else
+    abort();
+#endif
+}

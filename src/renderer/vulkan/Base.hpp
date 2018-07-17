@@ -27,7 +27,7 @@ struct SDL_Window;
         std::stringstream msgStr; \
         msgStr << "Invalid VkResult: " << r << " in " << __FILE__ << ":" << __LINE__ << "\n"; \
         LogError(msgStr.str().c_str()); \
-        __debugbreak(); \
+        Break(); \
     }
 
 namespace vk

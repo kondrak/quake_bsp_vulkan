@@ -2,6 +2,7 @@
 #define Q3BSPLOADER_INCLUDED
 
 #include "q3bsp/Q3BspMap.hpp"
+#include <fstream>
 
 /*
  *  Loading class for Q3 bsp
