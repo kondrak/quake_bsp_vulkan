@@ -9,6 +9,12 @@ Building
 -----
 The project should work out of the box with latest Vulkan SDK (tested against SDK 1.1.77.0) and Visual Studio 2015+
 
+Building on MacOS
+-----
+The XCode project requires some additional steps:
+- set the VULKAN_SDK environment variable pointing to downloaded Vulkan SDK location
+- download and install SDL 2.0.8 framework
+
 Usage
 -----
 Running the viewer:
