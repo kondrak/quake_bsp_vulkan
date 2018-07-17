@@ -63,6 +63,12 @@
             ReferencedContainer = "container:QuakeBspViewer.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "maps/ntkjidm2.bsp"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "VK_ICD_FILENAMES"
