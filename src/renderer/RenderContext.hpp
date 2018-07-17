@@ -105,15 +105,17 @@ private:
     // Vulkan image views
     std::vector<VkImageView> m_imageViews;
 
+    // use 2 synchronized command buffers for rendering (double buffering)
+    static const int NUM_CMDBUFFERS = 2;
+
     // command buffers
     std::vector<VkCommandBuffer> m_commandBuffers;
-
     // command buffer double buffering fences
-    std::vector<VkFence> m_fences;
+    VkFence m_fences[NUM_CMDBUFFERS];
     // semaphore: signal when next image is available for rendering
-    VkSemaphore m_imageAvailableSemaphore;
+    VkSemaphore m_imageAvailableSemaphores[NUM_CMDBUFFERS];
     // semaphore: signal when rendering to current command buffer is complete
-    VkSemaphore m_renderFinishedSemaphore;
+    VkSemaphore m_renderFinishedSemaphores[NUM_CMDBUFFERS];
 
     // depth buffer texture
     vk::Texture m_depthBuffer;
