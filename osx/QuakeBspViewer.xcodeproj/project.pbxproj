@@ -1,0 +1,484 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 48;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		E20EDB1C20FDD66400AA234A /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB1120FDD66400AA234A /* Application.cpp */; };
+		E20EDB1D20FDD66400AA234A /* InputHandlers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB1520FDD66400AA234A /* InputHandlers.cpp */; };
+		E20EDB1E20FDD66400AA234A /* DebugOverlay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB1620FDD66400AA234A /* DebugOverlay.cpp */; };
+		E20EDB1F20FDD66400AA234A /* Math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB1720FDD66400AA234A /* Math.cpp */; };
+		E20EDB2020FDD66400AA234A /* Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB1820FDD66400AA234A /* Utils.cpp */; };
+		E20EDB2120FDD66400AA234A /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB1B20FDD66400AA234A /* main.cpp */; };
+		E20EDB3020FDD69800AA234A /* GameTexture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB2620FDD69800AA234A /* GameTexture.cpp */; };
+		E20EDB3120FDD69800AA234A /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB2720FDD69800AA234A /* Camera.cpp */; };
+		E20EDB3220FDD69800AA234A /* CameraDirector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB2920FDD69800AA234A /* CameraDirector.cpp */; };
+		E20EDB3320FDD69800AA234A /* RenderContext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB2B20FDD69800AA234A /* RenderContext.cpp */; };
+		E20EDB3420FDD69800AA234A /* Font.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB2D20FDD69800AA234A /* Font.cpp */; };
+		E20EDB3520FDD69800AA234A /* TextureManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB2E20FDD69800AA234A /* TextureManager.cpp */; };
+		E20EDB4720FDD6AB00AA234A /* Validation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB3720FDD6AA00AA234A /* Validation.cpp */; };
+		E20EDB4820FDD6AB00AA234A /* Device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB3920FDD6AA00AA234A /* Device.cpp */; };
+		E20EDB4920FDD6AB00AA234A /* CmdBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB3B20FDD6AA00AA234A /* CmdBuffer.cpp */; };
+		E20EDB4A20FDD6AB00AA234A /* Pipeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB3C20FDD6AA00AA234A /* Pipeline.cpp */; };
+		E20EDB4B20FDD6AB00AA234A /* VkMemAlloc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB3D20FDD6AA00AA234A /* VkMemAlloc.cpp */; };
+		E20EDB4C20FDD6AB00AA234A /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB3E20FDD6AB00AA234A /* Base.cpp */; };
+		E20EDB4D20FDD6AB00AA234A /* Buffers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB3F20FDD6AB00AA234A /* Buffers.cpp */; };
+		E20EDB4E20FDD6AB00AA234A /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB4320FDD6AB00AA234A /* Image.cpp */; };
+		E20EDB5320FDD6D500AA234A /* stb_image.c in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB5120FDD6D500AA234A /* stb_image.c */; };
+		E20EDB5C20FDDD3E00AA234A /* libvulkan.1.1.77.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E20EDB5B20FDDD3E00AA234A /* libvulkan.1.1.77.dylib */; };
+		E20EDB5E20FDDDB900AA234A /* libvulkan.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E20EDB5D20FDDDB900AA234A /* libvulkan.1.dylib */; };
+		E20EDB6020FDDE4900AA234A /* libvulkan.1.1.77.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = E20EDB5F20FDDE4900AA234A /* libvulkan.1.1.77.dylib */; };
+		E20EDB6220FDDE8D00AA234A /* libvulkan.1.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = E20EDB6120FDDE8C00AA234A /* libvulkan.1.dylib */; };
+		E289308320FDD1D200074D1A /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E289308220FDD1D200074D1A /* SDL2.framework */; };
+		E2AD3E9420FDD41200EAB4BB /* SDL2.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = E289308220FDD1D200074D1A /* SDL2.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		E289307220FDCB6600074D1A /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				E20EDB6220FDDE8D00AA234A /* libvulkan.1.dylib in CopyFiles */,
+				E20EDB6020FDDE4900AA234A /* libvulkan.1.1.77.dylib in CopyFiles */,
+				E2AD3E9420FDD41200EAB4BB /* SDL2.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		E20EDB1120FDD66400AA234A /* Application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Application.cpp; path = ../src/Application.cpp; sourceTree = "<group>"; };
+		E20EDB1220FDD66400AA234A /* DebugOverlay.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DebugOverlay.hpp; path = ../src/DebugOverlay.hpp; sourceTree = "<group>"; };
+		E20EDB1320FDD66400AA234A /* InputHandlers.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = InputHandlers.hpp; path = ../src/InputHandlers.hpp; sourceTree = "<group>"; };
+		E20EDB1420FDD66400AA234A /* Math.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Math.hpp; path = ../src/Math.hpp; sourceTree = "<group>"; };
+		E20EDB1520FDD66400AA234A /* InputHandlers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = InputHandlers.cpp; path = ../src/InputHandlers.cpp; sourceTree = "<group>"; };
+		E20EDB1620FDD66400AA234A /* DebugOverlay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DebugOverlay.cpp; path = ../src/DebugOverlay.cpp; sourceTree = "<group>"; };
+		E20EDB1720FDD66400AA234A /* Math.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Math.cpp; path = ../src/Math.cpp; sourceTree = "<group>"; };
+		E20EDB1820FDD66400AA234A /* Utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Utils.cpp; path = ../src/Utils.cpp; sourceTree = "<group>"; };
+		E20EDB1920FDD66400AA234A /* Application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Application.hpp; path = ../src/Application.hpp; sourceTree = "<group>"; };
+		E20EDB1A20FDD66400AA234A /* Utils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Utils.hpp; path = ../src/Utils.hpp; sourceTree = "<group>"; };
+		E20EDB1B20FDD66400AA234A /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../src/main.cpp; sourceTree = "<group>"; };
+		E20EDB2420FDD69800AA234A /* TextureManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = TextureManager.hpp; path = ../src/renderer/TextureManager.hpp; sourceTree = "<group>"; };
+		E20EDB2520FDD69800AA234A /* Font.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Font.hpp; path = ../src/renderer/Font.hpp; sourceTree = "<group>"; };
+		E20EDB2620FDD69800AA234A /* GameTexture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GameTexture.cpp; path = ../src/renderer/GameTexture.cpp; sourceTree = "<group>"; };
+		E20EDB2720FDD69800AA234A /* Camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Camera.cpp; path = ../src/renderer/Camera.cpp; sourceTree = "<group>"; };
+		E20EDB2820FDD69800AA234A /* RenderContext.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = RenderContext.hpp; path = ../src/renderer/RenderContext.hpp; sourceTree = "<group>"; };
+		E20EDB2920FDD69800AA234A /* CameraDirector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CameraDirector.cpp; path = ../src/renderer/CameraDirector.cpp; sourceTree = "<group>"; };
+		E20EDB2A20FDD69800AA234A /* Camera.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Camera.hpp; path = ../src/renderer/Camera.hpp; sourceTree = "<group>"; };
+		E20EDB2B20FDD69800AA234A /* RenderContext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RenderContext.cpp; path = ../src/renderer/RenderContext.cpp; sourceTree = "<group>"; };
+		E20EDB2C20FDD69800AA234A /* CameraDirector.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = CameraDirector.hpp; path = ../src/renderer/CameraDirector.hpp; sourceTree = "<group>"; };
+		E20EDB2D20FDD69800AA234A /* Font.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Font.cpp; path = ../src/renderer/Font.cpp; sourceTree = "<group>"; };
+		E20EDB2E20FDD69800AA234A /* TextureManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureManager.cpp; path = ../src/renderer/TextureManager.cpp; sourceTree = "<group>"; };
+		E20EDB2F20FDD69800AA234A /* GameTexture.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = GameTexture.hpp; path = ../src/renderer/GameTexture.hpp; sourceTree = "<group>"; };
+		E20EDB3720FDD6AA00AA234A /* Validation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Validation.cpp; path = ../src/renderer/vulkan/Validation.cpp; sourceTree = "<group>"; };
+		E20EDB3820FDD6AA00AA234A /* Image.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Image.hpp; path = ../src/renderer/vulkan/Image.hpp; sourceTree = "<group>"; };
+		E20EDB3920FDD6AA00AA234A /* Device.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Device.cpp; path = ../src/renderer/vulkan/Device.cpp; sourceTree = "<group>"; };
+		E20EDB3A20FDD6AA00AA234A /* CmdBuffer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = CmdBuffer.hpp; path = ../src/renderer/vulkan/CmdBuffer.hpp; sourceTree = "<group>"; };
+		E20EDB3B20FDD6AA00AA234A /* CmdBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CmdBuffer.cpp; path = ../src/renderer/vulkan/CmdBuffer.cpp; sourceTree = "<group>"; };
+		E20EDB3C20FDD6AA00AA234A /* Pipeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Pipeline.cpp; path = ../src/renderer/vulkan/Pipeline.cpp; sourceTree = "<group>"; };
+		E20EDB3D20FDD6AA00AA234A /* VkMemAlloc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VkMemAlloc.cpp; path = ../src/renderer/vulkan/VkMemAlloc.cpp; sourceTree = "<group>"; };
+		E20EDB3E20FDD6AB00AA234A /* Base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Base.cpp; path = ../src/renderer/vulkan/Base.cpp; sourceTree = "<group>"; };
+		E20EDB3F20FDD6AB00AA234A /* Buffers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Buffers.cpp; path = ../src/renderer/vulkan/Buffers.cpp; sourceTree = "<group>"; };
+		E20EDB4020FDD6AB00AA234A /* Buffers.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Buffers.hpp; path = ../src/renderer/vulkan/Buffers.hpp; sourceTree = "<group>"; };
+		E20EDB4120FDD6AB00AA234A /* Device.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Device.hpp; path = ../src/renderer/vulkan/Device.hpp; sourceTree = "<group>"; };
+		E20EDB4220FDD6AB00AA234A /* Pipeline.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Pipeline.hpp; path = ../src/renderer/vulkan/Pipeline.hpp; sourceTree = "<group>"; };
+		E20EDB4320FDD6AB00AA234A /* Image.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Image.cpp; path = ../src/renderer/vulkan/Image.cpp; sourceTree = "<group>"; };
+		E20EDB4420FDD6AB00AA234A /* vk_mem_alloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vk_mem_alloc.h; path = ../src/renderer/vulkan/vk_mem_alloc.h; sourceTree = "<group>"; };
+		E20EDB4520FDD6AB00AA234A /* Base.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Base.hpp; path = ../src/renderer/vulkan/Base.hpp; sourceTree = "<group>"; };
+		E20EDB4620FDD6AB00AA234A /* Validation.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Validation.hpp; path = ../src/renderer/vulkan/Validation.hpp; sourceTree = "<group>"; };
+		E20EDB5120FDD6D500AA234A /* stb_image.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = stb_image.c; path = ../contrib/stb_image/stb_image.c; sourceTree = "<group>"; };
+		E20EDB5220FDD6D500AA234A /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_image.h; path = ../contrib/stb_image/stb_image.h; sourceTree = "<group>"; };
+		E20EDB5B20FDDD3E00AA234A /* libvulkan.1.1.77.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libvulkan.1.1.77.dylib; path = ../../VulkanSDK/1.1.77.0/macOS/lib/libvulkan.1.1.77.dylib; sourceTree = "<group>"; };
+		E20EDB5D20FDDDB900AA234A /* libvulkan.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvulkan.1.dylib; path = ../../VulkanSDK/1.1.77.0/macOS/lib/libvulkan.1.dylib; sourceTree = "<group>"; };
+		E20EDB5F20FDDE4900AA234A /* libvulkan.1.1.77.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libvulkan.1.1.77.dylib; path = ../../VulkanSDK/1.1.77.0/macOS/lib/libvulkan.1.1.77.dylib; sourceTree = "<group>"; };
+		E20EDB6120FDDE8C00AA234A /* libvulkan.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvulkan.1.dylib; path = ../../VulkanSDK/1.1.77.0/macOS/lib/libvulkan.1.dylib; sourceTree = "<group>"; };
+		E289307420FDCB6600074D1A /* QuakeBspViewer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = QuakeBspViewer; sourceTree = BUILT_PRODUCTS_DIR; };
+		E289308220FDD1D200074D1A /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E289307120FDCB6600074D1A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E20EDB5E20FDDDB900AA234A /* libvulkan.1.dylib in Frameworks */,
+				E20EDB5C20FDDD3E00AA234A /* libvulkan.1.1.77.dylib in Frameworks */,
+				E289308320FDD1D200074D1A /* SDL2.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E20EDB1020FDD64700AA234A /* src */ = {
+			isa = PBXGroup;
+			children = (
+				E20EDB2320FDD68100AA234A /* renderer */,
+				E20EDB1120FDD66400AA234A /* Application.cpp */,
+				E20EDB1920FDD66400AA234A /* Application.hpp */,
+				E20EDB1620FDD66400AA234A /* DebugOverlay.cpp */,
+				E20EDB1220FDD66400AA234A /* DebugOverlay.hpp */,
+				E20EDB1520FDD66400AA234A /* InputHandlers.cpp */,
+				E20EDB1320FDD66400AA234A /* InputHandlers.hpp */,
+				E20EDB1B20FDD66400AA234A /* main.cpp */,
+				E20EDB1720FDD66400AA234A /* Math.cpp */,
+				E20EDB1420FDD66400AA234A /* Math.hpp */,
+				E20EDB1820FDD66400AA234A /* Utils.cpp */,
+				E20EDB1A20FDD66400AA234A /* Utils.hpp */,
+			);
+			name = src;
+			sourceTree = "<group>";
+		};
+		E20EDB2320FDD68100AA234A /* renderer */ = {
+			isa = PBXGroup;
+			children = (
+				E20EDB3620FDD69D00AA234A /* vulkan */,
+				E20EDB2720FDD69800AA234A /* Camera.cpp */,
+				E20EDB2A20FDD69800AA234A /* Camera.hpp */,
+				E20EDB2920FDD69800AA234A /* CameraDirector.cpp */,
+				E20EDB2C20FDD69800AA234A /* CameraDirector.hpp */,
+				E20EDB2D20FDD69800AA234A /* Font.cpp */,
+				E20EDB2520FDD69800AA234A /* Font.hpp */,
+				E20EDB2620FDD69800AA234A /* GameTexture.cpp */,
+				E20EDB2F20FDD69800AA234A /* GameTexture.hpp */,
+				E20EDB2B20FDD69800AA234A /* RenderContext.cpp */,
+				E20EDB2820FDD69800AA234A /* RenderContext.hpp */,
+				E20EDB2E20FDD69800AA234A /* TextureManager.cpp */,
+				E20EDB2420FDD69800AA234A /* TextureManager.hpp */,
+			);
+			name = renderer;
+			sourceTree = "<group>";
+		};
+		E20EDB3620FDD69D00AA234A /* vulkan */ = {
+			isa = PBXGroup;
+			children = (
+				E20EDB3E20FDD6AB00AA234A /* Base.cpp */,
+				E20EDB4520FDD6AB00AA234A /* Base.hpp */,
+				E20EDB3F20FDD6AB00AA234A /* Buffers.cpp */,
+				E20EDB4020FDD6AB00AA234A /* Buffers.hpp */,
+				E20EDB3B20FDD6AA00AA234A /* CmdBuffer.cpp */,
+				E20EDB3A20FDD6AA00AA234A /* CmdBuffer.hpp */,
+				E20EDB3920FDD6AA00AA234A /* Device.cpp */,
+				E20EDB4120FDD6AB00AA234A /* Device.hpp */,
+				E20EDB4320FDD6AB00AA234A /* Image.cpp */,
+				E20EDB3820FDD6AA00AA234A /* Image.hpp */,
+				E20EDB3C20FDD6AA00AA234A /* Pipeline.cpp */,
+				E20EDB4220FDD6AB00AA234A /* Pipeline.hpp */,
+				E20EDB3720FDD6AA00AA234A /* Validation.cpp */,
+				E20EDB4620FDD6AB00AA234A /* Validation.hpp */,
+				E20EDB4420FDD6AB00AA234A /* vk_mem_alloc.h */,
+				E20EDB3D20FDD6AA00AA234A /* VkMemAlloc.cpp */,
+			);
+			name = vulkan;
+			sourceTree = "<group>";
+		};
+		E20EDB4F20FDD6B100AA234A /* contrib */ = {
+			isa = PBXGroup;
+			children = (
+				E20EDB5020FDD6C700AA234A /* stb_image */,
+			);
+			name = contrib;
+			sourceTree = "<group>";
+		};
+		E20EDB5020FDD6C700AA234A /* stb_image */ = {
+			isa = PBXGroup;
+			children = (
+				E20EDB5120FDD6D500AA234A /* stb_image.c */,
+				E20EDB5220FDD6D500AA234A /* stb_image.h */,
+			);
+			name = stb_image;
+			sourceTree = "<group>";
+		};
+		E289306B20FDCB6600074D1A = {
+			isa = PBXGroup;
+			children = (
+				E20EDB6120FDDE8C00AA234A /* libvulkan.1.dylib */,
+				E20EDB5F20FDDE4900AA234A /* libvulkan.1.1.77.dylib */,
+				E20EDB4F20FDD6B100AA234A /* contrib */,
+				E20EDB1020FDD64700AA234A /* src */,
+				E289307520FDCB6600074D1A /* Products */,
+				E289307E20FDD10200074D1A /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		E289307520FDCB6600074D1A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E289307420FDCB6600074D1A /* QuakeBspViewer */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E289307E20FDD10200074D1A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				E20EDB5D20FDDDB900AA234A /* libvulkan.1.dylib */,
+				E20EDB5B20FDDD3E00AA234A /* libvulkan.1.1.77.dylib */,
+				E289308220FDD1D200074D1A /* SDL2.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E289307320FDCB6600074D1A /* QuakeBspViewer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E289307B20FDCB6600074D1A /* Build configuration list for PBXNativeTarget "QuakeBspViewer" */;
+			buildPhases = (
+				E289307020FDCB6600074D1A /* Sources */,
+				E289307120FDCB6600074D1A /* Frameworks */,
+				E289307220FDCB6600074D1A /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = QuakeBspViewer;
+			productName = QuakeBspViewer;
+			productReference = E289307420FDCB6600074D1A /* QuakeBspViewer */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E289306C20FDCB6600074D1A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0900;
+				ORGANIZATIONNAME = Krzysztof;
+				TargetAttributes = {
+					E289307320FDCB6600074D1A = {
+						CreatedOnToolsVersion = 9.0;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = E289306F20FDCB6600074D1A /* Build configuration list for PBXProject "QuakeBspViewer" */;
+			compatibilityVersion = "Xcode 8.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = E289306B20FDCB6600074D1A;
+			productRefGroup = E289307520FDCB6600074D1A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E289307320FDCB6600074D1A /* QuakeBspViewer */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E289307020FDCB6600074D1A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E20EDB4C20FDD6AB00AA234A /* Base.cpp in Sources */,
+				E20EDB1C20FDD66400AA234A /* Application.cpp in Sources */,
+				E20EDB1D20FDD66400AA234A /* InputHandlers.cpp in Sources */,
+				E20EDB4B20FDD6AB00AA234A /* VkMemAlloc.cpp in Sources */,
+				E20EDB2120FDD66400AA234A /* main.cpp in Sources */,
+				E20EDB5320FDD6D500AA234A /* stb_image.c in Sources */,
+				E20EDB4D20FDD6AB00AA234A /* Buffers.cpp in Sources */,
+				E20EDB4A20FDD6AB00AA234A /* Pipeline.cpp in Sources */,
+				E20EDB3320FDD69800AA234A /* RenderContext.cpp in Sources */,
+				E20EDB4720FDD6AB00AA234A /* Validation.cpp in Sources */,
+				E20EDB4E20FDD6AB00AA234A /* Image.cpp in Sources */,
+				E20EDB4820FDD6AB00AA234A /* Device.cpp in Sources */,
+				E20EDB1E20FDD66400AA234A /* DebugOverlay.cpp in Sources */,
+				E20EDB3120FDD69800AA234A /* Camera.cpp in Sources */,
+				E20EDB3420FDD69800AA234A /* Font.cpp in Sources */,
+				E20EDB3020FDD69800AA234A /* GameTexture.cpp in Sources */,
+				E20EDB4920FDD6AB00AA234A /* CmdBuffer.cpp in Sources */,
+				E20EDB3220FDD69800AA234A /* CameraDirector.cpp in Sources */,
+				E20EDB2020FDD66400AA234A /* Utils.cpp in Sources */,
+				E20EDB1F20FDD66400AA234A /* Math.cpp in Sources */,
+				E20EDB3520FDD69800AA234A /* TextureManager.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		E289307920FDCB6600074D1A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUILT_PRODUCTS_DIR = "$(SRCROOT)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		E289307A20FDCB6600074D1A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUILT_PRODUCTS_DIR = "$(SRCROOT)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		E289307C20FDCB6600074D1A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(VULKAN_SDK)/macOS/include",
+					/Library/Frameworks/SDL2.framework/Headers,
+					../contrib,
+					../src,
+				);
+				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
+				OTHER_CFLAGS = "-D_DEBUG";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				VALID_ARCHS = x86_64;
+			};
+			name = Debug;
+		};
+		E289307D20FDCB6600074D1A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(VULKAN_SDK)/macOS/include",
+					/Library/Frameworks/SDL2.framework/Headers,
+					../contrib,
+					../src,
+				);
+				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
+				OTHER_CFLAGS = "-DNDEBUG";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				VALID_ARCHS = x86_64;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E289306F20FDCB6600074D1A /* Build configuration list for PBXProject "QuakeBspViewer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E289307920FDCB6600074D1A /* Debug */,
+				E289307A20FDCB6600074D1A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E289307B20FDCB6600074D1A /* Build configuration list for PBXNativeTarget "QuakeBspViewer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E289307C20FDCB6600074D1A /* Debug */,
+				E289307D20FDCB6600074D1A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E289306C20FDCB6600074D1A /* Project object */;
+}
