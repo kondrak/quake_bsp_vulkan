@@ -43,7 +43,7 @@ bool RenderContext::Init(const char *title, int x, int y, int w, int h)
     bottom = -1.0f;
     top    = 1.0f;
 
-    return InitVulkan();
+    return InitVulkan(title);
 }
 
 void RenderContext::Destroy()
@@ -240,9 +240,9 @@ bool RenderContext::RecreateSwapChain()
     return true;
 }
 
-bool RenderContext::InitVulkan()
+bool RenderContext::InitVulkan(const char *appTitle)
 {
-    VK_VERIFY(vk::createInstance(window, &m_instance, "Quake BSP Viewer in Vulkan"));
+    VK_VERIFY(vk::createInstance(window, &m_instance, appTitle));
     // "oldschool" way of creating a Vulkan surface in SDL prior to 2.0.6
     //VK_VERIFY(vk::createSurface(window, m_instance, &m_surface));
     SDL_Vulkan_CreateSurface(window, m_instance, &m_surface);
