@@ -1,6 +1,7 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 #include <sstream>
+#include <string.h>
 
 #ifdef _DEBUG
 #define LOG_MESSAGE(msg) { \
