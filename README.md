@@ -9,11 +9,12 @@ Building
 -----
 The project should work out of the box with latest Vulkan SDK (tested against SDK 1.1.77.0) and Visual Studio 2015+
 
-Building on MacOS
+Building on Linux and MacOS
 -----
-The XCode project requires some additional steps:
-- set the VULKAN_SDK environment variable pointing to downloaded Vulkan SDK location
-- download and install SDL 2.0.8 (or higher) framework
+Assuming that the Vulkan SDK is already downloaded and properly set up on your target platform:
+- set the VULKAN_SDK environment variable pointing to the location of downloaded Vulkan SDK
+- download and install SDL2 (`libsdl2-dev` 2.0.7 or higher for Linux, `SDL2.framework` 2.0.8 or higher for MacOS)
+- run the Makefile (Linux) or XCode project (MacOS) to build the application
 
 Usage
 -----
