@@ -5,6 +5,7 @@
 #include "common/BspMap.hpp"
 #include "q3bsp/Q3Bsp.hpp"
 #include "renderer/RenderContext.hpp"
+#include "renderer/Ubo.hpp"
 #include <vector>
 #include <map>
 

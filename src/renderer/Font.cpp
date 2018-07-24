@@ -3,6 +3,7 @@
 #include "renderer/CameraDirector.hpp"
 #include "renderer/GameTexture.hpp"
 #include "renderer/TextureManager.hpp"
+#include "renderer/Ubo.hpp"
 #include "renderer/vulkan/CmdBuffer.hpp"
 #include "Utils.hpp"
 

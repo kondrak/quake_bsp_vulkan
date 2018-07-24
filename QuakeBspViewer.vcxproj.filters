@@ -197,5 +197,8 @@
     <ClInclude Include="src\renderer\GameTexture.hpp">
       <Filter>Source Files\renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\renderer\Ubo.hpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

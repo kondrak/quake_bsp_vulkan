@@ -58,6 +58,7 @@
     <ClInclude Include="src\renderer\GameTexture.hpp" />
     <ClInclude Include="src\renderer\RenderContext.hpp" />
     <ClInclude Include="src\renderer\TextureManager.hpp" />
+    <ClInclude Include="src\renderer\Ubo.hpp" />
     <ClInclude Include="src\renderer\vulkan\Base.hpp" />
     <ClInclude Include="src\renderer\vulkan\Buffers.hpp" />
     <ClInclude Include="src\renderer\vulkan\CmdBuffer.hpp" />
