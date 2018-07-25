@@ -118,6 +118,7 @@
 		E20EDB7A20FE362200AA234A /* StringHelpers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = StringHelpers.cpp; path = ../src/StringHelpers.cpp; sourceTree = "<group>"; };
 		E289307420FDCB6600074D1A /* QuakeBspViewer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = QuakeBspViewer; sourceTree = BUILT_PRODUCTS_DIR; };
 		E289308220FDD1D200074D1A /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
+		E2B71EA021086C520008A53B /* Ubo.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Ubo.hpp; path = ../src/renderer/Ubo.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -173,6 +174,7 @@
 				E20EDB2820FDD69800AA234A /* RenderContext.hpp */,
 				E20EDB2E20FDD69800AA234A /* TextureManager.cpp */,
 				E20EDB2420FDD69800AA234A /* TextureManager.hpp */,
+				E2B71EA021086C520008A53B /* Ubo.hpp */,
 			);
 			name = renderer;
 			sourceTree = "<group>";
