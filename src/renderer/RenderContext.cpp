@@ -163,7 +163,7 @@ VkResult RenderContext::Present()
     presentInfo.pImageIndices = &m_imageIndex;
     presentInfo.pResults = nullptr;
 
-    VkResult renderResult = vkQueuePresentKHR(device.graphicsQueue, &presentInfo);
+    VkResult renderResult = vkQueuePresentKHR(device.presentQueue, &presentInfo);
 
     // recreate swapchain if it's out of date
     if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR)
