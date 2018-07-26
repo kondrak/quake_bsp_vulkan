@@ -303,6 +303,7 @@ namespace vk
         *presentMode = VK_PRESENT_MODE_FIFO_KHR;
         for (uint32_t i = 0; i < scInfo.presentModesCount; ++i)
         {
+            // always prefer mailbox for triple buffering
             if (scInfo.presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
             {
                 *presentMode = scInfo.presentModes[i];
@@ -311,7 +312,6 @@ namespace vk
             else if (scInfo.presentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR)
             {
                 *presentMode = scInfo.presentModes[i];
-                break;
             }
         }
     }
