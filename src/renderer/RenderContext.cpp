@@ -283,49 +283,71 @@ bool RenderContext::InitVulkan(const char *appTitle)
 void RenderContext::CreateDrawBuffers()
 {
     // standard depth buffer
-    m_depthBuffer = vk::createDepthBuffer(device, swapChain, commandPool, VK_SAMPLE_COUNT_1_BIT);
+    m_depthBuffer.resize(swapChain.images.size());
+
+    for (size_t i = 0; i < swapChain.images.size(); ++i)
+    {
+        m_depthBuffer[i] = vk::createDepthBuffer(device, swapChain, commandPool, VK_SAMPLE_COUNT_1_BIT);
+    }
 
     // additional render targets for MSAA (if enabled)
+    m_msaaColor.resize(swapChain.images.size());
+    m_msaaDepth.resize(swapChain.images.size());
+
     if (m_msaaSamples != VK_SAMPLE_COUNT_1_BIT)
         CreateMSAABuffers();
 }
 
 void RenderContext::DestroyDrawBuffers()
 {
-    if (m_depthBuffer.image != VK_NULL_HANDLE)
+    for (vk::Texture &db : m_depthBuffer)
     {
-        vmaDestroyImage(device.allocator, m_depthBuffer.image, m_depthBuffer.allocation);
-        vkDestroyImageView(device.logical, m_depthBuffer.imageView, nullptr);
-        m_depthBuffer.image = VK_NULL_HANDLE;
-        m_depthBuffer.imageView = VK_NULL_HANDLE;
+        if (db.image != VK_NULL_HANDLE)
+        {
+            vmaDestroyImage(device.allocator, db.image, db.allocation);
+            vkDestroyImageView(device.logical, db.imageView, nullptr);
+            db.image = VK_NULL_HANDLE;
+            db.imageView = VK_NULL_HANDLE;
+        }
     }
+
+    m_depthBuffer.clear();
 
     DestroyMSAABuffers();
 }
 
 void RenderContext::CreateMSAABuffers()
 {
-    m_msaaColor = vk::createColorBuffer(device, swapChain, commandPool, m_msaaSamples);
-    m_msaaDepth = vk::createDepthBuffer(device, swapChain, commandPool, m_msaaSamples);
+    for (size_t i = 0; i < swapChain.images.size(); ++i)
+    {
+        m_msaaColor[i] = vk::createColorBuffer(device, swapChain, commandPool, m_msaaSamples);
+        m_msaaDepth[i] = vk::createDepthBuffer(device, swapChain, commandPool, m_msaaSamples);
+    }
 }
 
 void RenderContext::DestroyMSAABuffers()
 {
-    if (m_msaaColor.image != VK_NULL_HANDLE)
+    for (size_t i = 0; i < swapChain.images.size(); ++i)
     {
-        vmaDestroyImage(device.allocator, m_msaaColor.image, m_msaaColor.allocation);
-        vkDestroyImageView(device.logical, m_msaaColor.imageView, nullptr);
-        m_msaaColor.image = VK_NULL_HANDLE;
-        m_msaaColor.imageView = VK_NULL_HANDLE;
+        if (m_msaaColor[i].image != VK_NULL_HANDLE)
+        {
+            vmaDestroyImage(device.allocator, m_msaaColor[i].image, m_msaaColor[i].allocation);
+            vkDestroyImageView(device.logical, m_msaaColor[i].imageView, nullptr);
+            m_msaaColor[i].image = VK_NULL_HANDLE;
+            m_msaaColor[i].imageView = VK_NULL_HANDLE;
+        }
+
+        if (m_msaaDepth[i].image != VK_NULL_HANDLE)
+        {
+            vmaDestroyImage(device.allocator, m_msaaDepth[i].image, m_msaaDepth[i].allocation);
+            vkDestroyImageView(device.logical, m_msaaDepth[i].imageView, nullptr);
+            m_msaaDepth[i].image = VK_NULL_HANDLE;
+            m_msaaDepth[i].imageView = VK_NULL_HANDLE;
+        }
     }
 
-    if (m_msaaDepth.image != VK_NULL_HANDLE)
-    {
-        vmaDestroyImage(device.allocator, m_msaaDepth.image, m_msaaDepth.allocation);
-        vkDestroyImageView(device.logical, m_msaaDepth.imageView, nullptr);
-        m_msaaDepth.image = VK_NULL_HANDLE;
-        m_msaaDepth.imageView = VK_NULL_HANDLE;
-    }
+    m_msaaColor.clear();
+    m_msaaDepth.clear();
 }
 
 bool RenderContext::CreateImageViews()
@@ -367,8 +389,8 @@ bool RenderContext::CreateFramebuffers()
 
     for (size_t i = 0; i < m_frameBuffers.size(); ++i)
     {
-        VkImageView attachments[] = { m_imageViews[i], m_depthBuffer.imageView };
-        VkImageView attachmentsMSAA[] = { m_msaaColor.imageView, m_msaaDepth.imageView, m_imageViews[i], m_depthBuffer.imageView };
+        VkImageView attachments[] = { m_imageViews[i], m_depthBuffer[i].imageView };
+        VkImageView attachmentsMSAA[] = { m_msaaColor[i].imageView, m_msaaDepth[i].imageView, m_imageViews[i], m_depthBuffer[i].imageView };
 
         fbCreateInfo.pAttachments = (m_msaaSamples != VK_SAMPLE_COUNT_1_BIT) ? attachmentsMSAA : attachments;
         VkResult result = vkCreateFramebuffer(device.logical, &fbCreateInfo, nullptr, &m_frameBuffers[i]);
