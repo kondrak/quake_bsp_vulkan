@@ -28,7 +28,11 @@ namespace vk
 
 #ifdef VALIDATION_LAYERS_ON
         // add additional extensions to the list - validation layer in this case
+#ifdef VK_EXT_debug_utils
+        const char *additionalExtensions[] = { VK_EXT_DEBUG_UTILS_EXTENSION_NAME };
+#else
         const char *additionalExtensions[] = { VK_EXT_DEBUG_REPORT_EXTENSION_NAME };
+#endif
         for (unsigned int i = 0; i < additionalExtCount; ++i)
         {
             extensionNames[extCount + i] = additionalExtensions[i];
