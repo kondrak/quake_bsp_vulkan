@@ -248,7 +248,7 @@ namespace vk
         depthAttachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         depthAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-        // resolve color and depth targets used if MSAA is enabled
+        // resolve color target used if MSAA is enabled
         VkAttachmentDescription colorAttachmentResolveMSAA = {};
         colorAttachmentResolveMSAA.format = swapChain.format;
         colorAttachmentResolveMSAA.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -258,16 +258,6 @@ namespace vk
         colorAttachmentResolveMSAA.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         colorAttachmentResolveMSAA.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         colorAttachmentResolveMSAA.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-        VkAttachmentDescription depthAttachmentResolveMSAA = {};
-        depthAttachmentResolveMSAA.format = VK_FORMAT_D32_SFLOAT;
-        depthAttachmentResolveMSAA.samples = VK_SAMPLE_COUNT_1_BIT;
-        depthAttachmentResolveMSAA.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        depthAttachmentResolveMSAA.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        depthAttachmentResolveMSAA.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        depthAttachmentResolveMSAA.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        depthAttachmentResolveMSAA.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        depthAttachmentResolveMSAA.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
         VkAttachmentReference colorAttachmentRef = {};
         colorAttachmentRef.attachment = 0;
@@ -290,10 +280,10 @@ namespace vk
             subpassDesc.pResolveAttachments = &colorAttachmentResolveMSAARef;
 
         VkAttachmentDescription attachments[] = { colorAttachmentDesc, depthAttachmentDesc };
-        VkAttachmentDescription attachmentsMSAA[] = { colorAttachmentDesc, depthAttachmentDesc, colorAttachmentResolveMSAA, depthAttachmentResolveMSAA };
+        VkAttachmentDescription attachmentsMSAA[] = { colorAttachmentDesc, depthAttachmentDesc, colorAttachmentResolveMSAA };
         VkRenderPassCreateInfo rpCreateInfo = {};
         rpCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        rpCreateInfo.attachmentCount = msaaEnabled ? 4 : 2;
+        rpCreateInfo.attachmentCount = msaaEnabled ? 3 : 2;
         rpCreateInfo.pAttachments = msaaEnabled ? attachmentsMSAA : attachments;
         rpCreateInfo.subpassCount = 1;
         rpCreateInfo.pSubpasses = &subpassDesc;

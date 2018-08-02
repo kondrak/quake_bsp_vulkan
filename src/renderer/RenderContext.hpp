@@ -102,7 +102,6 @@ private:
     // render targets for color and depth used with MSAA (if sample count > 1) - one per each swapchain image
     VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
     std::vector<vk::Texture> m_msaaColor;
-    std::vector<vk::Texture> m_msaaDepth;
 
     // handle submission from multiple render passes
     uint32_t m_imageIndex;
