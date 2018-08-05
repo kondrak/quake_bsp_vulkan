@@ -49,3 +49,4 @@ Keyword list:
 Vulkan references
 -------
 - https://www.khronos.org/assets/uploads/developers/library/2016-vulkan-devday-uk/7-Keeping-your-GPU-fed.pdf
+- https://github.com/KhronosGroup/Vulkan-Docs/wiki/Synchronization-Examples
