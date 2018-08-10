@@ -57,7 +57,7 @@ void Q3BspMap::Init()
     m_patchPipeline.flags = VK_PIPELINE_CREATE_DERIVATIVE_BIT;
 
     // stub missing texture used if original Quake assets are missing
-    m_missingTex = TextureManager::GetInstance()->LoadTexture("res/missing.png", g_renderContext.commandPool);
+    m_missingTex = TextureManager::GetInstance()->LoadTexture("res/missing.png");
 
     // load textures
     LoadTextures();
@@ -324,14 +324,14 @@ void Q3BspMap::LoadTextures()
 
         nameJPG.append(".jpg");
 
-        m_textures[f.texture] = TextureManager::GetInstance()->LoadTexture(nameJPG.c_str(), g_renderContext.commandPool);
+        m_textures[f.texture] = TextureManager::GetInstance()->LoadTexture(nameJPG.c_str());
 
         if (m_textures[f.texture] == nullptr)
         {
             std::string nameTGA = textures[f.texture].name;
             nameTGA.append(".tga");
 
-            m_textures[f.texture] = TextureManager::GetInstance()->LoadTexture(nameTGA.c_str(), g_renderContext.commandPool);
+            m_textures[f.texture] = TextureManager::GetInstance()->LoadTexture(nameTGA.c_str());
 
             if (m_textures[f.texture] == nullptr)
             {
@@ -360,13 +360,13 @@ void Q3BspMap::LoadLightmaps()
 
         // Create texture from bsp lightmap data (8 mip levels for 128x128 textures)
         m_lightmapTextures[i].mipLevels = 8;
-        vk::createTexture(g_renderContext.device, g_renderContext.commandPool, &m_lightmapTextures[i], rgba_lmap, 128, 128);
+        vk::createTexture(g_renderContext.device, &m_lightmapTextures[i], rgba_lmap, 128, 128);
     }
 
     // Create white texture for if no lightmap specified
     unsigned char white[] = { 255, 255, 255, 255 };
 
-    vk::createTexture(g_renderContext.device, g_renderContext.commandPool, &m_whiteTex, white, 1, 1);
+    vk::createTexture(g_renderContext.device, &m_whiteTex, white, 1, 1);
 }
 
 // tweak lightmap gamma settings
@@ -566,10 +566,8 @@ void Q3BspMap::CreateFaceBuffers(const std::vector<Q3BspFaceLump*> &faceData, in
     vmaUnmapMemory(g_renderContext.device.allocator, indexStaging.allocation);
 
     // create rendering buffers
-    vk::createVertexBufferStaged(g_renderContext.device, g_renderContext.commandPool,
-                                 sizeof(Q3BspVertexLump) * vertexCount, vertexStaging, &m_faceVertexBuffer);
-     vk::createIndexBufferStaged(g_renderContext.device, g_renderContext.commandPool,
-                                 sizeof(Q3BspMeshVertLump) * indexCount, indexStaging, &m_faceIndexBuffer);
+    vk::createVertexBufferStaged(g_renderContext.device, sizeof(Q3BspVertexLump) * vertexCount, vertexStaging, &m_faceVertexBuffer);
+     vk::createIndexBufferStaged(g_renderContext.device, sizeof(Q3BspMeshVertLump) * indexCount, indexStaging, &m_faceIndexBuffer);
 
     freeBuffer(g_renderContext.device, vertexStaging);
     freeBuffer(g_renderContext.device, indexStaging);
@@ -605,10 +603,8 @@ void Q3BspMap::CreatePatchBuffers(const std::vector<Q3BspBiquadPatch*> &patchDat
     vmaUnmapMemory(g_renderContext.device.allocator, indexStaging.allocation);
 
     // create rendering buffers
-    vk::createVertexBufferStaged(g_renderContext.device, g_renderContext.commandPool,
-                                 sizeof(Q3BspVertexLump) * vertexCount, vertexStaging, &m_patchVertexBuffer);
-     vk::createIndexBufferStaged(g_renderContext.device, g_renderContext.commandPool,
-                                 sizeof(Q3BspMeshVertLump) * indexCount, indexStaging, &m_patchIndexBuffer);
+    vk::createVertexBufferStaged(g_renderContext.device, sizeof(Q3BspVertexLump) * vertexCount, vertexStaging, &m_patchVertexBuffer);
+     vk::createIndexBufferStaged(g_renderContext.device, sizeof(Q3BspMeshVertLump) * indexCount, indexStaging, &m_patchIndexBuffer);
 
     freeBuffer(g_renderContext.device, vertexStaging);
     freeBuffer(g_renderContext.device, indexStaging);

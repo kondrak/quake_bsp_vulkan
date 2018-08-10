@@ -5,7 +5,7 @@
 
 namespace vk
 {
-    static void copyBuffer(const Device &device, const VkCommandPool &commandPool, const VkBuffer &src, VkBuffer &dst, VkDeviceSize size);
+    static void copyBuffer(const Device &device, const VkBuffer &src, VkBuffer &dst, VkDeviceSize size);
 
     VkVertexInputBindingDescription getBindingDescription(uint32_t stride)
     {
@@ -35,6 +35,15 @@ namespace vk
         bcInfo.usage = bOpts.usage;
         bcInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
+        // separate transfer queue makes sense only if the buffer is targetted for being transfered to GPU, so ignore it if it's CPU-only
+        if (bOpts.vmaUsage != VMA_MEMORY_USAGE_CPU_ONLY && device.graphicsFamilyIndex != device.transferFamilyIndex)
+        {
+            uint32_t queueFamilies[] = { (uint32_t)device.graphicsFamilyIndex, (uint32_t)device.transferFamilyIndex };
+            bcInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+            bcInfo.queueFamilyIndexCount = 2;
+            bcInfo.pQueueFamilyIndices = queueFamilies;
+        }
+
         VmaAllocationCreateInfo vmallocInfo = {};
         vmallocInfo.requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
         vmallocInfo.preferredFlags = bOpts.memFlags;
@@ -59,7 +68,7 @@ namespace vk
         return createBuffer(device, size, dstBuffer, stagingOpts);
     }
 
-    void createVertexBuffer(const Device &device, const VkCommandPool &commandPool, const void *data, VkDeviceSize size, Buffer *dstBuffer)
+    void createVertexBuffer(const Device &device, const void *data, VkDeviceSize size, Buffer *dstBuffer)
     {
         Buffer stagingBuffer;
         VK_VERIFY(createStagingBuffer(device, size, &stagingBuffer));
@@ -76,11 +85,11 @@ namespace vk
 
         VK_VERIFY(createBuffer(device, size, dstBuffer, dstOpts));
 
-        copyBuffer(device, commandPool, stagingBuffer.buffer, dstBuffer->buffer, size);
+        copyBuffer(device, stagingBuffer.buffer, dstBuffer->buffer, size);
         freeBuffer(device, stagingBuffer);
     }
 
-    void createVertexBufferStaged(const Device &device, const VkCommandPool &commandPool, VkDeviceSize size, const Buffer &stagingBuffer, Buffer *dstBuffer)
+    void createVertexBufferStaged(const Device &device, VkDeviceSize size, const Buffer &stagingBuffer, Buffer *dstBuffer)
     {
         BufferOptions dstOpts;
         dstOpts.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
@@ -89,10 +98,10 @@ namespace vk
 
         VK_VERIFY(createBuffer(device, size, dstBuffer, dstOpts));
 
-        copyBuffer(device, commandPool, stagingBuffer.buffer, dstBuffer->buffer, size);
+        copyBuffer(device, stagingBuffer.buffer, dstBuffer->buffer, size);
     }
 
-    void createIndexBuffer(const Device &device, const VkCommandPool &commandPool, const void *data, VkDeviceSize size, Buffer *dstBuffer)
+    void createIndexBuffer(const Device &device, const void *data, VkDeviceSize size, Buffer *dstBuffer)
     {
         Buffer stagingBuffer;
         VK_VERIFY(createStagingBuffer(device, size, &stagingBuffer));
@@ -109,11 +118,11 @@ namespace vk
 
         VK_VERIFY(createBuffer(device, size, dstBuffer, dstOpts));
 
-        copyBuffer(device, commandPool, stagingBuffer.buffer, dstBuffer->buffer, size);
+        copyBuffer(device, stagingBuffer.buffer, dstBuffer->buffer, size);
         freeBuffer(device, stagingBuffer);
     }
 
-    void createIndexBufferStaged(const Device &device, const VkCommandPool &commandPool, VkDeviceSize size, const Buffer &stagingBuffer, Buffer *dstBuffer)
+    void createIndexBufferStaged(const Device &device, VkDeviceSize size, const Buffer &stagingBuffer, Buffer *dstBuffer)
     {
         BufferOptions dstOpts;
         dstOpts.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
@@ -122,7 +131,7 @@ namespace vk
 
         VK_VERIFY(createBuffer(device, size, dstBuffer, dstOpts));
 
-        copyBuffer(device, commandPool, stagingBuffer.buffer, dstBuffer->buffer, size);
+        copyBuffer(device, stagingBuffer.buffer, dstBuffer->buffer, size);
     }
 
     VkResult createUniformBuffer(const Device &device, VkDeviceSize size, Buffer *dstBuffer)
@@ -136,9 +145,10 @@ namespace vk
     }
 
     // internal helper
-    void copyBuffer(const Device &device, const VkCommandPool &commandPool, const VkBuffer &src, VkBuffer &dst, VkDeviceSize size)
+    void copyBuffer(const Device &device, const VkBuffer &src, VkBuffer &dst, VkDeviceSize size)
     {
-        VkCommandBuffer commandBuffer = beginOneTimeCommand(device, commandPool);
+        VkCommandBuffer commandBuffer = createCommandBuffer(device, device.transferCommandPool);
+        beginCommand(commandBuffer);
 
         VkBufferCopy copyRegion = {};
         copyRegion.srcOffset = 0;
@@ -146,6 +156,7 @@ namespace vk
         copyRegion.size = size;
         vkCmdCopyBuffer(commandBuffer, src, dst, 1, &copyRegion);
 
-        endOneTimeCommand(device, commandBuffer, commandPool, device.graphicsQueue);
+        submitCommand(device, commandBuffer, device.transferQueue);
+        vkFreeCommandBuffers(device.logical, device.transferCommandPool, 1, &commandBuffer);
     }
 }

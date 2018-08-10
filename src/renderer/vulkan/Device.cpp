@@ -40,8 +40,9 @@ namespace vk
         VK_VERIFY(selectPhysicalDevice(instance, surface, &device));
         VK_VERIFY(createLogicalDevice(&device));
 
-        vkGetDeviceQueue(device.logical, device.queueFamilyIndex, 0, &device.graphicsQueue);
+        vkGetDeviceQueue(device.logical, device.graphicsFamilyIndex, 0, &device.graphicsQueue);
         vkGetDeviceQueue(device.logical, device.presentFamilyIndex, 0, &device.presentQueue);
+        vkGetDeviceQueue(device.logical, device.transferFamilyIndex, 0, &device.transferQueue);
 
         return device;
     }
@@ -50,16 +51,18 @@ namespace vk
     {
         SwapChainInfo scInfo = {};
         VkSurfaceFormatKHR surfaceFormat = {};
-        VkPresentModeKHR presentMode = {};
         VkExtent2D extent = {};
         VkExtent2D currentSize = swapChain->extent;
         getSwapChainInfo(device.physical, surface, &scInfo);
         getSwapSurfaceFormat(scInfo, &surfaceFormat);
-        getSwapPresentMode(scInfo, &presentMode);
+        getSwapPresentMode(scInfo, &swapChain->presentMode);
         getSwapExtent(scInfo, &extent, currentSize);
 
-        // add 1 if going for triple buffering
         uint32_t imageCount = scInfo.surfaceCaps.minImageCount;
+
+        // request additional image for triple buffering if using MAILBOX
+        if (swapChain->presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+            imageCount++;
 
         VkSwapchainCreateInfoKHR scCreateInfo = {};
         scCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -74,9 +77,9 @@ namespace vk
         scCreateInfo.queueFamilyIndexCount = 0;
         scCreateInfo.pQueueFamilyIndices = nullptr;
 
-        if (device.presentFamilyIndex != device.queueFamilyIndex)
+        if (device.presentFamilyIndex != device.graphicsFamilyIndex)
         {
-            uint32_t queueFamilyIndices[] = { (uint32_t)device.queueFamilyIndex, (uint32_t)device.presentFamilyIndex };
+            uint32_t queueFamilyIndices[] = { (uint32_t)device.graphicsFamilyIndex, (uint32_t)device.presentFamilyIndex };
             scCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
             scCreateInfo.queueFamilyIndexCount = 2;
             scCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
@@ -84,7 +87,7 @@ namespace vk
 
         scCreateInfo.preTransform = scInfo.surfaceCaps.currentTransform;
         scCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        scCreateInfo.presentMode = presentMode;
+        scCreateInfo.presentMode = swapChain->presentMode;
         scCreateInfo.clipped = VK_TRUE;
         scCreateInfo.oldSwapchain = oldSwapchain;
 
@@ -130,35 +133,46 @@ namespace vk
     VkResult createLogicalDevice(Device *device)
     {
         LOG_MESSAGE_ASSERT(device->physical != VK_NULL_HANDLE, "Invalid physical device!");
+        // at least one queue (graphics and present combined) has to be present
+        uint32_t numQueues = 1;
         float queuePriority = 1.f;
-        VkDeviceQueueCreateInfo queueCreateInfo = {};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = device->queueFamilyIndex;
-        queueCreateInfo.queueCount = 1;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
+        VkDeviceQueueCreateInfo queueCreateInfo[3] = { {}, {}, {} };
+        queueCreateInfo[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo[0].queueFamilyIndex = device->graphicsFamilyIndex;
+        queueCreateInfo[0].queueCount = 1;
+        queueCreateInfo[0].pQueuePriorities = &queuePriority;
+        queueCreateInfo[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo[1].queueCount = 1;
+        queueCreateInfo[1].pQueuePriorities = &queuePriority;
+        queueCreateInfo[2].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo[2].queueCount = 1;
+        queueCreateInfo[2].pQueuePriorities = &queuePriority;
 
-        VkPhysicalDeviceFeatures deviceFeatures = {};
-        deviceFeatures.samplerAnisotropy = VK_TRUE;
-        deviceFeatures.fillModeNonSolid = VK_TRUE;  // for wireframe rendering
+        VkPhysicalDeviceFeatures wantedDeviceFeatures = {};
+        wantedDeviceFeatures.samplerAnisotropy = device->features.samplerAnisotropy;
+        wantedDeviceFeatures.fillModeNonSolid  = device->features.fillModeNonSolid;  // for wireframe rendering
+        wantedDeviceFeatures.sampleRateShading = device->features.sampleRateShading; // for sample shading
+
+        // a graphics and present queue are different - two queues have to be created
+        if (device->graphicsFamilyIndex != device->presentFamilyIndex)
+        {
+            queueCreateInfo[numQueues++].queueFamilyIndex = device->presentFamilyIndex;
+        }
+
+        // a separate transfer queue exists that's different from present and graphics queue?
+        if (device->transferFamilyIndex != device->graphicsFamilyIndex && device->transferFamilyIndex != device->presentFamilyIndex)
+        {
+            queueCreateInfo[numQueues++].queueFamilyIndex = device->transferFamilyIndex;
+        }
 
         VkDeviceCreateInfo deviceCreateInfo = {};
         deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+        deviceCreateInfo.pEnabledFeatures = &wantedDeviceFeatures;
         deviceCreateInfo.ppEnabledExtensionNames = devExtensions.data();
         deviceCreateInfo.enabledExtensionCount = (uint32_t)devExtensions.size();
+        deviceCreateInfo.queueCreateInfoCount = numQueues;
+        deviceCreateInfo.pQueueCreateInfos = queueCreateInfo;
 
-        // a single queue can draw and present? Provide single create info, otherwise create two separate queues
-        if (device->queueFamilyIndex == device->presentFamilyIndex)
-        {
-            deviceCreateInfo.queueCreateInfoCount = 1;
-            deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
-        }
-        else
-        {
-            VkDeviceQueueCreateInfo queues[] = { queueCreateInfo, queueCreateInfo };
-            deviceCreateInfo.queueCreateInfoCount = 2;
-            deviceCreateInfo.pQueueCreateInfos = queues;
-        }
 #ifdef VALIDATION_LAYERS_ON
         deviceCreateInfo.enabledLayerCount = 1;
         deviceCreateInfo.ppEnabledLayerNames = vk::validationLayers;
@@ -217,20 +231,30 @@ namespace vk
 
                     if (queueFamilies[j].queueCount > 0 && queueFamilies[j].queueFlags & VK_QUEUE_GRAPHICS_BIT)
                     {
-                        device->queueFamilyIndex = j;
+                        device->graphicsFamilyIndex = j;
                     }
 
-                    // accept only device that has support for presentation and drawing
-                    if (device->presentFamilyIndex >= 0 && device->queueFamilyIndex >= 0)
+                    if (queueFamilies[j].queueCount > 0 && !(queueFamilies[j].queueFlags & VK_QUEUE_GRAPHICS_BIT) && (queueFamilies[j].queueFlags & VK_QUEUE_TRANSFER_BIT))
                     {
-                        delete[] queueFamilies;
-                        device->physical = devices[i];
-                        device->properties = deviceProperties;
-                        return;
+                        device->transferFamilyIndex = j;
                     }
                 }
 
                 delete[] queueFamilies;
+
+                // accept only device that has support for presentation and drawing
+                if (device->presentFamilyIndex >= 0 && device->graphicsFamilyIndex >= 0)
+                {
+                    if (device->transferFamilyIndex < 0)
+                    {
+                        device->transferFamilyIndex = device->graphicsFamilyIndex;
+                    }
+
+                    device->physical = devices[i];
+                    device->properties = deviceProperties;
+                    device->features = deviceFeatures;
+                    return;
+                }
             }
         }
     }
@@ -300,19 +324,44 @@ namespace vk
 
     void getSwapPresentMode(const SwapChainInfo &scInfo, VkPresentModeKHR *presentMode)
     {
-        *presentMode = VK_PRESENT_MODE_FIFO_KHR;
-        for (uint32_t i = 0; i < scInfo.presentModesCount; ++i)
+        // check if the desired present mode is supported
+        if (*presentMode != VK_PRESENT_MODE_MAX_ENUM_KHR)
         {
-            // always prefer mailbox for triple buffering
-            if (scInfo.presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+            for (uint32_t i = 0; i < scInfo.presentModesCount; ++i)
             {
-                *presentMode = scInfo.presentModes[i];
-                break;
+                // mode supported, nothing to do here
+                if (scInfo.presentModes[i] == *presentMode)
+                {
+                    LOG_MESSAGE("Preferred present mode found: " << *presentMode);
+                    return;
+                }
             }
-            else if (scInfo.presentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR)
+
+            LOG_MESSAGE("Preferred present mode " << *presentMode << " not supported!");
+            // preferred mode not supported - mark and find the next best thing
+            *presentMode = VK_PRESENT_MODE_MAX_ENUM_KHR;
+        }
+
+        // no preferred present mode/preferred not found - choose the next best thing
+        if (*presentMode == VK_PRESENT_MODE_MAX_ENUM_KHR)
+        {
+            *presentMode = VK_PRESENT_MODE_FIFO_KHR;
+
+            for (uint32_t i = 0; i < scInfo.presentModesCount; ++i)
             {
-                *presentMode = scInfo.presentModes[i];
+                // always prefer mailbox for triple buffering
+                if (scInfo.presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+                {
+                    *presentMode = scInfo.presentModes[i];
+                    break;
+                }
+                else if (scInfo.presentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR)
+                {
+                    *presentMode = scInfo.presentModes[i];
+                }
             }
+
+            LOG_MESSAGE("Using present mode: " << *presentMode);
         }
     }
 

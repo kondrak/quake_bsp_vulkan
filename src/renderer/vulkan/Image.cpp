@@ -6,14 +6,15 @@
 namespace vk
 {
     // internal helpers
-    static void transitionImageLayout(const Device &device, const VkCommandPool &commandPool, const Texture &texture, const VkImageLayout &oldLayout, const VkImageLayout &newLayout);
-    static void copyBufferToImage(const Device &device, const VkCommandPool &commandPool, const VkBuffer &buffer, const VkImage &image, uint32_t width, uint32_t height);
+    static void transitionImageLayout(const Device &device, const VkCommandBuffer &cmdBuffer, const VkQueue &queue, const Texture &texture, const VkImageLayout &oldLayout, const VkImageLayout &newLayout);
+    static void copyBufferToImage(const VkCommandBuffer &cmdBuffer, const VkBuffer &buffer, const VkImage &image, uint32_t width, uint32_t height);
     static VkResult createImage(const Device &device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VmaMemoryUsage memUsage, Texture *texture);
-    static void generateMipmaps(const Device &device, const VkCommandPool &commandPool, const Texture &texture, uint32_t width, uint32_t height);
+    static void generateMipmaps(const VkCommandBuffer &cmdBuffer, const Texture &texture, uint32_t width, uint32_t height);
 
-    void createTextureImage(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
+    void createTextureImage(const Device &device, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
     {
         Buffer stagingBuffer;
+        bool unifiedTransferAndGfx = device.transferQueue == device.graphicsQueue;
         uint32_t imageSize = width * height * (dstTex->format == VK_FORMAT_R8G8B8_UNORM ? 3 : 4);
 
         VK_VERIFY(createStagingBuffer(device, imageSize, &stagingBuffer));
@@ -29,21 +30,51 @@ namespace vk
             imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
         VK_VERIFY(createImage(device, width, height, dstTex->format, VK_IMAGE_TILING_OPTIMAL, imageUsage, VMA_MEMORY_USAGE_GPU_ONLY, dstTex));
+
         // copy buffers
-        transitionImageLayout(device, commandPool, *dstTex, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        copyBufferToImage(device, commandPool, stagingBuffer.buffer, dstTex->image, width, height);
+        VkCommandBuffer transferCmdBuffer = createCommandBuffer(device, device.transferCommandPool);
+        VkCommandBuffer drawCmdBuffer = unifiedTransferAndGfx ? transferCmdBuffer : createCommandBuffer(device, device.commandPool);
+
+        beginCommand(transferCmdBuffer);
+        transitionImageLayout(device, transferCmdBuffer, device.transferQueue, *dstTex, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        copyBufferToImage(transferCmdBuffer, stagingBuffer.buffer, dstTex->image, width, height);
 
         if (dstTex->mipLevels > 1)
-            generateMipmaps(device, commandPool, *dstTex, width, height);
+        {
+            // if transfer and graphics queue are different we have to submit the transfer queue before continuing
+            if (!unifiedTransferAndGfx)
+            {
+                submitCommand(device, transferCmdBuffer, device.transferQueue);
+                beginCommand(drawCmdBuffer);
+            }
+
+            // vkCmdBlitImage requires a queue with GRAPHICS_BIT present
+            generateMipmaps(drawCmdBuffer, *dstTex, width, height);
+            submitCommand(device, drawCmdBuffer, device.graphicsQueue);
+        }
         else
-            transitionImageLayout(device, commandPool, *dstTex, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        {
+            transitionImageLayout(device, transferCmdBuffer, device.transferQueue, *dstTex, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            submitCommand(device, transferCmdBuffer, device.transferQueue);
+
+            if (!unifiedTransferAndGfx)
+            {
+                beginCommand(drawCmdBuffer);
+                transitionImageLayout(device, drawCmdBuffer, device.graphicsQueue, *dstTex, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                submitCommand(device, drawCmdBuffer, device.graphicsQueue);
+            }
+        }
+
+        vkFreeCommandBuffers(device.logical, device.transferCommandPool, 1, &transferCmdBuffer);
+        if(!unifiedTransferAndGfx)
+            vkFreeCommandBuffers(device.logical, device.commandPool, 1, &drawCmdBuffer);
 
         freeBuffer(device, stagingBuffer);
     }
 
-    void createTexture(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
+    void createTexture(const Device &device, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
     {
-        createTextureImage(device, commandPool, dstTex, data, width, height);
+        createTextureImage(device, dstTex, data, width, height);
         VK_VERIFY(createImageView(device, dstTex->image, VK_IMAGE_ASPECT_COLOR_BIT, &dstTex->imageView, dstTex->format, dstTex->mipLevels));
         VK_VERIFY(createTextureSampler(device, dstTex));
     }
@@ -102,7 +133,7 @@ namespace vk
     }
 
     // helper functions
-    Texture createColorBuffer(const Device &device, const SwapChain &swapChain, const VkCommandPool &commandPool, VkSampleCountFlagBits sampleCount)
+    Texture createColorBuffer(const Device &device, const SwapChain &swapChain, VkSampleCountFlagBits sampleCount)
     {
         Texture colorTexture;
         colorTexture.format = swapChain.format;
@@ -111,12 +142,16 @@ namespace vk
         VK_VERIFY(createImage(device, swapChain.extent.width, swapChain.extent.height, colorTexture.format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, &colorTexture));
         VK_VERIFY(createImageView(device, colorTexture.image, VK_IMAGE_ASPECT_COLOR_BIT, &colorTexture.imageView, colorTexture.format, colorTexture.mipLevels));
 
-        transitionImageLayout(device, commandPool, colorTexture, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        VkCommandBuffer cmdBuffer = createCommandBuffer(device, device.commandPool);
+        beginCommand(cmdBuffer);
+        transitionImageLayout(device, cmdBuffer, device.graphicsQueue, colorTexture, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        submitCommand(device, cmdBuffer, device.graphicsQueue);
+        vkFreeCommandBuffers(device.logical, device.commandPool, 1, &cmdBuffer);
 
         return colorTexture;
     }
 
-    Texture createDepthBuffer(const Device &device, const SwapChain &swapChain, const VkCommandPool &commandPool, VkSampleCountFlagBits sampleCount)
+    Texture createDepthBuffer(const Device &device, const SwapChain &swapChain, VkSampleCountFlagBits sampleCount)
     {
         Texture depthTexture;
         depthTexture.format = VK_FORMAT_D32_SFLOAT;
@@ -125,14 +160,17 @@ namespace vk
         VK_VERIFY(createImage(device, swapChain.extent.width, swapChain.extent.height, depthTexture.format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, &depthTexture));
         VK_VERIFY(createImageView(device, depthTexture.image, VK_IMAGE_ASPECT_DEPTH_BIT, &depthTexture.imageView, depthTexture.format, depthTexture.mipLevels));
 
-        transitionImageLayout(device, commandPool, depthTexture, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+        VkCommandBuffer cmdBuffer = createCommandBuffer(device, device.commandPool);
+        beginCommand(cmdBuffer);
+        transitionImageLayout(device, cmdBuffer, device.graphicsQueue, depthTexture, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+        submitCommand(device, cmdBuffer, device.graphicsQueue);
+        vkFreeCommandBuffers(device.logical, device.commandPool, 1, &cmdBuffer);
 
         return depthTexture;
     }
 
-    void transitionImageLayout(const Device &device, const VkCommandPool &commandPool, const Texture &texture, const VkImageLayout &oldLayout, const VkImageLayout &newLayout)
+    void transitionImageLayout(const Device &device, const VkCommandBuffer &cmdBuffer, const VkQueue &queue, const Texture &texture, const VkImageLayout &oldLayout, const VkImageLayout &newLayout)
     {
-        VkCommandBuffer cmdBuffer = beginOneTimeCommand(device, commandPool);
         VkPipelineStageFlags srcStage;
         VkPipelineStageFlags dstStage;
 
@@ -166,10 +204,34 @@ namespace vk
         }
         else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
         {
-            imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            if (device.transferQueue == device.graphicsQueue)
+            {
+                imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+                srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+                dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            }
+            else
+            {
+                if (device.transferQueue == queue)
+                {
+                    imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                    imgBarrier.dstAccessMask = 0;
+                    imgBarrier.srcQueueFamilyIndex = device.transferFamilyIndex;
+                    imgBarrier.dstQueueFamilyIndex = device.graphicsFamilyIndex;
+                    srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+                    dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+                }
+                else
+                {
+                    imgBarrier.srcAccessMask = 0;
+                    imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+                    imgBarrier.srcQueueFamilyIndex = device.transferFamilyIndex;
+                    imgBarrier.dstQueueFamilyIndex = device.graphicsFamilyIndex;
+                    srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+                    dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                }
+            }
         }
         else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
         {
@@ -191,14 +253,10 @@ namespace vk
         }
 
         vkCmdPipelineBarrier(cmdBuffer, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &imgBarrier);
-
-        endOneTimeCommand(device, cmdBuffer, commandPool, device.graphicsQueue);
     }
 
-    void copyBufferToImage(const Device &device, const VkCommandPool &commandPool, const VkBuffer &buffer, const VkImage &image, uint32_t width, uint32_t height)
+    void copyBufferToImage(const VkCommandBuffer &cmdBuffer, const VkBuffer &buffer, const VkImage &image, uint32_t width, uint32_t height)
     {
-        VkCommandBuffer cmdBuffer = beginOneTimeCommand(device, commandPool);
-
         VkBufferImageCopy region = {};
         region.bufferOffset = 0;
         region.bufferRowLength = 0;
@@ -211,8 +269,6 @@ namespace vk
         region.imageExtent = { width, height, 1 };
 
         vkCmdCopyBufferToImage(cmdBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-
-        endOneTimeCommand(device, cmdBuffer, commandPool, device.graphicsQueue);
     }
 
     VkResult createImage(const Device &device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VmaMemoryUsage memUsage, Texture *texture)
@@ -233,6 +289,14 @@ namespace vk
         imageInfo.samples = texture->sampleCount;
         imageInfo.flags = 0;
 
+        if (device.graphicsFamilyIndex != device.transferFamilyIndex)
+        {
+            uint32_t queueFamilies[] = { (uint32_t)device.graphicsFamilyIndex, (uint32_t)device.transferFamilyIndex };
+            imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+            imageInfo.queueFamilyIndexCount = 2;
+            imageInfo.pQueueFamilyIndices = queueFamilies;
+        }
+
         VmaAllocationCreateInfo vmallocInfo = {};
         // make sure memory regions for loaded images do not overlap
         vmallocInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
@@ -241,11 +305,10 @@ namespace vk
         return vmaCreateImage(device.allocator, &imageInfo, &vmallocInfo, &texture->image, &texture->allocation, nullptr);
     }
 
-    void generateMipmaps(const Device &device, const VkCommandPool &commandPool, const Texture &texture, uint32_t width, uint32_t height)
+    void generateMipmaps(const VkCommandBuffer &cmdBuffer, const Texture &texture, uint32_t width, uint32_t height)
     {
         int32_t mipWidth  = width;
         int32_t mipHeight = height;
-        VkCommandBuffer cmdBuffer = beginOneTimeCommand(device, commandPool);
 
         VkImageMemoryBarrier imgBarrier = {};
         imgBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -306,7 +369,5 @@ namespace vk
         imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
         vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imgBarrier);
-
-        endOneTimeCommand(device, cmdBuffer, commandPool, device.graphicsQueue);
     }
 }

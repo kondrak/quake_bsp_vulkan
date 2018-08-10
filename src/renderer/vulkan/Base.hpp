@@ -14,21 +14,14 @@ struct SDL_Window;
 #include "renderer/vulkan/vk_mem_alloc.h"
 
 // fetch and call Vulkan extension function
-#define callVkF(func, inst, ...) { PFN_##func fptr = (PFN_##func)vkGetInstanceProcAddr(inst, #func); \
-                                   LOG_MESSAGE_ASSERT(inst, "Invalid Vulkan instance!"); \
-                                   LOG_MESSAGE_ASSERT(fptr, "Function does not exist: " #func); \
-                                   (void)fptr(instance, __VA_ARGS__); \
-}
+#define callVkF(func, inst, ...) ((PFN_##func)vkGetInstanceProcAddr(inst, #func))(inst, __VA_ARGS__)
 
 // verify if VkResult is VK_SUCCESS
 #include "Utils.hpp"
-#define VK_VERIFY(r) \
-    if(r != VK_SUCCESS) { \
-        std::stringstream msgStr; \
-        msgStr << "Invalid VkResult: " << r << " in " << __FILE__ << ":" << __LINE__ << "\n"; \
-        LogError(msgStr.str().c_str()); \
-        Break(); \
-    }
+#define VK_VERIFY(x) { \
+    VkResult res = (x); \
+    LOG_MESSAGE_ASSERT(res == VK_SUCCESS, "Invalid VkResult: " << res << " in " << __FILE__ << ":" << __LINE__ << "\n"); \
+}
 
 namespace vk
 {
@@ -39,11 +32,16 @@ namespace vk
         VkDevice         logical   = VK_NULL_HANDLE;
         VmaAllocator     allocator = VK_NULL_HANDLE;
         VkPhysicalDeviceProperties properties = {};
+        VkPhysicalDeviceFeatures   features = {};
 
+        VkCommandPool commandPool = VK_NULL_HANDLE;
+        VkCommandPool transferCommandPool = VK_NULL_HANDLE;
         VkQueue graphicsQueue = VK_NULL_HANDLE;
         VkQueue presentQueue  = VK_NULL_HANDLE;
-        int queueFamilyIndex   = -1; // physical device queue family index
-        int presentFamilyIndex = -1; // physical device presentation family index
+        VkQueue transferQueue = VK_NULL_HANDLE;
+        int graphicsFamilyIndex = -1; // physical device queue family index
+        int presentFamilyIndex  = -1; // physical device presentation family index
+        int transferFamilyIndex = -1;
     };
 
     // Vulkan descriptor

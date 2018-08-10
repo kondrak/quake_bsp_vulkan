@@ -127,9 +127,9 @@ namespace vk
 
         VkPipelineMultisampleStateCreateInfo  msCreateInfo = {};
         msCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-        msCreateInfo.sampleShadingEnable = VK_FALSE;
+        msCreateInfo.sampleShadingEnable = pipeline->minSampleShading < 0.f? VK_FALSE: VK_TRUE;
         msCreateInfo.rasterizationSamples = renderPass.sampleCount;
-        msCreateInfo.minSampleShading = 1.f;
+        msCreateInfo.minSampleShading = pipeline->minSampleShading < 0.f ? 1.f : pipeline->minSampleShading;
         msCreateInfo.pSampleMask = nullptr;
         msCreateInfo.alphaToCoverageEnable = VK_FALSE;
         msCreateInfo.alphaToOneEnable = VK_FALSE;

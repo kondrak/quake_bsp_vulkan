@@ -12,7 +12,7 @@ namespace vk
     static const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
 #endif
 
-    void createValidationLayers(const VkInstance &instance);
+    void createValidationLayers(const VkInstance &instance, bool useEXTDebugUtils);
     void destroyValidationLayers(const VkInstance &instance);
     bool validationLayersAvailable(const char **requested, size_t count);
 }

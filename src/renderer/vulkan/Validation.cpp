@@ -1,20 +1,24 @@
 #include "renderer/vulkan/Validation.hpp"
 #include "Utils.hpp"
 
-#ifdef VK_EXT_debug_utils
-
+static bool s_usingEXTDebugUtils = true;
 static VkDebugUtilsMessengerEXT validationMessenger;
+static VkDebugReportCallbackEXT validationLayerCallback;
 
+// EXT_debug_utils
 #define vkCreateDebugUtilsMessengerEXT(instance, pCreateInfo, pAllocator, pMessenger) callVkF(vkCreateDebugUtilsMessengerEXT, instance, pCreateInfo, pAllocator, pMessenger)
 #define vkDestroyDebugUtilsMessengerEXT(instance, messenger, pAllocator) callVkF(vkDestroyDebugUtilsMessengerEXT, instance, messenger, pAllocator)
+// EXT_debug_report
+#define vkCreateDebugReportCallbackEXT(instance, pCreateInfo, pAllocator, pCallback) callVkF(vkCreateDebugReportCallbackEXT, instance, pCreateInfo, pAllocator, pCallback)
+#define vkDestroyDebugReportCallbackEXT(instance, callback, pAllocator) callVkF(vkDestroyDebugReportCallbackEXT, instance, callback, pAllocator)
 
-// validation layer callback function
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT msgSeverity,
-                                                    VkDebugUtilsMessageTypeFlagsEXT msgType,
-                                                    const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
-                                                    void* userData)
+// validation layer callback function (VK_EXT_debug_utils)
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallbackUtils(VkDebugUtilsMessageSeverityFlagBitsEXT msgSeverity,
+                                                         VkDebugUtilsMessageTypeFlagsEXT msgType,
+                                                         const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
+                                                         void* userData)
 {
-    auto typeToStr = [](VkDebugUtilsMessageTypeFlagsEXT &type) {
+    auto typeToStr = [](VkDebugUtilsMessageTypeFlagsEXT &type) -> const char* {
         bool g = (type & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT) != 0;
         bool p = (type & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT) != 0;
         bool v = (type & VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) != 0;
@@ -44,19 +48,12 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
     return VK_FALSE;
 }
 
-#else
-
-static VkDebugReportCallbackEXT validationLayerCallback;
-
-#define vkCreateDebugReportCallbackEXT(instance, pCreateInfo, pAllocator, pCallback) callVkF(vkCreateDebugReportCallbackEXT, instance, pCreateInfo, pAllocator, pCallback)
-#define vkDestroyDebugReportCallbackEXT(instance, callback, pAllocator) callVkF(vkDestroyDebugReportCallbackEXT, instance, callback, pAllocator)
-
-// validation layer callback function
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags,
-                                                    VkDebugReportObjectTypeEXT objType,
-                                                    uint64_t obj, size_t location, int32_t code,
-                                                    const char* layerPrefix, const char* msg,
-                                                    void* userData)
+// validation layer callback function (VK_EXT_debug_report)
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallbackReport(VkDebugReportFlagsEXT flags,
+                                                          VkDebugReportObjectTypeEXT objType,
+                                                          uint64_t obj, size_t location, int32_t code,
+                                                          const char* layerPrefix, const char* msg,
+                                                          void* userData)
 {
     switch (flags)
     {
@@ -78,46 +75,53 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags,
     return VK_FALSE;
 }
 
-#endif
 
 namespace vk
 {
-    void createValidationLayers(const VkInstance &instance)
+    void createValidationLayers(const VkInstance &instance, bool useEXTDebugUtils)
     {
         LOG_MESSAGE_ASSERT(instance != VK_NULL_HANDLE, "Invalid instance!");
+        s_usingEXTDebugUtils = useEXTDebugUtils;
 
-#ifdef VK_EXT_debug_utils
-        VkDebugUtilsMessengerCreateInfoEXT callbackInfo = {};
-        callbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        callbackInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                                       VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
-                                       VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-                                       VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        callbackInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                                   VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                                   VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        callbackInfo.pfnUserCallback = debugCallback;
+        // some devices may not support EXT_debug_utils
+        if (useEXTDebugUtils)
+        {
+            VkDebugUtilsMessengerCreateInfoEXT callbackInfo = {};
+            callbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+            callbackInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+                                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+            callbackInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                                       VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                                       VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+            callbackInfo.pfnUserCallback = debugCallbackUtils;
 
-        vkCreateDebugUtilsMessengerEXT(instance, &callbackInfo, nullptr, &validationMessenger);
-#else
-        VkDebugReportCallbackCreateInfoEXT callbackInfo = {};
-        callbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-        callbackInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT |
-                             VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
-        callbackInfo.pfnCallback = debugCallback;
+            VK_VERIFY(vkCreateDebugUtilsMessengerEXT(instance, &callbackInfo, nullptr, &validationMessenger));
+        }
+        else
+        {
+            VkDebugReportCallbackCreateInfoEXT callbackInfo = {};
+            callbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+            callbackInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT |
+                                 VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+            callbackInfo.pfnCallback = debugCallbackReport;
 
-        vkCreateDebugReportCallbackEXT(instance, &callbackInfo, nullptr, &validationLayerCallback);
-#endif
+            VK_VERIFY(vkCreateDebugReportCallbackEXT(instance, &callbackInfo, nullptr, &validationLayerCallback));
+        }
     }
 
     void destroyValidationLayers(const VkInstance &instance)
     {
         LOG_MESSAGE_ASSERT(instance != VK_NULL_HANDLE, "Invalid instance!");
-#ifdef VK_EXT_debug_utils
-        vkDestroyDebugUtilsMessengerEXT(instance, validationMessenger, nullptr);
-#else
-        vkDestroyDebugReportCallbackEXT(instance, validationLayerCallback, nullptr);
-#endif
+        if (s_usingEXTDebugUtils)
+        {
+            vkDestroyDebugUtilsMessengerEXT(instance, validationMessenger, nullptr);
+        }
+        else
+        {
+            vkDestroyDebugReportCallbackEXT(instance, validationLayerCallback, nullptr);
+        }
     }
 
     bool validationLayersAvailable(const char **requested, size_t count)

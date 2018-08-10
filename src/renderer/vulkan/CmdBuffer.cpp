@@ -3,29 +3,16 @@
 
 namespace vk
 {
-    VkCommandBuffer beginOneTimeCommand(const Device &device, const VkCommandPool &commandPool)
+    VkResult beginCommand(const VkCommandBuffer &commandBuffer)
     {
-        // todo: command pool for potential optimization
-        VkCommandBufferAllocateInfo allocInfo = {};
-        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandPool = commandPool;
-        allocInfo.commandBufferCount = 1;
-
-        VkCommandBuffer commandBuffer;
-        VkResult result = vkAllocateCommandBuffers(device.logical, &allocInfo, &commandBuffer);
-        LOG_MESSAGE_ASSERT(result == VK_SUCCESS, "Could not allocated command buffer: " << result);
-        if (result != VK_SUCCESS) return commandBuffer;
-
         VkCommandBufferBeginInfo cmdInfo = {};
         cmdInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         cmdInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-        vkBeginCommandBuffer(commandBuffer, &cmdInfo);
-        return commandBuffer;
+        return vkBeginCommandBuffer(commandBuffer, &cmdInfo);
     }
 
-    void endOneTimeCommand(const Device &device, const VkCommandBuffer &commandBuffer, const VkCommandPool &commandPool, const VkQueue &graphicsQueue)
+    void submitCommand(const Device &device, const VkCommandBuffer &commandBuffer, const VkQueue &queue)
     {
         vkEndCommandBuffer(commandBuffer);
 
@@ -34,20 +21,40 @@ namespace vk
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffer;
 
-        vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(graphicsQueue);
-        vkFreeCommandBuffers(device.logical, commandPool, 1, &commandBuffer);
+        VkFenceCreateInfo fCreateInfo = {};
+        fCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+
+        VkFence queueFence;
+        vkCreateFence(device.logical, &fCreateInfo, nullptr, &queueFence);
+
+        vkQueueSubmit(queue, 1, &submitInfo, queueFence);
+ 
+        vkWaitForFences(device.logical, 1, &queueFence, VK_TRUE, UINT64_MAX);
+        vkDestroyFence(device.logical, queueFence, nullptr);
     }
 
-    VkResult createCommandPool(const Device &device, VkCommandPool *commandPool)
+    VkResult createCommandPool(const Device &device, uint32_t queueFamilyIndex, VkCommandPool *commandPool)
     {
         VkCommandPoolCreateInfo cpCreateInfo = {};
         cpCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        cpCreateInfo.queueFamilyIndex = device.queueFamilyIndex;
+        cpCreateInfo.queueFamilyIndex = queueFamilyIndex;
         // allow the command pool to be explicitly reset without reallocating it manually during recording each frame
         cpCreateInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
         return vkCreateCommandPool(device.logical, &cpCreateInfo, nullptr, commandPool);
+    }
+
+    VkCommandBuffer createCommandBuffer(const Device &device, const VkCommandPool &commandPool)
+    {
+        VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+        VkCommandBufferAllocateInfo allocInfo = {};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.commandPool = commandPool;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandBufferCount = 1;
+
+        VK_VERIFY(vkAllocateCommandBuffers(device.logical, &allocInfo, &commandBuffer));
+        return commandBuffer;
     }
 
     VkResult createCommandBuffers(const Device &device, const VkCommandPool &commandPool, std::vector<VkCommandBuffer> &commandBuffers, size_t cmdBuffCount)

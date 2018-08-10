@@ -23,7 +23,7 @@ void TextureManager::ReleaseTextures()
     m_textures.clear();
 }
 
-GameTexture *TextureManager::LoadTexture(const char *textureName, const VkCommandPool &commandPool, bool filtering)
+GameTexture *TextureManager::LoadTexture(const char *textureName, bool filtering)
 {
     if (m_textures.count(textureName) == 0)
     {
@@ -31,7 +31,7 @@ GameTexture *TextureManager::LoadTexture(const char *textureName, const VkComman
         GameTexture *newTex = new GameTexture(textureName);
 
         // failed to load texture/file doesn't exist
-        if (!newTex->Load(commandPool, filtering))
+        if (!newTex->Load(filtering))
         {
             delete newTex;
             return nullptr;

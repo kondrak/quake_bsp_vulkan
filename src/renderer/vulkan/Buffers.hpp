@@ -40,9 +40,9 @@ namespace vk
     VkResult createBuffer(const Device &device, VkDeviceSize size, Buffer *dstBuffer, const BufferOptions &bOpts);
     void     freeBuffer(const Device &device, Buffer &buffer);
     VkResult createStagingBuffer(const Device &device, VkDeviceSize size, Buffer *dstBuffer);
-    void     createVertexBuffer(const Device &device, const VkCommandPool &commandPool, const void *data, VkDeviceSize size, Buffer *dstBuffer);
-    void     createVertexBufferStaged(const Device &device, const VkCommandPool &commandPool, VkDeviceSize size, const Buffer &stagingBuffer, Buffer *dstBuffer);
-    void     createIndexBuffer(const Device &device, const VkCommandPool &commandPool, const void *data, VkDeviceSize size, Buffer *dstBuffer);
-    void     createIndexBufferStaged(const Device &device, const VkCommandPool &commandPool, VkDeviceSize size, const Buffer &stagingBuffer, Buffer *dstBuffer);
+    void     createVertexBuffer(const Device &device, const void *data, VkDeviceSize size, Buffer *dstBuffer);
+    void     createVertexBufferStaged(const Device &device, VkDeviceSize size, const Buffer &stagingBuffer, Buffer *dstBuffer);
+    void     createIndexBuffer(const Device &device, const void *data, VkDeviceSize size, Buffer *dstBuffer);
+    void     createIndexBufferStaged(const Device &device, VkDeviceSize size, const Buffer &stagingBuffer, Buffer *dstBuffer);
     VkResult createUniformBuffer(const Device &device, VkDeviceSize size, Buffer *dstBuffer);
 }

@@ -28,11 +28,11 @@ namespace vk
     };
 
 
-    void createTextureImage(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height);
-    void createTexture(const Device &device, const VkCommandPool &commandPool, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height);
+    void createTextureImage(const Device &device, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height);
+    void createTexture(const Device &device, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height);
     void releaseTexture(const Device &device, Texture &texture);
     VkResult createImageView(const Device &device, const VkImage &image, VkImageAspectFlags aspectFlags, VkImageView *imageView, VkFormat format, uint32_t mipLevels);
     VkResult createTextureSampler(const Device &device, Texture *texture);
-    Texture  createColorBuffer(const Device &device, const SwapChain &swapChain, const VkCommandPool &commandPool, VkSampleCountFlagBits sampleCount);
-    Texture  createDepthBuffer(const Device &device, const SwapChain &swapChain, const VkCommandPool &commandPool, VkSampleCountFlagBits sampleCount);
+    Texture  createColorBuffer(const Device &device, const SwapChain &swapChain, VkSampleCountFlagBits sampleCount);
+    Texture  createDepthBuffer(const Device &device, const SwapChain &swapChain, VkSampleCountFlagBits sampleCount);
 }

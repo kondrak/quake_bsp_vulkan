@@ -21,7 +21,7 @@ private:
     GameTexture(const char *filename);
     ~GameTexture();
 
-    bool Load(const VkCommandPool &commandPool, bool filtering);
+    bool Load(bool filtering);
 
     int m_width;
     int m_height;

@@ -12,6 +12,7 @@ namespace vk
     {
         VkSwapchainKHR sc = VK_NULL_HANDLE;
         VkFormat format = VK_FORMAT_UNDEFINED;
+        VkPresentModeKHR presentMode = VK_PRESENT_MODE_MAX_ENUM_KHR;
         VkExtent2D extent = { 0, 0 };
         std::vector<VkImage> images;
     };

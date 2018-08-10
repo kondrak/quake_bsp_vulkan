@@ -53,8 +53,9 @@ void RenderContext::Destroy()
         vkDeviceWaitIdle(device.logical);
 
         vk::destroyRenderPass(device, renderPass);
-        vk::freeCommandBuffers(device, commandPool, m_commandBuffers);
-        vkDestroyCommandPool(device.logical, commandPool, nullptr);
+        vk::freeCommandBuffers(device, device.commandPool, m_commandBuffers);
+        vkDestroyCommandPool(device.logical, device.commandPool, nullptr);
+        vkDestroyCommandPool(device.logical, device.transferCommandPool, nullptr);
  
         DestroyFramebuffers();
         DestroyImageViews();
@@ -251,6 +252,9 @@ bool RenderContext::InitVulkan(const char *appTitle)
     VK_VERIFY(vk::createAllocator(device, &device.allocator));
     // set initial swap chain extent to current window size - in case WM can't determine it by itself
     swapChain.extent = { (uint32_t)width, (uint32_t)height };
+    // desired present mode
+    swapChain.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+
     VK_VERIFY(vk::createSwapChain(device, m_surface, &swapChain, VK_NULL_HANDLE));
 
     m_viewport.x = 0.f;
@@ -269,13 +273,14 @@ bool RenderContext::InitVulkan(const char *appTitle)
     CreatePipelineCache();
 
     VK_VERIFY(vk::createRenderPass(device, swapChain, &renderPass));
-    VK_VERIFY(vk::createCommandPool(device, &commandPool));
+    VK_VERIFY(vk::createCommandPool(device, device.graphicsFamilyIndex, &device.commandPool));
+    VK_VERIFY(vk::createCommandPool(device, device.transferFamilyIndex, &device.transferCommandPool));
     CreateDrawBuffers();
     if (!CreateImageViews()) return false;
     if (!CreateFramebuffers()) return false;
 
     // allocate NUM_CMDBUFFERS command buffers (used to be m_frameBuffers.size())
-    VK_VERIFY(vk::createCommandBuffers(device, commandPool, m_commandBuffers, NUM_CMDBUFFERS));
+    VK_VERIFY(vk::createCommandBuffers(device, device.commandPool, m_commandBuffers, NUM_CMDBUFFERS));
 
     return true;
 }
@@ -287,7 +292,7 @@ void RenderContext::CreateDrawBuffers()
 
     for (size_t i = 0; i < swapChain.images.size(); ++i)
     {
-        m_depthBuffer[i] = vk::createDepthBuffer(device, swapChain, commandPool, m_msaaSamples);
+        m_depthBuffer[i] = vk::createDepthBuffer(device, swapChain, m_msaaSamples);
     }
 
     // additional render targets for MSAA (if enabled)
@@ -319,7 +324,7 @@ void RenderContext::CreateMSAABuffers()
 {
     for (size_t i = 0; i < swapChain.images.size(); ++i)
     {
-        m_msaaColor[i] = vk::createColorBuffer(device, swapChain, commandPool, m_msaaSamples);
+        m_msaaColor[i] = vk::createColorBuffer(device, swapChain, m_msaaSamples);
     }
 }
 

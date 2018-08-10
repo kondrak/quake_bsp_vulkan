@@ -20,6 +20,7 @@ namespace vk
         VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         VkBlendFactor blendMode = VK_BLEND_FACTOR_ZERO;
         VkBool32 depthTestEnable = VK_TRUE;
+        float minSampleShading = -1.f; // sample shading minimum fraction - >= 0 to enable
     };
 
     struct RenderPass

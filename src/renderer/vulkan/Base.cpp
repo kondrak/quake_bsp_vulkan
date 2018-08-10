@@ -2,9 +2,28 @@
 #include "renderer/vulkan/Validation.hpp"
 #include "Utils.hpp"
 #include <SDL_vulkan.h>
+#include <vector>
 
 namespace vk
 {
+    static bool instanceExtensionSupported(const char *extension)
+    {
+        uint32_t extensionCount = 0;
+        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+        LOG_MESSAGE_ASSERT(extensionCount > 0, "No instance extensions available?");
+
+        std::vector<VkExtensionProperties> instanceExtensions(extensionCount);
+        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, instanceExtensions.data());
+
+        for (auto &e : instanceExtensions)
+        {
+            if (!strcmp(e.extensionName, extension))
+                return true;
+        }
+
+        return false;
+    }
+
     VkResult createInstance(SDL_Window *window, VkInstance *instance, const char *title)
     {
         VkApplicationInfo appInfo = {};
@@ -16,42 +35,33 @@ namespace vk
         appInfo.apiVersion = VK_API_VERSION_1_1;
 
         unsigned int extCount = 0;
-        unsigned int additionalExtCount = 0;
-#ifdef VALIDATION_LAYERS_ON
-        additionalExtCount++;
-#endif
         // get count of required extensions
         SDL_Vulkan_GetInstanceExtensions(window, &extCount, nullptr);
-        const char **extensionNames = new const char*[extCount + additionalExtCount];
+
+        std::vector<const char*> enabledExtensions(extCount);
         // get names of required extensions
-        SDL_Vulkan_GetInstanceExtensions(window, &extCount, extensionNames);
+        SDL_Vulkan_GetInstanceExtensions(window, &extCount, enabledExtensions.data());
 
 #ifdef VALIDATION_LAYERS_ON
-        // add additional extensions to the list - validation layer in this case
-#ifdef VK_EXT_debug_utils
-        const char *additionalExtensions[] = { VK_EXT_DEBUG_UTILS_EXTENSION_NAME };
-#else
-        const char *additionalExtensions[] = { VK_EXT_DEBUG_REPORT_EXTENSION_NAME };
-#endif
-        for (unsigned int i = 0; i < additionalExtCount; ++i)
-        {
-            extensionNames[extCount + i] = additionalExtensions[i];
-        }
+        // add validation layer extension to the list
+        bool hasDebugUtils = instanceExtensionSupported(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
-        extCount += additionalExtCount;
+        if (hasDebugUtils)
+            enabledExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        else
+            enabledExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 #endif
 
         VkInstanceCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &appInfo;
-        createInfo.enabledExtensionCount = extCount;
-        createInfo.ppEnabledExtensionNames = extensionNames;
+        createInfo.enabledExtensionCount = (uint32_t)enabledExtensions.size();
+        createInfo.ppEnabledExtensionNames = enabledExtensions.data();
 
 #ifdef VALIDATION_LAYERS_ON
         if (!validationLayersAvailable(validationLayers, 1))
         {
             LOG_MESSAGE_ASSERT(false, "Validation layers not available!");
-            delete[] extensionNames;
             return VK_RESULT_MAX_ENUM;
         }
 
@@ -64,9 +74,8 @@ namespace vk
 
 #ifdef VALIDATION_LAYERS_ON
         VK_VERIFY(instanceCreated);
-        vk::createValidationLayers(*instance);
+        vk::createValidationLayers(*instance, hasDebugUtils);
 #endif
-        delete[] extensionNames;
         return instanceCreated;
     }
 
