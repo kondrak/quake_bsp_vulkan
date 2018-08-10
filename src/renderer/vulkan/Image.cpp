@@ -289,14 +289,6 @@ namespace vk
         imageInfo.samples = texture->sampleCount;
         imageInfo.flags = 0;
 
-        if (device.graphicsFamilyIndex != device.transferFamilyIndex)
-        {
-            uint32_t queueFamilies[] = { (uint32_t)device.graphicsFamilyIndex, (uint32_t)device.transferFamilyIndex };
-            imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-            imageInfo.queueFamilyIndexCount = 2;
-            imageInfo.pQueueFamilyIndices = queueFamilies;
-        }
-
         VmaAllocationCreateInfo vmallocInfo = {};
         // make sure memory regions for loaded images do not overlap
         vmallocInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
