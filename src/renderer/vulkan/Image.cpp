@@ -54,7 +54,9 @@ namespace vk
         }
         else
         {
-            transitionImageLayout(device, transferCmdBuffer, device.transferQueue, *dstTex, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            // for non-unified transfer and graphics, this step begins queue ownership transfer to graphics queue (for exclusive sharing only)
+            if(unifiedTransferAndGfx || dstTex->sharingMode == VK_SHARING_MODE_EXCLUSIVE)
+                transitionImageLayout(device, transferCmdBuffer, device.transferQueue, *dstTex, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
             submitCommand(device, transferCmdBuffer, device.transferQueue);
 
             if (!unifiedTransferAndGfx)
@@ -215,6 +217,7 @@ namespace vk
             {
                 if (device.transferQueue == queue)
                 {
+                    // if the image is exclusively shared, start queue ownership transfer process (release) - only for VK_SHARING_MODE_EXCLUSIVE
                     imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
                     imgBarrier.dstAccessMask = 0;
                     imgBarrier.srcQueueFamilyIndex = device.transferFamilyIndex;
@@ -224,12 +227,23 @@ namespace vk
                 }
                 else
                 {
-                    imgBarrier.srcAccessMask = 0;
-                    imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-                    imgBarrier.srcQueueFamilyIndex = device.transferFamilyIndex;
-                    imgBarrier.dstQueueFamilyIndex = device.graphicsFamilyIndex;
-                    srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-                    dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                    // continuing queue transfer (acquisition) - this will only happen for VK_SHARING_MODE_EXCLUSIVE images
+                    if (texture.sharingMode == VK_SHARING_MODE_EXCLUSIVE)
+                    {
+                        imgBarrier.srcAccessMask = 0;
+                        imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+                        imgBarrier.srcQueueFamilyIndex = device.transferFamilyIndex;
+                        imgBarrier.dstQueueFamilyIndex = device.graphicsFamilyIndex;
+                        srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+                        dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                    }
+                    else
+                    {
+                        imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                        imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+                        srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+                        dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                    }
                 }
             }
         }
@@ -289,11 +303,20 @@ namespace vk
         imageInfo.samples = texture->sampleCount;
         imageInfo.flags = 0;
 
+        if (device.graphicsFamilyIndex != device.transferFamilyIndex)
+        {
+            uint32_t queueFamilies[] = { (uint32_t)device.graphicsFamilyIndex, (uint32_t)device.transferFamilyIndex };
+            imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+            imageInfo.queueFamilyIndexCount = 2;
+            imageInfo.pQueueFamilyIndices = queueFamilies;
+        }
+
         VmaAllocationCreateInfo vmallocInfo = {};
         // make sure memory regions for loaded images do not overlap
         vmallocInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
         vmallocInfo.usage = memUsage;
 
+        texture->sharingMode = imageInfo.sharingMode;
         return vmaCreateImage(device.allocator, &imageInfo, &vmallocInfo, &texture->image, &texture->allocation, nullptr);
     }
 

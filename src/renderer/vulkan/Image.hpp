@@ -15,6 +15,7 @@ namespace vk
         VmaAllocation allocation = VK_NULL_HANDLE;
         VkImageView   imageView  = VK_NULL_HANDLE;
         VkSampler sampler   = VK_NULL_HANDLE;
+        VkSharingMode sharingMode = VK_SHARING_MODE_MAX_ENUM;
         VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT;
         VkFormat  format    = VK_FORMAT_R8G8B8A8_UNORM;
         VkFilter  minFilter = VK_FILTER_LINEAR;
