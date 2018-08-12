@@ -48,5 +48,7 @@ Keyword list:
 
 Vulkan references
 -------
+- https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html
+- https://arm-software.github.io/vulkan-sdk
 - https://www.khronos.org/assets/uploads/developers/library/2016-vulkan-devday-uk/7-Keeping-your-GPU-fed.pdf
 - https://github.com/KhronosGroup/Vulkan-Docs/wiki/Synchronization-Examples
