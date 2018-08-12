@@ -1,1 +1,6 @@
 contrib/* linguist-vendored
+* text eol=lf
+*.bsp binary
+*.exe binary
+*.dll binary
+*.png binary
