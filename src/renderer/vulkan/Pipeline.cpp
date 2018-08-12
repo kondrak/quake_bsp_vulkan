@@ -228,7 +228,8 @@ namespace vk
         colorAttachmentDesc.format = swapChain.format;
         colorAttachmentDesc.samples = renderPass->sampleCount;
         colorAttachmentDesc.loadOp = renderPass->colorLoadOp;
-        colorAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        // if MSAA is enabled, we don't need to preserve rendered texture data since it's kept by MSAA resolve attachment
+        colorAttachmentDesc.storeOp = msaaEnabled ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE;
         colorAttachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         colorAttachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
