@@ -1,7 +1,9 @@
 #include "InputHandlers.hpp"
 #include "Application.hpp"
+#include "renderer/RenderContext.hpp"
 
 extern Application g_application;
+extern RenderContext g_renderContext;
 
 KeyCode SDLKeyToKeyCode(SDL_Keycode key)
 {
@@ -128,6 +130,13 @@ void processEvents()
             if (event.key.keysym.sym == SDLK_F4 && (event.key.keysym.mod == KMOD_LALT || event.key.keysym.mod == KMOD_RALT))
             {
                 g_application.Terminate();
+                break;
+            }
+            // toggle fullscreen
+            if (event.key.keysym.sym == SDLK_RETURN && (event.key.keysym.mod == KMOD_LALT || event.key.keysym.mod == KMOD_RALT))
+            {
+                bool isFullScreen = (SDL_GetWindowFlags(g_renderContext.window) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
+                SDL_SetWindowFullscreen(g_renderContext.window, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
                 break;
             }
             g_application.OnKeyPress(SDLKeyToKeyCode(event.key.keysym.sym));
