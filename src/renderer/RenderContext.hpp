@@ -35,7 +35,7 @@ public:
     // Vulkan global objects
     vk::Device device;
     vk::SwapChain swapChain;
-    vk::RenderPass renderPass;
+    vk::RenderPass activeRenderPass;
     VkCommandBuffer activeCmdBuffer = VK_NULL_HANDLE;
     VkPipelineCache pipelineCache = VK_NULL_HANDLE;
 
@@ -59,11 +59,9 @@ private:
     bool InitVulkan(const char *appTitle);
     void CreateDrawBuffers();
     void DestroyDrawBuffers();
-    void CreateMSAABuffers();
-    void DestroyMSAABuffers();
     bool CreateImageViews();
     void DestroyImageViews();
-    bool CreateFramebuffers();
+    std::vector<VkFramebuffer> CreateFramebuffers(const vk::RenderPass &rp);
     void DestroyFramebuffers();
     void CreateFences();
     void CreateSemaphores();
@@ -77,8 +75,13 @@ private:
     VkViewport m_viewport = {};
     VkRect2D   m_scissor  = {};
 
+    // Vulkan render passes - we don't want to rebuild them mid-flight when toggling MSAA due to issues in full screen (black screen, blinking, etc.)
+    vk::RenderPass m_renderPass;
+    vk::RenderPass m_msaaRenderPass;
+
     // Vulkan framebuffers
     std::vector<VkFramebuffer> m_frameBuffers;
+    std::vector<VkFramebuffer> m_msaaFrameBuffers;
 
     // Vulkan image views
     std::vector<VkImageView> m_imageViews;
@@ -98,9 +101,9 @@ private:
     // depth buffer textures - one per each swapchain image
     std::vector<vk::Texture> m_depthBuffer;
 
-    // render targets for color and depth used with MSAA (if sample count > 1) - one per each swapchain image
-    VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+    // render targets for color and depth used with MSAA - one per each swapchain image
     std::vector<vk::Texture> m_msaaColor;
+    std::vector<vk::Texture> m_msaaDepthBuffer;
 
     // handle submission from multiple render passes
     uint32_t m_imageIndex;

@@ -190,9 +190,9 @@ void Q3BspMap::RebuildPipeline()
     vk::destroyPipeline(g_renderContext.device, m_patchPipeline);
 
     const char *shaders[] = { "res/Basic_vert.spv", "res/Basic_frag.spv" };
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.renderPass, m_dsLayout, &m_vbInfo, &m_facesPipeline, shaders));
+    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.activeRenderPass, m_dsLayout, &m_vbInfo, &m_facesPipeline, shaders));
     m_patchPipeline.basePipelineHandle = m_facesPipeline.pipeline;
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.renderPass, m_dsLayout, &m_vbInfo, &m_patchPipeline, shaders));
+    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.activeRenderPass, m_dsLayout, &m_vbInfo, &m_patchPipeline, shaders));
 }
 
 // determine if a bsp cluster is visible from a given camera cluster

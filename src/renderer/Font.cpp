@@ -112,7 +112,7 @@ void Font::RebuildPipeline()
 
     // todo: pipeline derivatives https://github.com/SaschaWillems/Vulkan/blob/master/examples/pipelines/pipelines.cpp
     const char *shaders[] = { "res/Font_vert.spv", "res/Font_frag.spv" };
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.renderPass, m_descriptor.setLayout, &m_vbInfo, &m_pipeline, shaders));
+    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.activeRenderPass, m_descriptor.setLayout, &m_vbInfo, &m_pipeline, shaders));
 }
 
 void Font::DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int offset, const Math::Vector3f &color)
