@@ -16,6 +16,10 @@ void Application::OnWindowResize(int newWidth, int newHeight)
     Math::Vector2f windowSize = g_renderContext.WindowSize();
     // skip drawing if either dimension is zero
     m_noRedraw = !(windowSize.m_x > 0 && windowSize.m_y > 0);
+
+    // window size changed - recreate the swapchain here since some drivers (Intel) can't properly invalidate it
+    if (!m_noRedraw)
+        g_renderContext.RecreateSwapChain();
 }
 
 void Application::OnWindowMinimized(bool minimized)
