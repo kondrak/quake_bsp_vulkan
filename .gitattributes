@@ -1,6 +1,13 @@
 contrib/* linguist-vendored
-* text eol=lf
+.git* text eol=lf
+Makefile text eol=lf
+*.hpp text eol=lf
+*.cpp text eol=lf
+*.h text eol=lf
+*.c text eol=lf
+*.sh text eol=lf
 *.bsp binary
 *.exe binary
 *.dll binary
+*.lib binary
 *.png binary
