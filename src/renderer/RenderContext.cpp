@@ -291,45 +291,27 @@ bool RenderContext::InitVulkan(const char *appTitle)
 void RenderContext::CreateDrawBuffers()
 {
     // standard depth buffer
-    m_depthBuffer.resize(swapChain.images.size());
+    m_depthBuffer = vk::createDepthBuffer(device, swapChain, m_renderPass.sampleCount);
     // additional render targets for MSAA
-    m_msaaDepthBuffer.resize(swapChain.images.size());
-    m_msaaColor.resize(swapChain.images.size());
-
-    for (size_t i = 0; i < swapChain.images.size(); ++i)
-    {
-        m_depthBuffer[i] = vk::createDepthBuffer(device, swapChain, m_renderPass.sampleCount);
-        m_msaaDepthBuffer[i] = vk::createDepthBuffer(device, swapChain, m_msaaRenderPass.sampleCount);
-        m_msaaColor[i] = vk::createColorBuffer(device, swapChain, m_msaaRenderPass.sampleCount);
-    }
+    m_msaaDepthBuffer = vk::createDepthBuffer(device, swapChain, m_msaaRenderPass.sampleCount);
+    m_msaaColor = vk::createColorBuffer(device, swapChain, m_msaaRenderPass.sampleCount);
 }
 
 void RenderContext::DestroyDrawBuffers()
 {
-    for (size_t i = 0; i < swapChain.images.size(); ++i)
-    {
-        if (m_depthBuffer[i].image != VK_NULL_HANDLE)
+    auto destroyDrawBuffer = [](vk::Device &device, vk::Texture &drawBuffer) {
+        if (drawBuffer.image != VK_NULL_HANDLE)
         {
-            vmaDestroyImage(device.allocator, m_depthBuffer[i].image, m_depthBuffer[i].allocation);
-            vkDestroyImageView(device.logical, m_depthBuffer[i].imageView, nullptr);
+            vmaDestroyImage(device.allocator, drawBuffer.image, drawBuffer.allocation);
+            vkDestroyImageView(device.logical, drawBuffer.imageView, nullptr);
+            drawBuffer.image = VK_NULL_HANDLE;
+            drawBuffer.imageView = VK_NULL_HANDLE;
         }
+    };
 
-        if (m_msaaDepthBuffer[i].image != VK_NULL_HANDLE)
-        {
-            vmaDestroyImage(device.allocator, m_msaaDepthBuffer[i].image, m_msaaDepthBuffer[i].allocation);
-            vkDestroyImageView(device.logical, m_msaaDepthBuffer[i].imageView, nullptr);
-        }
-
-        if (m_msaaColor[i].image != VK_NULL_HANDLE)
-        {
-            vmaDestroyImage(device.allocator, m_msaaColor[i].image, m_msaaColor[i].allocation);
-            vkDestroyImageView(device.logical, m_msaaColor[i].imageView, nullptr);
-        }
-    }
-
-    m_depthBuffer.clear();
-    m_msaaDepthBuffer.clear();
-    m_msaaColor.clear();
+    destroyDrawBuffer(device, m_depthBuffer);
+    destroyDrawBuffer(device, m_msaaDepthBuffer);
+    destroyDrawBuffer(device, m_msaaColor);
 }
 
 bool RenderContext::CreateImageViews()
@@ -371,8 +353,8 @@ std::vector<VkFramebuffer> RenderContext::CreateFramebuffers(const vk::RenderPas
 
     for (size_t i = 0; i < frameBuffers.size(); ++i)
     {
-        VkImageView attachments[] = { m_imageViews[i], m_depthBuffer[i].imageView };
-        VkImageView attachmentsMSAA[] = { m_msaaColor[i].imageView, m_msaaDepthBuffer[i].imageView, m_imageViews[i] };
+        VkImageView attachments[] = { m_imageViews[i], m_depthBuffer.imageView };
+        VkImageView attachmentsMSAA[] = { m_msaaColor.imageView, m_msaaDepthBuffer.imageView, m_imageViews[i] };
 
         fbCreateInfo.pAttachments = (rp.sampleCount != VK_SAMPLE_COUNT_1_BIT) ? attachmentsMSAA : attachments;
         VkResult result = vkCreateFramebuffer(device.logical, &fbCreateInfo, nullptr, &frameBuffers[i]);

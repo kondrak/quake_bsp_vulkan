@@ -98,12 +98,12 @@ private:
     // semaphore: signal when rendering to current command buffer is complete
     VkSemaphore m_renderFinishedSemaphores[NUM_CMDBUFFERS];
 
-    // depth buffer textures - one per each swapchain image
-    std::vector<vk::Texture> m_depthBuffer;
+    // depth buffer
+    vk::Texture m_depthBuffer;
 
-    // render targets for color and depth used with MSAA - one per each swapchain image
-    std::vector<vk::Texture> m_msaaColor;
-    std::vector<vk::Texture> m_msaaDepthBuffer;
+    // render targets for color and depth used with MSAA
+    vk::Texture m_msaaColor;
+    vk::Texture m_msaaDepthBuffer;
 
     // handle submission from multiple render passes
     uint32_t m_imageIndex;
