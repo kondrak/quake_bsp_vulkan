@@ -21,8 +21,6 @@ public:
     Camera *GetActiveCamera()        { return m_activeCamera; }
     Camera *GetCamera(int camIdx)    { return m_cameras[camIdx]; }
     void SetActiveCamera(int camIdx) { m_activeCamera = m_cameras[camIdx]; }
-
-    void OnMouseMove(int x, int y);
 private:
     Camera *m_activeCamera = nullptr;
     std::vector<Camera *> m_cameras;

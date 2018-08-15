@@ -27,8 +27,3 @@ int CameraDirector::AddCamera(const Math::Vector3f &position,
 
     return (int)m_cameras.size();
 }
-
-void CameraDirector::OnMouseMove(int x, int y)
-{
-    m_activeCamera->OnMouseMove(x, y);
-}
