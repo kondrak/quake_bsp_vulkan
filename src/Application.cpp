@@ -172,7 +172,7 @@ void Application::OnKeyRelease(KeyCode key)
 
 void Application::OnMouseMove(int x, int y)
 {
-    g_cameraDirector.GetActiveCamera()->OnMouseMove(x, y);
+    g_cameraDirector.OnMouseMove(x, y);
 }
 
 void Application::UpdateCamera(float dt)
