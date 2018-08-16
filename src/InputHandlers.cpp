@@ -133,7 +133,7 @@ void processEvents()
                 break;
             }
             // toggle fullscreen
-            if (event.key.keysym.sym == SDLK_RETURN && (event.key.keysym.mod & KMOD_ALT))
+            if (((event.key.keysym.sym == SDLK_RETURN) || (event.key.keysym.sym == SDLK_KP_ENTER)) && (event.key.keysym.mod & KMOD_ALT))
             {
                 SDL_DisplayMode dMode;
                 bool isFullScreen = (SDL_GetWindowFlags(g_renderContext.window) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
