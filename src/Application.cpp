@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include "Application.hpp"
 #include "StringHelpers.hpp"
+#include "ThreadProcessor.hpp"
 #include "renderer/CameraDirector.hpp"
 #include "renderer/RenderContext.hpp"
 #include "q3bsp/Q3BspLoader.hpp"
@@ -8,7 +9,7 @@
 
 extern RenderContext  g_renderContext;
 extern CameraDirector g_cameraDirector;
-
+extern ThreadProcessor g_threadProcessor;
 
 void Application::OnWindowResize(int newWidth, int newHeight)
 {
@@ -25,6 +26,9 @@ void Application::OnWindowResize(int newWidth, int newHeight)
 void Application::OnWindowMinimized(bool minimized)
 {
     m_noRedraw = minimized;
+
+    if (minimized)
+        g_threadProcessor.Wait();
 }
 
 void Application::OnStart(int argc, char **argv, bool multithreaded)
@@ -98,7 +102,7 @@ void Application::OnUpdate(float dt)
     UpdateCamera(dt);
 
     // determine which faces are visible
-    if (m_q3map->Valid())
+    if (m_q3map->Valid() && !m_noRedraw)
         m_q3map->OnUpdate(m_multithreaded);
 }
 
