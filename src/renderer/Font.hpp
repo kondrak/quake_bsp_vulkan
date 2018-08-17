@@ -24,7 +24,7 @@ public:
     void RenderText(const std::string &text, const Math::Vector3f &position, const Math::Vector3f &color);
     void RenderText(const std::string &text, float x, float y, float z = -1.0f);
     void RenderStart();
-    void RenderFinish();
+    void RenderFinish(bool multithreaded);
     void RebuildPipeline();
 private:
     static const int MAX_CHARS = 350;
@@ -44,6 +44,7 @@ private:
     };
 
     void Draw();
+    void DrawMultithreaded();
     void CreateDescriptor(const vk::Texture *texture, vk::Descriptor *descriptor);
     // single character draw
     void DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int offset, const Math::Vector3f &color);
@@ -64,6 +65,9 @@ private:
     int    m_charCount = 0;         // number of characters currently queued for drawing
     Glyph  m_charBuffer[MAX_CHARS]; // character data for vertex buffer
     Glyph *m_mappedData = nullptr;  // pointer to currently mapped Vulkan data
+
+    VkCommandPool m_threadCmdPool;
+    VkCommandBuffer m_secondaryCmdBuffer;
 };
 
 #endif

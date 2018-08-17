@@ -39,6 +39,9 @@ Font::Font(const char *tex) : m_scale(1.f, 1.f), m_position(0.0f, 0.0f, 0.0f), m
     CreateDescriptor(*m_texture, &m_descriptor);
 
     RebuildPipeline();
+
+    VK_VERIFY(vk::createCommandPool(g_renderContext.device, g_renderContext.device.graphicsFamilyIndex, &m_threadCmdPool));
+    m_secondaryCmdBuffer = vk::createCommandBuffer(g_renderContext.device, m_threadCmdPool, VK_COMMAND_BUFFER_LEVEL_SECONDARY);
 }
 
 Font::~Font()
@@ -48,6 +51,9 @@ Font::~Font()
     vkDestroyDescriptorSetLayout(g_renderContext.device.logical, m_descriptor.setLayout, nullptr);
     vkDestroyDescriptorPool(g_renderContext.device.logical, m_descriptor.pool, nullptr);
     vk::freeBuffer(g_renderContext.device, m_vertexBuffer);
+
+    vkFreeCommandBuffers(g_renderContext.device.logical, m_threadCmdPool, 1, &m_secondaryCmdBuffer);
+    vkDestroyCommandPool(g_renderContext.device.logical, m_threadCmdPool, nullptr);
 }
 
 void Font::RenderText(const std::string &text, float x, float y, float z, float r, float g, float b)
@@ -98,12 +104,18 @@ void Font::RenderStart()
     vmaMapMemory(g_renderContext.device.allocator, m_vertexBuffer.allocation, (void**)&m_mappedData);
 }
 
-void Font::RenderFinish()
+void Font::RenderFinish(bool multithreaded)
 {
     vmaUnmapMemory(g_renderContext.device.allocator, m_vertexBuffer.allocation);
 
     // update command buffers with new characters
-    Draw();
+    if (multithreaded)
+    {
+        DrawMultithreaded();
+        vkCmdExecuteCommands(g_renderContext.activeCmdBuffer, 1, &m_secondaryCmdBuffer);
+    }
+    else
+        Draw();
 }
 
 void Font::RebuildPipeline()
@@ -156,6 +168,35 @@ void Font::Draw()
 
     for (int j = 0; j < m_charCount; j++)
         vkCmdDraw(g_renderContext.activeCmdBuffer, 4, 1, j * 4, 0);
+}
+
+void Font::DrawMultithreaded()
+{
+    VkCommandBufferInheritanceInfo cbihInfo = {};
+    cbihInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+    cbihInfo.renderPass = g_renderContext.activeRenderPass.renderPass;
+    cbihInfo.framebuffer = g_renderContext.activeFramebuffer;
+
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+    beginInfo.pInheritanceInfo = &cbihInfo;
+
+    VK_VERIFY(vkBeginCommandBuffer(m_secondaryCmdBuffer, &beginInfo));
+    vkCmdSetViewport(m_secondaryCmdBuffer, 0, 1, &g_renderContext.m_viewport);
+    vkCmdSetScissor(m_secondaryCmdBuffer, 0, 1, &g_renderContext.m_scissor);
+
+    vkCmdBindPipeline(m_secondaryCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.pipeline);
+
+    // queue all pending characters
+    VkDeviceSize offsets[] = { 0 };
+    vkCmdBindVertexBuffers(m_secondaryCmdBuffer, 0, 1, &m_vertexBuffer.buffer, offsets);
+    vkCmdBindDescriptorSets(m_secondaryCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.layout, 0, 1, &m_descriptor.set, 0, nullptr);
+
+    for (int j = 0; j < m_charCount; j++)
+        vkCmdDraw(m_secondaryCmdBuffer, 4, 1, j * 4, 0);
+
+    VK_VERIFY(vkEndCommandBuffer(m_secondaryCmdBuffer));
 }
 
 void Font::CreateDescriptor(const vk::Texture *texture, vk::Descriptor *descriptor)

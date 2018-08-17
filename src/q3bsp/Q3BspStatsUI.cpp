@@ -16,7 +16,6 @@ Q3StatsUI::Q3StatsUI(BspMap *map) : StatsUI(map)
 
 void Q3StatsUI::OnRender(bool multithreaded)
 {
-    if (multithreaded) return;
     m_font->RenderStart();
 
     // no map loaded or no cmdline parameter specified - display error message
@@ -24,7 +23,7 @@ void Q3StatsUI::OnRender(bool multithreaded)
     {
         m_font->SetColor(Math::Vector3f(1.f, 0.f, 0.f));
         m_font->RenderText("Error loading BSP - missing/corrupted file or no file specified!", -0.7f, 0.0f, 0.f);
-        m_font->RenderFinish();
+        m_font->RenderFinish(multithreaded);
         return;
     }
 
@@ -106,7 +105,7 @@ void Q3StatsUI::OnRender(bool multithreaded)
     m_font->RenderText("F8 - multisampling (MSAA)", keysX, keysY - ySpacing * 8.f, 0.f);
     m_font->SetColor(Math::Vector3f(1.f, 1.f, 1.f));
 
-    m_font->RenderFinish();
+    m_font->RenderFinish(multithreaded);
 }
 
 void Q3StatsUI::RebuildPipeline()
