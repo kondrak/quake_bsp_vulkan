@@ -180,6 +180,8 @@ void Q3BspMap::Init()
     m_facesPerThread = (unsigned int)m_renderFaces.size() / threadCnt;
     LOG_MESSAGE("Map has " << m_renderFaces.size() << " faces, processing " << m_facesPerThread << " faces per thread (extra " << (unsigned int)m_renderFaces.size() - m_facesPerThread * threadCnt << " faces left for one thread).");
 
+    m_visibleFacesMultithread.resize(threadCnt);
+    m_visiblePatchesMultithread.resize(threadCnt);
     m_threadCmdPools.resize(threadCnt);
     for (unsigned int i = 0; i < threadCnt; ++i)
     {
@@ -229,7 +231,14 @@ void Q3BspMap::OnUpdate(bool multithreaded)
 {
     if (multithreaded)
     {
-        CalculateVisibleFaces(g_cameraDirector.GetActiveCamera()->Position());
+        std::unique_lock<std::recursive_mutex> lock(m_statsMutex);
+        m_mapStats.visibleFaces = 0;
+        m_mapStats.visiblePatches = 0;
+
+        for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
+        {
+            g_threadProcessor.AddTask(i, [=] { CalculateVisibleFacesMultithread(i, i * m_facesPerThread, g_cameraDirector.GetActiveCamera()->Position()); });
+        }
     }
     else
     {
@@ -332,6 +341,55 @@ void Q3BspMap::CalculateVisibleFaces(const Math::Vector3f &cameraPosition)
 
     m_mapStats.visibleFaces   = (int)m_visibleFaces.size();
     m_mapStats.visiblePatches = (int)m_visiblePatches.size();
+}
+
+void Q3BspMap::CalculateVisibleFacesMultithread(int threadIndex, int startOffset, const Math::Vector3f &cameraPosition)
+{
+    m_visibleFacesMultithread[threadIndex].clear();
+    m_visiblePatchesMultithread[threadIndex].clear();
+
+    //calculate the camera leaf
+    int cameraLeaf = FindCameraLeaf(cameraPosition * Q3BspMap::s_worldScale);
+    int cameraCluster = m_renderLeaves[cameraLeaf].visCluster;
+
+    //loop through the leaves
+    for (size_t i = startOffset; i < startOffset + m_facesPerThread && i < m_renderLeaves.size(); ++i)
+    {
+        Q3LeafRenderable &rl = m_renderLeaves[i];
+        //if the leaf is not in the PVS - skip it
+        if (!HasRenderFlag(Q3RenderSkipPVS) && !ClusterVisible(cameraCluster, rl.visCluster))
+            continue;
+
+        //if this leaf does not lie in the frustum - skip it
+        if (!HasRenderFlag(Q3RenderSkipFC) && !m_frustum.BoxInFrustum(rl.boundingBoxVertices))
+            continue;
+
+        //loop through faces in this leaf and them to visibility set
+        for (int j = 0; j < rl.numFaces; ++j)
+        {
+            int idx = leafFaces[rl.firstFace + j].face;
+            Q3FaceRenderable *face = &m_renderFaces[leafFaces[rl.firstFace + j].face];
+
+            if (HasRenderFlag(Q3RenderSkipMissingTex) && !m_textures[faces[idx].texture])
+                continue;
+
+            if ((face->type == FaceTypePolygon || face->type == FaceTypeMesh) &&
+                std::find(m_visibleFacesMultithread[threadIndex].begin(), m_visibleFacesMultithread[threadIndex].end(), face) == m_visibleFacesMultithread[threadIndex].end())
+            {
+                m_visibleFacesMultithread[threadIndex].push_back(face);
+            }
+
+            if (face->type == FaceTypePatch &&
+                std::find(m_visiblePatchesMultithread[threadIndex].begin(), m_visiblePatchesMultithread[threadIndex].end(), idx) == m_visiblePatchesMultithread[threadIndex].end())
+            {
+                m_visiblePatchesMultithread[threadIndex].push_back(idx);
+            }
+        }
+    }
+
+    std::unique_lock<std::recursive_mutex> lock(m_statsMutex);
+    m_mapStats.visibleFaces += (int)m_visibleFacesMultithread[threadIndex].size();
+    m_mapStats.visiblePatches += (int)m_visiblePatchesMultithread[threadIndex].size();
 }
 
 void Q3BspMap::ToggleRenderFlag(int flag)
@@ -550,7 +608,7 @@ void Q3BspMap::DrawMultithreaded(int threadIndex, VkCommandBufferInheritanceInfo
     // quake 3 bsp requires uint32 for index type - 16 is too small
     vkCmdBindIndexBuffer(m_secondaryCmdBuffers[threadIndex], m_faceIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
-    for (auto &f : m_visibleFaces)
+    for (auto &f : m_visibleFacesMultithread[threadIndex])
     {
         FaceBuffers &fb = m_renderBuffers.m_faceBuffers[f->index];
         vkCmdBindDescriptorSets(m_secondaryCmdBuffers[threadIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, m_facesPipeline.layout, 0, 1, &fb.descriptor.set, 0, nullptr);
@@ -563,7 +621,7 @@ void Q3BspMap::DrawMultithreaded(int threadIndex, VkCommandBufferInheritanceInfo
     // quake 3 bsp requires uint32 for index type - 16 is too small
     vkCmdBindIndexBuffer(m_secondaryCmdBuffers[threadIndex], m_patchIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
-    for (auto &pi : m_visiblePatches)
+    for (auto &pi : m_visiblePatchesMultithread[threadIndex])
     {
         vkCmdBindDescriptorSets(m_secondaryCmdBuffers[threadIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.layout, 0, 1, &m_renderBuffers.m_patchBuffers[pi][0].descriptor.set, 0, nullptr);
         for (auto &p : m_renderBuffers.m_patchBuffers[pi])

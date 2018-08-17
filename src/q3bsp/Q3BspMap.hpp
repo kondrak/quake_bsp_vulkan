@@ -6,8 +6,9 @@
 #include "q3bsp/Q3Bsp.hpp"
 #include "renderer/RenderContext.hpp"
 #include "renderer/Ubo.hpp"
-#include <vector>
 #include <map>
+#include <mutex>
+#include <vector>
 
 class  GameTexture;
 class  Q3BspBiquadPatch;
@@ -34,6 +35,7 @@ public:
     bool ClusterVisible(int cameraCluster, int testCluster)   const;
     int  FindCameraLeaf(const Math::Vector3f &cameraPosition) const;
     void CalculateVisibleFaces(const Math::Vector3f &cameraPosition);
+    void CalculateVisibleFacesMultithread(int threadIndex, int startOffset, const Math::Vector3f &cameraPosition);
     void ToggleRenderFlag(int flag);
 
     // bsp data
@@ -108,9 +110,13 @@ private:
     vk::Buffer m_patchIndexBuffer;
 
     // multithreading secondary command buffers and respective command pools
+    std::vector<std::vector<Q3FaceRenderable *>> m_visibleFacesMultithread;   // list of visible surfaces to render
+    std::vector<std::vector<int>>                m_visiblePatchesMultithread; // list of visible patches to render
+
     std::vector<VkCommandPool> m_threadCmdPools;
     std::vector<VkCommandBuffer> m_secondaryCmdBuffers;
     unsigned int m_facesPerThread;
+    std::recursive_mutex m_statsMutex;
 };
 
 #endif
