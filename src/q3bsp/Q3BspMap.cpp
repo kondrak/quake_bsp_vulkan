@@ -1,14 +1,18 @@
 #include "q3bsp/Q3BspMap.hpp"
 #include "q3bsp/Q3BspPatch.hpp"
+#include "renderer/CameraDirector.hpp"
 #include "renderer/TextureManager.hpp"
 #include "renderer/vulkan/CmdBuffer.hpp"
 #include "renderer/vulkan/Pipeline.hpp"
 #include "Math.hpp"
+#include "ThreadProcessor.hpp"
 #include "Utils.hpp"
 #include <algorithm>
 #include <sstream>
 
-extern RenderContext  g_renderContext;
+extern CameraDirector  g_cameraDirector;
+extern RenderContext   g_renderContext;
+extern ThreadProcessor g_threadProcessor;
 const int   Q3BspMap::s_tesselationLevel = 10;   // level of curved surface tesselation
 const float Q3BspMap::s_worldScale       = 64.f; // scale down factor for the map
 
@@ -165,7 +169,7 @@ void Q3BspMap::Init()
     m_ubo.worldScaleFactor = 1.f / Q3BspMap::s_worldScale;
 }
 
-void Q3BspMap::OnRender()
+void Q3BspMap::OnRender(bool multithreaded)
 {
     // no faces at all in this BSP? something's not right, abort
     if (faces.empty())
@@ -181,7 +185,26 @@ void Q3BspMap::OnRender()
     vmaUnmapMemory(g_renderContext.device.allocator, m_renderBuffers.uniformBuffer.allocation);
 
     // record new set of command buffers including only visible faces and patches
-    Draw();
+    if (multithreaded)
+    {
+        DrawMultithreaded();
+    }
+    else
+    {
+        Draw();
+    }
+}
+
+void Q3BspMap::OnUpdate(bool multithreaded)
+{
+    if (multithreaded)
+    {
+        CalculateVisibleFaces(g_cameraDirector.GetActiveCamera()->Position());
+    }
+    else
+    {
+        CalculateVisibleFaces(g_cameraDirector.GetActiveCamera()->Position());
+    }
 }
 
 void Q3BspMap::RebuildPipeline()
@@ -475,6 +498,11 @@ void Q3BspMap::Draw()
             vkCmdDrawIndexed(g_renderContext.activeCmdBuffer, p.indexCount, 1, p.indexOffset, p.vertexOffset, 0);
         }
     }
+}
+
+void Q3BspMap::DrawMultithreaded()
+{
+
 }
 
 void Q3BspMap::CreateDescriptorsForFace(const Q3BspFaceLump &face, int idx, int vertexOffset, int indexOffset)

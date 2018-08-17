@@ -2,12 +2,14 @@
 #include "InputHandlers.hpp"
 #include "renderer/RenderContext.hpp"
 #include "renderer/CameraDirector.hpp"
+#include "ThreadProcessor.hpp"
 #include "Utils.hpp"
 
 // for simplicity, let's use globals
-RenderContext  g_renderContext;
-Application    g_application;
-CameraDirector g_cameraDirector;
+RenderContext   g_renderContext;
+Application     g_application;
+CameraDirector  g_cameraDirector;
+ThreadProcessor g_threadProcessor;
 int g_fps = 1;
 
 int main(int argc, char **argv)

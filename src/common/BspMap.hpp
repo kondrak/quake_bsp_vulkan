@@ -14,7 +14,8 @@ public:
     virtual ~BspMap() {}
 
     virtual void Init() = 0;
-    virtual void OnRender()        = 0; // perform rendering
+    virtual void OnRender(bool multithreaded) = 0; // perform rendering
+    virtual void OnUpdate(bool multithreaded) = 0;
     virtual void RebuildPipeline() = 0; // rebuild Vulkan pipelines from scratch
 
     virtual bool ClusterVisible(int cameraCluster, int testCluster) const    = 0;  // determine bsp cluster visibility

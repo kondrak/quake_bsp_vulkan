@@ -108,6 +108,9 @@
     <ClCompile Include="src\renderer\vulkan\VkMemAlloc.cpp">
       <Filter>Source Files\renderer\vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="src\ThreadProcessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Application.hpp">
@@ -199,6 +202,9 @@
     </ClInclude>
     <ClInclude Include="src\renderer\Ubo.hpp">
       <Filter>Source Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ThreadProcessor.hpp">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

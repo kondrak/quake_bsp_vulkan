@@ -27,7 +27,8 @@ public:
     ~Q3BspMap();
 
     void Init();
-    void OnRender();
+    void OnRender(bool multithreaded);
+    void OnUpdate(bool multithreaded);
     void RebuildPipeline();
 
     bool ClusterVisible(int cameraCluster, int testCluster)   const;
@@ -60,8 +61,10 @@ private:
     void SetLightmapGamma(float gamma);
     void CreatePatch(const Q3BspFaceLump &f);
 
-    // queue data for drawing
+    // queue data for drawing (single thread)
     void Draw();
+    // multithreaded drawing
+    void DrawMultithreaded();
 
     // Vulkan buffer creation
     void CreateDescriptorsForFace(const Q3BspFaceLump &face, int idx, int vertexOffset, int indexOffset);

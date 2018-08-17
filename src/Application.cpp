@@ -33,10 +33,14 @@ void Application::OnStart(int argc, char **argv)
     // assume the parameter with a string ".bsp" is the map we want to load
     for (int i = 1; i < argc; ++i)
     {
-        if (std::string(argv[i]).find(".bsp") != std::string::npos)
+        if (!m_q3map && std::string(argv[i]).find(".bsp") != std::string::npos)
         {
             m_q3map = loader.Load(argv[i]);
-            break;
+        }
+
+        if (!strcmp(argv[i], "-mt"))
+        {
+            m_multithreaded = true;
         }
     }
 
@@ -74,13 +78,13 @@ void Application::OnRender()
 
     // render the bsp
     g_cameraDirector.GetActiveCamera()->UpdateView();
-    m_q3map->OnRender();
+    m_q3map->OnRender(m_multithreaded);
 
     // render map stats
     switch (m_debugRenderState)
     {
     case RenderMapStats:
-        m_q3stats->OnRender();
+        m_q3stats->OnRender(m_multithreaded);
         break;
     default:
         break;
@@ -99,7 +103,7 @@ void Application::OnUpdate(float dt)
 
     // determine which faces are visible
     if (m_q3map->Valid())
-        m_q3map->CalculateVisibleFaces(g_cameraDirector.GetActiveCamera()->Position());
+        m_q3map->OnUpdate(m_multithreaded);
 }
 
 void Application::OnTerminate()
