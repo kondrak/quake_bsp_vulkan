@@ -24,6 +24,7 @@ SOURCES = \
 	../src/main.cpp \
 	../src/Math.cpp \
 	../src/StringHelpers.cpp \
+	../src/ThreadProcessor.cpp \
 	../src/Utils.cpp
 
 TARGET = QuakeBspViewer
