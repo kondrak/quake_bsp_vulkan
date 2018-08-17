@@ -64,7 +64,7 @@ private:
     // queue data for drawing (single thread)
     void Draw();
     // multithreaded drawing
-    void DrawMultithreaded();
+    void DrawMultithreaded(int threadIndex);
 
     // Vulkan buffer creation
     void CreateDescriptorsForFace(const Q3BspFaceLump &face, int idx, int vertexOffset, int indexOffset);
@@ -110,6 +110,7 @@ private:
     // multithreading secondary command buffers and respective command pools
     std::vector<VkCommandPool> m_threadCmdPools;
     std::vector<VkCommandBuffer> m_secondaryCmdBuffers;
+    unsigned int m_facesPerThread;
 };
 
 #endif

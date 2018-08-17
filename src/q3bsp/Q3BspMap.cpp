@@ -177,8 +177,8 @@ void Q3BspMap::Init()
 
     // setup and allocate multithreading resources
     unsigned int threadCnt = g_threadProcessor.NumThreads();
-    unsigned int facesPerThread = (unsigned int)m_renderFaces.size() / threadCnt;
-    LOG_MESSAGE("Map has " << m_renderFaces.size() << " faces, processing " << facesPerThread << " faces per thread (extra " << (unsigned int)m_renderFaces.size() - facesPerThread * threadCnt << " faces left for one thread).");
+    m_facesPerThread = (unsigned int)m_renderFaces.size() / threadCnt;
+    LOG_MESSAGE("Map has " << m_renderFaces.size() << " faces, processing " << m_facesPerThread << " faces per thread (extra " << (unsigned int)m_renderFaces.size() - m_facesPerThread * threadCnt << " faces left for one thread).");
 
     m_threadCmdPools.resize(threadCnt);
     for (unsigned int i = 0; i < threadCnt; ++i)
@@ -206,7 +206,10 @@ void Q3BspMap::OnRender(bool multithreaded)
     // record new set of command buffers including only visible faces and patches
     if (multithreaded)
     {
-        DrawMultithreaded();
+        for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
+        {
+            g_threadProcessor.AddTask(i, [=] { DrawMultithreaded(i); });
+        }
     }
     else
     {
@@ -519,9 +522,9 @@ void Q3BspMap::Draw()
     }
 }
 
-void Q3BspMap::DrawMultithreaded()
+void Q3BspMap::DrawMultithreaded(int threadIndex)
 {
-
+    LOG_MESSAGE("Rendering " << threadIndex);
 }
 
 void Q3BspMap::CreateDescriptorsForFace(const Q3BspFaceLump &face, int idx, int vertexOffset, int indexOffset)
