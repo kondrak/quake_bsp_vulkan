@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 
     std::string title("Quake BSP Viewer in Vulkan");
     if (multithreaded)
-        title += " (multithreaded)";
+        title += " (multithreaded: " + std::to_string(g_threadProcessor.NumThreads()) + " threads)";
 
     if (!g_renderContext.Init(title.c_str(), multithreaded, 100, 100, 1024, 768))
     {
