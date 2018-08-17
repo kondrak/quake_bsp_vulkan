@@ -45,7 +45,7 @@ Q3BspMap::~Q3BspMap()
     vkDestroyDescriptorSetLayout(g_renderContext.device.logical, m_dsLayout, nullptr);
 
     // free multithreading resources
-    for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
+    for (unsigned int i = 0; i < m_secondaryCmdBuffers.size(); ++i)
     {
         vkFreeCommandBuffers(g_renderContext.device.logical, m_threadCmdPools[i], 1, &m_secondaryCmdBuffers[i]);
         vkDestroyCommandPool(g_renderContext.device.logical, m_threadCmdPools[i], nullptr);
