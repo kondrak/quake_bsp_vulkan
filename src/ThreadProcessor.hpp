@@ -30,6 +30,7 @@ public:
     ThreadProcessor();
     ~ThreadProcessor();
 
+    const unsigned int NumThreads() const { return m_numThreads; }
     void AddTask(uint8_t threadId, ThreadTask &&task);
     void Wait();
     void Finish();

@@ -43,6 +43,13 @@ Q3BspMap::~Q3BspMap()
     vk::releaseTexture(g_renderContext.device, m_whiteTex);
     vkDestroyDescriptorPool(g_renderContext.device.logical, m_descriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(g_renderContext.device.logical, m_dsLayout, nullptr);
+
+    // free multithreading resources
+    for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
+    {
+        vkFreeCommandBuffers(g_renderContext.device.logical, m_threadCmdPools[i], 1, &m_secondaryCmdBuffers[i]);
+        vkDestroyCommandPool(g_renderContext.device.logical, m_threadCmdPools[i], nullptr);
+    }
 }
 
 void Q3BspMap::Init()
@@ -167,6 +174,18 @@ void Q3BspMap::Init()
 
     // set the scale-down uniform
     m_ubo.worldScaleFactor = 1.f / Q3BspMap::s_worldScale;
+
+    // setup and allocate multithreading resources
+    unsigned int threadCnt = g_threadProcessor.NumThreads();
+    unsigned int facesPerThread = (unsigned int)m_renderFaces.size() / threadCnt;
+    LOG_MESSAGE("Map has " << m_renderFaces.size() << " faces, processing " << facesPerThread << " faces per thread (extra " << (unsigned int)m_renderFaces.size() - facesPerThread * threadCnt << " faces left for one thread).");
+
+    m_threadCmdPools.resize(threadCnt);
+    for (unsigned int i = 0; i < threadCnt; ++i)
+    {
+        VK_VERIFY(vk::createCommandPool(g_renderContext.device, g_renderContext.device.graphicsFamilyIndex, &m_threadCmdPools[i]));
+        m_secondaryCmdBuffers.push_back(vk::createCommandBuffer(g_renderContext.device, m_threadCmdPools[i], VK_COMMAND_BUFFER_LEVEL_SECONDARY));
+    }   
 }
 
 void Q3BspMap::OnRender(bool multithreaded)

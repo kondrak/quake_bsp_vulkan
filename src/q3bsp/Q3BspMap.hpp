@@ -106,6 +106,10 @@ private:
     vk::Buffer m_faceIndexBuffer;
     vk::Buffer m_patchVertexBuffer;
     vk::Buffer m_patchIndexBuffer;
+
+    // multithreading secondary command buffers and respective command pools
+    std::vector<VkCommandPool> m_threadCmdPools;
+    std::vector<VkCommandBuffer> m_secondaryCmdBuffers;
 };
 
 #endif
