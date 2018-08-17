@@ -6,6 +6,8 @@
 #include "Utils.hpp"
 #include <algorithm>
 
+static int NUM_CMDBUFFERS = 1;
+
 // index of the command buffer that's currently in use
 static int s_currentCmdBuffer = 0;
 
@@ -23,10 +25,16 @@ static VkSampleCountFlagBits getMaxUsableSampleCount(const VkPhysicalDevicePrope
 }
 
 // initialize Vulkan render context
-bool RenderContext::Init(const char *title, int x, int y, int w, int h)
+bool RenderContext::Init(const char *title, bool multithreaded, int x, int y, int w, int h)
 {
     window = SDL_CreateWindow(title, x, y, w, h, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
     SDL_GetWindowSize(window, &width, &height);
+
+    m_multithreaded = multithreaded;
+
+    // use 2 synchronized command buffers for rendering (double buffering) if single threaded, otherwise use single primary command buffer
+    if (!multithreaded)
+        NUM_CMDBUFFERS++;
 
     halfWidth  = width  >> 1;
     halfHeight = height >> 1;
@@ -91,7 +99,7 @@ VkResult RenderContext::RenderStart()
     VkResult result = vkAcquireNextImageKHR(device.logical, swapChain.sc, UINT64_MAX, m_imageAvailableSemaphores[s_currentCmdBuffer], VK_NULL_HANDLE, &m_imageIndex);
     activeCmdBuffer = m_commandBuffers[s_currentCmdBuffer];
     activeFramebuffer = (activeRenderPass.sampleCount == VK_SAMPLE_COUNT_1_BIT) ? m_frameBuffers[m_imageIndex] : m_msaaFrameBuffers[m_imageIndex];
- 
+
     // swapchain has become incompatible - need to recreate it
     if (result == VK_ERROR_OUT_OF_DATE_KHR)
     {
@@ -126,9 +134,16 @@ VkResult RenderContext::RenderStart()
     renderBeginInfo.clearValueCount = 2;
     renderBeginInfo.pClearValues = clearColors;
 
-    vkCmdBeginRenderPass(m_commandBuffers[s_currentCmdBuffer], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdSetViewport(m_commandBuffers[s_currentCmdBuffer], 0, 1, &m_viewport);
-    vkCmdSetScissor(m_commandBuffers[s_currentCmdBuffer], 0, 1, &m_scissor);
+    if (m_multithreaded)
+    {
+        vkCmdBeginRenderPass(m_commandBuffers[s_currentCmdBuffer], &renderBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+    }
+    else
+    {
+        vkCmdBeginRenderPass(m_commandBuffers[s_currentCmdBuffer], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdSetViewport(m_commandBuffers[s_currentCmdBuffer], 0, 1, &m_viewport);
+        vkCmdSetScissor(m_commandBuffers[s_currentCmdBuffer], 0, 1, &m_scissor);
+    }
 
     return VK_SUCCESS;
 }
@@ -266,6 +281,10 @@ bool RenderContext::InitVulkan(const char *appTitle)
     m_scissor.offset.x = 0;
     m_scissor.offset.y = 0;
     m_scissor.extent = swapChain.extent;
+
+    m_fences.resize(NUM_CMDBUFFERS);
+    m_imageAvailableSemaphores.resize(NUM_CMDBUFFERS);
+    m_renderFinishedSemaphores.resize(NUM_CMDBUFFERS);
 
     CreateFences();
     CreateSemaphores();

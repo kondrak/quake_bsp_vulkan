@@ -27,20 +27,16 @@ void Application::OnWindowMinimized(bool minimized)
     m_noRedraw = minimized;
 }
 
-void Application::OnStart(int argc, char **argv)
+void Application::OnStart(int argc, char **argv, bool multithreaded)
 {
+    m_multithreaded = multithreaded;
     Q3BspLoader loader;
     // assume the parameter with a string ".bsp" is the map we want to load
     for (int i = 1; i < argc; ++i)
     {
-        if (!m_q3map && std::string(argv[i]).find(".bsp") != std::string::npos)
+        if (std::string(argv[i]).find(".bsp") != std::string::npos)
         {
             m_q3map = loader.Load(argv[i]);
-        }
-
-        if (!strcmp(argv[i], "-mt"))
-        {
-            m_multithreaded = true;
         }
     }
 

@@ -215,6 +215,9 @@ void Q3BspMap::OnRender(bool multithreaded)
         {
             g_threadProcessor.AddTask(i, [=] { DrawMultithreaded(i, cbihInfo); });
         }
+
+        g_threadProcessor.Wait();
+        vkCmdExecuteCommands(g_renderContext.activeCmdBuffer, (uint32_t)m_secondaryCmdBuffers.size(), m_secondaryCmdBuffers.data());
     }
     else
     {
@@ -529,7 +532,6 @@ void Q3BspMap::Draw()
 
 void Q3BspMap::DrawMultithreaded(int threadIndex, VkCommandBufferInheritanceInfo inheritanceInfo)
 {
-    LOG_MESSAGE("Rendering " << threadIndex);
     VkBuffer vertexBuffers[] = { m_faceVertexBuffer.buffer, m_patchVertexBuffer.buffer };
     VkDeviceSize offsets[] = { 0 };
 

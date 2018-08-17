@@ -16,6 +16,7 @@ Q3StatsUI::Q3StatsUI(BspMap *map) : StatsUI(map)
 
 void Q3StatsUI::OnRender(bool multithreaded)
 {
+    if (multithreaded) return;
     m_font->RenderStart();
 
     // no map loaded or no cmdline parameter specified - display error message

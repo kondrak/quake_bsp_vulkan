@@ -19,7 +19,7 @@ public:
     void OnWindowResize(int newWidth, int newHeight);
     void OnWindowMinimized(bool minimized);
 
-    void OnStart(int argc, char **argv);
+    void OnStart(int argc, char **argv, bool multithreaded);
     void OnRender();
     void OnUpdate(float dt);
     void OnTerminate();

@@ -14,7 +14,7 @@
 class RenderContext
 {
 public:
-    bool Init(const char *title, int x, int y, int w, int h);
+    bool Init(const char *title, bool multithreaded, int x, int y, int w, int h);
     void Destroy();
 
     // start rendering frame and setup all necessary structs
@@ -87,17 +87,16 @@ private:
     // Vulkan image views
     std::vector<VkImageView> m_imageViews;
 
-    // use 2 synchronized command buffers for rendering (double buffering)
-    static const int NUM_CMDBUFFERS = 2;
+    bool m_multithreaded = false;
 
     // command buffers
     std::vector<VkCommandBuffer> m_commandBuffers;
-    // command buffer double buffering fences
-    VkFence m_fences[NUM_CMDBUFFERS];
+    // command buffer fences
+    std::vector<VkFence> m_fences;
     // semaphore: signal when next image is available for rendering
-    VkSemaphore m_imageAvailableSemaphores[NUM_CMDBUFFERS];
+    std::vector<VkSemaphore> m_imageAvailableSemaphores;
     // semaphore: signal when rendering to current command buffer is complete
-    VkSemaphore m_renderFinishedSemaphores[NUM_CMDBUFFERS];
+    std::vector<VkSemaphore> m_renderFinishedSemaphores;
 
     // depth buffer
     vk::Texture m_depthBuffer;
