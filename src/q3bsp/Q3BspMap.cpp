@@ -206,9 +206,14 @@ void Q3BspMap::OnRender(bool multithreaded)
     // record new set of command buffers including only visible faces and patches
     if (multithreaded)
     {
+        VkCommandBufferInheritanceInfo cbihInfo = {};
+        cbihInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+        cbihInfo.renderPass = g_renderContext.activeRenderPass.renderPass;
+        cbihInfo.framebuffer = g_renderContext.activeFramebuffer;
+
         for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
         {
-            g_threadProcessor.AddTask(i, [=] { DrawMultithreaded(i); });
+            g_threadProcessor.AddTask(i, [=] { DrawMultithreaded(i, cbihInfo); });
         }
     }
     else
@@ -522,9 +527,50 @@ void Q3BspMap::Draw()
     }
 }
 
-void Q3BspMap::DrawMultithreaded(int threadIndex)
+void Q3BspMap::DrawMultithreaded(int threadIndex, VkCommandBufferInheritanceInfo inheritanceInfo)
 {
     LOG_MESSAGE("Rendering " << threadIndex);
+    VkBuffer vertexBuffers[] = { m_faceVertexBuffer.buffer, m_patchVertexBuffer.buffer };
+    VkDeviceSize offsets[] = { 0 };
+
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+    beginInfo.pInheritanceInfo = &inheritanceInfo;
+
+    VK_VERIFY(vkBeginCommandBuffer(m_secondaryCmdBuffers[threadIndex], &beginInfo));
+    vkCmdSetViewport(m_secondaryCmdBuffers[threadIndex], 0, 1, &g_renderContext.m_viewport);
+    vkCmdSetScissor(m_secondaryCmdBuffers[threadIndex], 0, 1, &g_renderContext.m_scissor);
+
+    // draw regular faces
+    vkCmdBindPipeline(m_secondaryCmdBuffers[threadIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, m_facesPipeline.pipeline);
+    vkCmdBindVertexBuffers(m_secondaryCmdBuffers[threadIndex], 0, 1, vertexBuffers, offsets);
+    // quake 3 bsp requires uint32 for index type - 16 is too small
+    vkCmdBindIndexBuffer(m_secondaryCmdBuffers[threadIndex], m_faceIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+
+    for (auto &f : m_visibleFaces)
+    {
+        FaceBuffers &fb = m_renderBuffers.m_faceBuffers[f->index];
+        vkCmdBindDescriptorSets(m_secondaryCmdBuffers[threadIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, m_facesPipeline.layout, 0, 1, &fb.descriptor.set, 0, nullptr);
+        vkCmdDrawIndexed(m_secondaryCmdBuffers[threadIndex], fb.indexCount, 1, fb.indexOffset, fb.vertexOffset, 0);
+    }
+
+    // draw patches
+    vkCmdBindPipeline(m_secondaryCmdBuffers[threadIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.pipeline);
+    vkCmdBindVertexBuffers(m_secondaryCmdBuffers[threadIndex], 0, 1, &vertexBuffers[1], offsets);
+    // quake 3 bsp requires uint32 for index type - 16 is too small
+    vkCmdBindIndexBuffer(m_secondaryCmdBuffers[threadIndex], m_patchIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+
+    for (auto &pi : m_visiblePatches)
+    {
+        vkCmdBindDescriptorSets(m_secondaryCmdBuffers[threadIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.layout, 0, 1, &m_renderBuffers.m_patchBuffers[pi][0].descriptor.set, 0, nullptr);
+        for (auto &p : m_renderBuffers.m_patchBuffers[pi])
+        {
+            vkCmdDrawIndexed(m_secondaryCmdBuffers[threadIndex], p.indexCount, 1, p.indexOffset, p.vertexOffset, 0);
+        }
+    }
+
+    VK_VERIFY(vkEndCommandBuffer(m_secondaryCmdBuffers[threadIndex]));
 }
 
 void Q3BspMap::CreateDescriptorsForFace(const Q3BspFaceLump &face, int idx, int vertexOffset, int indexOffset)

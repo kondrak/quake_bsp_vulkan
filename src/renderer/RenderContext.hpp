@@ -36,6 +36,7 @@ public:
     vk::Device device;
     vk::SwapChain swapChain;
     vk::RenderPass activeRenderPass;
+    VkFramebuffer activeFramebuffer;
     VkCommandBuffer activeCmdBuffer = VK_NULL_HANDLE;
     VkPipelineCache pipelineCache = VK_NULL_HANDLE;
 
@@ -55,6 +56,10 @@ public:
     float top = 0.f;
 
     Math::Matrix4f ModelViewProjectionMatrix; // global MVP used to orient the entire world
+
+    // using dynamic states for pipelines, so we need to update viewport and scissor manually
+    VkViewport m_viewport = {};
+    VkRect2D   m_scissor = {};
 private:
     bool InitVulkan(const char *appTitle);
     void CreateDrawBuffers();
@@ -70,10 +75,6 @@ private:
     // Vulkan instance and surface
     VkInstance   m_instance = VK_NULL_HANDLE;
     VkSurfaceKHR m_surface  = VK_NULL_HANDLE;
-
-    // using dynamic states for pipelines, so we need to update viewport and scissor manually
-    VkViewport m_viewport = {};
-    VkRect2D   m_scissor  = {};
 
     // Vulkan render passes - we don't want to rebuild them mid-flight when toggling MSAA due to issues in full screen (black screen, blinking, etc.)
     vk::RenderPass m_renderPass;

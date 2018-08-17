@@ -64,7 +64,7 @@ private:
     // queue data for drawing (single thread)
     void Draw();
     // multithreaded drawing
-    void DrawMultithreaded(int threadIndex);
+    void DrawMultithreaded(int threadIndex, VkCommandBufferInheritanceInfo inheritanceInfo);
 
     // Vulkan buffer creation
     void CreateDescriptorsForFace(const Q3BspFaceLump &face, int idx, int vertexOffset, int indexOffset);

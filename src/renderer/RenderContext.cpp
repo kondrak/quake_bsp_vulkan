@@ -90,6 +90,7 @@ VkResult RenderContext::RenderStart()
 {
     VkResult result = vkAcquireNextImageKHR(device.logical, swapChain.sc, UINT64_MAX, m_imageAvailableSemaphores[s_currentCmdBuffer], VK_NULL_HANDLE, &m_imageIndex);
     activeCmdBuffer = m_commandBuffers[s_currentCmdBuffer];
+    activeFramebuffer = (activeRenderPass.sampleCount == VK_SAMPLE_COUNT_1_BIT) ? m_frameBuffers[m_imageIndex] : m_msaaFrameBuffers[m_imageIndex];
  
     // swapchain has become incompatible - need to recreate it
     if (result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -119,7 +120,7 @@ VkResult RenderContext::RenderStart()
     VkRenderPassBeginInfo renderBeginInfo = {};
     renderBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderBeginInfo.renderPass = activeRenderPass.renderPass;
-    renderBeginInfo.framebuffer = (activeRenderPass.sampleCount == VK_SAMPLE_COUNT_1_BIT) ? m_frameBuffers[m_imageIndex] : m_msaaFrameBuffers[m_imageIndex];
+    renderBeginInfo.framebuffer = activeFramebuffer;
     renderBeginInfo.renderArea.offset = { 0, 0 };
     renderBeginInfo.renderArea.extent = swapChain.extent;
     renderBeginInfo.clearValueCount = 2;
