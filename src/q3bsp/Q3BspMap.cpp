@@ -595,6 +595,10 @@ void Q3BspMap::Draw()
 
 void Q3BspMap::DrawMultithreaded(int threadIndex, VkCommandBufferInheritanceInfo inheritanceInfo)
 {
+    // no visible patches nor faces for this thread - bail out
+    if (m_visibleFacesMultithread[threadIndex].empty() && !m_visiblePatchesMultithread[threadIndex].empty())
+        return;
+
     VkBuffer vertexBuffers[] = { m_faceVertexBuffer.buffer, m_patchVertexBuffer.buffer };
     VkDeviceSize offsets[] = { 0 };
 
