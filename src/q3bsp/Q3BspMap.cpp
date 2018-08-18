@@ -209,10 +209,10 @@ void Q3BspMap::OnRender(bool multithreaded)
     memcpy(data, &m_ubo, sizeof(m_ubo));
     vmaUnmapMemory(g_renderContext.device.allocator, m_renderBuffers.uniformBuffer.allocation);
 
-    VkCommandBufferInheritanceInfo cbihInfo = {};
-    cbihInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-    cbihInfo.renderPass = g_renderContext.activeRenderPass.renderPass;
-    cbihInfo.framebuffer = g_renderContext.activeFramebuffer;
+    VkCommandBufferInheritanceInfo inheritanceInfo = {};
+    inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+    inheritanceInfo.renderPass = g_renderContext.activeRenderPass.renderPass;
+    inheritanceInfo.framebuffer = g_renderContext.activeFramebuffer;
     // record new set of command buffers including only visible faces and patches
     if (multithreaded)
     {
@@ -221,7 +221,7 @@ void Q3BspMap::OnRender(bool multithreaded)
 
         for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
         {
-            g_threadProcessor.AddTask(i, [=] { Draw(i, cbihInfo); });
+            g_threadProcessor.AddTask(i, [=] { Draw(i, inheritanceInfo); });
             // show thread stats for rendered faces and patches in window title
             windowTitle += "[#" + std::to_string(i) + ": " + std::to_string(m_visibleFaces[i].size()) + ", " + std::to_string(m_visiblePatches[i].size()) + "]";
         }
@@ -233,7 +233,7 @@ void Q3BspMap::OnRender(bool multithreaded)
     }
     else
     {
-        Draw(0, cbihInfo);
+        Draw(0, inheritanceInfo);
     }
 
     vkCmdExecuteCommands(g_renderContext.activeCmdBuffer, (uint32_t)m_commandBuffers.size(), m_commandBuffers.data());

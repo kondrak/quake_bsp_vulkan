@@ -154,15 +154,15 @@ void Font::DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int
 
 void Font::Draw()
 {
-    VkCommandBufferInheritanceInfo cbihInfo = {};
-    cbihInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-    cbihInfo.renderPass = g_renderContext.activeRenderPass.renderPass;
-    cbihInfo.framebuffer = g_renderContext.activeFramebuffer;
+    VkCommandBufferInheritanceInfo inheritanceInfo = {};
+    inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+    inheritanceInfo.renderPass = g_renderContext.activeRenderPass.renderPass;
+    inheritanceInfo.framebuffer = g_renderContext.activeFramebuffer;
 
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-    beginInfo.pInheritanceInfo = &cbihInfo;
+    beginInfo.pInheritanceInfo = &inheritanceInfo;
 
     VK_VERIFY(vkBeginCommandBuffer(m_commandBuffer, &beginInfo));
     vkCmdSetViewport(m_commandBuffer, 0, 1, &g_renderContext.m_viewport);
