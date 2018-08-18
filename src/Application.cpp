@@ -88,7 +88,7 @@ void Application::OnRender()
     switch (m_debugRenderState)
     {
     case RenderMapStats:
-        m_q3stats->OnRender(m_multithreaded);
+        m_q3stats->OnRender();
         break;
     default:
         break;

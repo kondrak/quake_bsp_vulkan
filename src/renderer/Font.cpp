@@ -104,7 +104,7 @@ void Font::RenderStart()
     vmaMapMemory(g_renderContext.device.allocator, m_vertexBuffer.allocation, (void**)&m_mappedData);
 }
 
-void Font::RenderFinish(bool multithreaded)
+void Font::RenderFinish()
 {
     vmaUnmapMemory(g_renderContext.device.allocator, m_vertexBuffer.allocation);
 

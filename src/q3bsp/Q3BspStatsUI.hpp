@@ -18,7 +18,7 @@ public:
         delete m_font;
     }
 
-    void OnRender(bool multithreaded);
+    void OnRender();
     void RebuildPipeline();
 private:
     Font *m_font = nullptr;

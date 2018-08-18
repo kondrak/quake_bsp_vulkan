@@ -24,7 +24,7 @@ public:
     void RenderText(const std::string &text, const Math::Vector3f &position, const Math::Vector3f &color);
     void RenderText(const std::string &text, float x, float y, float z = -1.0f);
     void RenderStart();
-    void RenderFinish(bool multithreaded);
+    void RenderFinish();
     void RebuildPipeline();
 private:
     static const int MAX_CHARS = 350;
