@@ -16,6 +16,7 @@ class RenderContext
 public:
     bool Init(const char *title, bool multithreaded, int x, int y, int w, int h);
     void Destroy();
+    const char *WindowTitle() const { return m_windowTitle; }
 
     // start rendering frame and setup all necessary structs
     VkResult RenderStart();
@@ -71,6 +72,8 @@ private:
     void CreateFences();
     void CreateSemaphores();
     void CreatePipelineCache();
+
+    const char *m_windowTitle;
 
     // Vulkan instance and surface
     VkInstance   m_instance = VK_NULL_HANDLE;

@@ -28,6 +28,7 @@ static VkSampleCountFlagBits getMaxUsableSampleCount(const VkPhysicalDevicePrope
 bool RenderContext::Init(const char *title, bool multithreaded, int x, int y, int w, int h)
 {
     window = SDL_CreateWindow(title, x, y, w, h, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
+    m_windowTitle = title;
     SDL_GetWindowSize(window, &width, &height);
 
     m_multithreaded = multithreaded;

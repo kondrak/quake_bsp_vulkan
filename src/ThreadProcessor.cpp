@@ -27,12 +27,10 @@ void ThreadProcessor::Worker::Work()
         if(finish)
             break;
 
-        queueLock.unlock();
- 
-        // no need to hold lock when task is processing
+        // execute
         tasks.front()();
 
-        queueLock.lock();
+        // remove from task list
         tasks.pop();
         cv.notify_one();
     }

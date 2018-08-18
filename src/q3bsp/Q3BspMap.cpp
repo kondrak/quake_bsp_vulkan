@@ -178,7 +178,6 @@ void Q3BspMap::Init()
     // setup and allocate multithreading resources
     unsigned int threadCnt = g_threadProcessor.NumThreads();
     m_facesPerThread = (unsigned int)m_renderFaces.size() / threadCnt;
-    LOG_MESSAGE("Map has " << m_renderFaces.size() << " faces, processing " << m_facesPerThread << " faces per thread (extra " << (unsigned int)m_renderFaces.size() - m_facesPerThread * threadCnt << " faces left for one thread).");
 
     m_visibleFacesMultithread.resize(threadCnt);
     m_visiblePatchesMultithread.resize(threadCnt);
@@ -187,7 +186,7 @@ void Q3BspMap::Init()
     {
         VK_VERIFY(vk::createCommandPool(g_renderContext.device, g_renderContext.device.graphicsFamilyIndex, &m_threadCmdPools[i]));
         m_secondaryCmdBuffers.push_back(vk::createCommandBuffer(g_renderContext.device, m_threadCmdPools[i], VK_COMMAND_BUFFER_LEVEL_SECONDARY));
-    }   
+    }
 }
 
 void Q3BspMap::OnRender(bool multithreaded)
@@ -213,13 +212,19 @@ void Q3BspMap::OnRender(bool multithreaded)
         cbihInfo.renderPass = g_renderContext.activeRenderPass.renderPass;
         cbihInfo.framebuffer = g_renderContext.activeFramebuffer;
 
+        std::string windowTitle(g_renderContext.WindowTitle());
         for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
         {
             g_threadProcessor.AddTask(i, [=] { DrawMultithreaded(i, cbihInfo); });
+            // show thread stats for rendered faces and patches in window title
+            windowTitle += " [#" + std::to_string(i) + ": " + std::to_string(m_visibleFacesMultithread[i].size()) + ", " + std::to_string(m_visiblePatchesMultithread[i].size()) + "]";
         }
 
         g_threadProcessor.Wait();
         vkCmdExecuteCommands(g_renderContext.activeCmdBuffer, (uint32_t)m_secondaryCmdBuffers.size(), m_secondaryCmdBuffers.data());
+
+        // display thread statistics
+        SDL_SetWindowTitle(g_renderContext.window, windowTitle.c_str());
     }
     else
     {
