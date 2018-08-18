@@ -22,6 +22,10 @@ Running the viewer:
 
 <code>QuakeBspViewer.exe &lt;path-to-bsp-file&gt; </code>
 
+Running the viewer with multithreaded renderer:
+
+<code>QuakeBspViewer.exe &lt;path-to-bsp-file&gt; -mt </code>
+
 Use tilde key (~) to toggle statistics menu on/off. Note that you must have Quake III Arena textures and models unpacked in the root directory if you want to see proper texturing. To move around use the WASD keys. RF keys lift you up/down and QE keys let you do the barrel roll.
 
 Dependencies
@@ -38,6 +42,7 @@ For people interested in learning Vulkan and jumping into core features, the `re
 
 Keyword list:
 - multiple pipeline rendering
+- multithreaded command buffer generation
 - pipeline dynamic state, derivatives and cache
 - immediate screen updates with double buffering and semaphore scheduling (using single, universal queue)
 - texture mapping (filtered and unfiltered)
@@ -52,3 +57,4 @@ Vulkan references
 - https://arm-software.github.io/vulkan-sdk
 - https://www.khronos.org/assets/uploads/developers/library/2016-vulkan-devday-uk/7-Keeping-your-GPU-fed.pdf
 - https://github.com/KhronosGroup/Vulkan-Docs/wiki/Synchronization-Examples
+- https://developer.nvidia.com/sites/default/files/akamai/gameworks/blog/munich/mschott_vulkan_multi_threading.pdf
