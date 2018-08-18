@@ -177,7 +177,7 @@ void Q3BspMap::Init()
 
     // setup and allocate multithreading resources
     unsigned int threadCnt = g_threadProcessor.NumThreads();
-    m_facesPerThread = (unsigned int)m_renderFaces.size() / threadCnt;
+    m_facesPerThread = (unsigned int)m_renderLeaves.size() / threadCnt;
 
     m_visibleFacesMultithread.resize(threadCnt);
     m_visiblePatchesMultithread.resize(threadCnt);
