@@ -14,7 +14,7 @@
 class RenderContext
 {
 public:
-    bool Init(const char *title, bool multithreaded, int x, int y, int w, int h);
+    bool Init(const char *title, bool primaryDoubleBuffer, int x, int y, int w, int h);
     void Destroy();
     const char *WindowTitle() const { return m_windowTitle; }
 
@@ -89,8 +89,6 @@ private:
 
     // Vulkan image views
     std::vector<VkImageView> m_imageViews;
-
-    bool m_multithreaded = false;
 
     // command buffers
     std::vector<VkCommandBuffer> m_commandBuffers;

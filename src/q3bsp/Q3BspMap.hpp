@@ -27,15 +27,14 @@ public:
     Q3BspMap(bool bspValid) : BspMap(bspValid) {}
     ~Q3BspMap();
 
-    void Init();
+    void Init(bool multithreaded);
     void OnRender(bool multithreaded);
     void OnUpdate(bool multithreaded);
     void RebuildPipeline();
 
     bool ClusterVisible(int cameraCluster, int testCluster)   const;
     int  FindCameraLeaf(const Math::Vector3f &cameraPosition) const;
-    void CalculateVisibleFaces(const Math::Vector3f &cameraPosition);
-    void CalculateVisibleFacesMultithread(int threadIndex, int startOffset, const Math::Vector3f &cameraPosition);
+    void CalculateVisibleFaces(int threadIndex, int startOffset, const Math::Vector3f &cameraPosition);
     void ToggleRenderFlag(int flag);
 
     // bsp data
@@ -63,10 +62,8 @@ private:
     void SetLightmapGamma(float gamma);
     void CreatePatch(const Q3BspFaceLump &f);
 
-    // queue data for drawing (single thread)
-    void Draw();
-    // multithreaded drawing
-    void DrawMultithreaded(int threadIndex, VkCommandBufferInheritanceInfo inheritanceInfo);
+    // queue data for drawing
+    void Draw(int threadIndex, VkCommandBufferInheritanceInfo inheritanceInfo);
 
     // Vulkan buffer creation
     void CreateDescriptorsForFace(const Q3BspFaceLump &face, int idx, int vertexOffset, int indexOffset);
@@ -82,8 +79,8 @@ private:
     std::vector<Q3FaceRenderable>   m_renderFaces;    // bsp faces in "renderable format"
     std::vector<Q3BspPatch *>       m_patches;        // curved surfaces
     std::vector<GameTexture *>      m_textures;       // loaded in-game textures
-    std::vector<Q3FaceRenderable *> m_visibleFaces;   // list of visible surfaces to render
-    std::vector<int>                m_visiblePatches; // list of visible patches to render
+    std::vector<std::vector<Q3FaceRenderable *>> m_visibleFaces;   // list of visible surfaces to render (per thread)
+    std::vector<std::vector<int>>                m_visiblePatches; // list of visible patches to render (per thread)
     vk::Texture *m_lightmapTextures = nullptr;        // bsp lightmaps
 
     Frustum  m_frustum; // view frustum
@@ -109,12 +106,9 @@ private:
     vk::Buffer m_patchVertexBuffer;
     vk::Buffer m_patchIndexBuffer;
 
-    // multithreading secondary command buffers and respective command pools
-    std::vector<std::vector<Q3FaceRenderable *>> m_visibleFacesMultithread;   // list of visible surfaces to render
-    std::vector<std::vector<int>>                m_visiblePatchesMultithread; // list of visible patches to render
-
-    std::vector<VkCommandPool> m_threadCmdPools;
-    std::vector<VkCommandBuffer> m_secondaryCmdBuffers;
+    // secondary command buffers and respective command pools used for rendering - one per thread
+    std::vector<VkCommandPool> m_commandPools;
+    std::vector<VkCommandBuffer> m_commandBuffers;
     unsigned int m_facesPerThread;
     std::recursive_mutex m_statsMutex;
 };

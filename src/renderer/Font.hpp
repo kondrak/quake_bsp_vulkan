@@ -44,7 +44,6 @@ private:
     };
 
     void Draw();
-    void DrawMultithreaded();
     void CreateDescriptor(const vk::Texture *texture, vk::Descriptor *descriptor);
     // single character draw
     void DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int offset, const Math::Vector3f &color);
@@ -66,8 +65,9 @@ private:
     Glyph  m_charBuffer[MAX_CHARS]; // character data for vertex buffer
     Glyph *m_mappedData = nullptr;  // pointer to currently mapped Vulkan data
 
-    VkCommandPool m_threadCmdPool;
-    VkCommandBuffer m_secondaryCmdBuffer;
+    // secondary command buffer and pool to render into
+    VkCommandPool m_commandPool;
+    VkCommandBuffer m_commandBuffer;
 };
 
 #endif

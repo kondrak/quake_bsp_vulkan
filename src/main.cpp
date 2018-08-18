@@ -14,8 +14,6 @@ int g_fps = 1;
 
 int main(int argc, char **argv)
 {
-    bool multithreaded = false;
-
     // initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
@@ -23,19 +21,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    for (int i = 1; i < argc; ++i)
-    {
-        if (!strcmp(argv[i], "-mt"))
-        {
-            multithreaded = true;
-        }
-    }
-
-    std::string title("Quake BSP Viewer in Vulkan");
-    if (multithreaded)
-        title += " (multithreaded: " + std::to_string(g_threadProcessor.NumThreads()) + " threads)";
-
-    if (!g_renderContext.Init(title.c_str(), multithreaded, 100, 100, 1024, 768))
+    if (!g_renderContext.Init("Quake BSP Viewer in Vulkan", false, 100, 100, 1024, 768))
     {
         LOG_MESSAGE_ASSERT(false, "Could not initialize render context!");
         SDL_Quit();
@@ -43,7 +29,7 @@ int main(int argc, char **argv)
     }
 
     SDL_ShowCursor(SDL_DISABLE);
-    g_application.OnStart(argc, argv, multithreaded);
+    g_application.OnStart(argc, argv);
 
     double now = 0, last = 0;
     int numFrames = 0;

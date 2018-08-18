@@ -13,14 +13,14 @@ public:
     BspMap(bool bspValid) : m_bspValid(bspValid) {}
     virtual ~BspMap() {}
 
-    virtual void Init() = 0;
+    virtual void Init(bool multithreaded) = 0;
     virtual void OnRender(bool multithreaded) = 0; // perform rendering
     virtual void OnUpdate(bool multithreaded) = 0;
     virtual void RebuildPipeline() = 0; // rebuild Vulkan pipelines from scratch
 
     virtual bool ClusterVisible(int cameraCluster, int testCluster) const    = 0;  // determine bsp cluster visibility
     virtual int  FindCameraLeaf(const Math::Vector3f &cameraPosition) const  = 0;  // return bsp leaf index containing the camera
-    virtual void CalculateVisibleFaces(const Math::Vector3f &cameraPosition) = 0;  // determine which bsp faces are visible
+    virtual void CalculateVisibleFaces(int threadIndex, int startOffset, const Math::Vector3f &cameraPosition) = 0;  // determine which bsp faces are visible
 
     // render helpers - extra flags + map statistics
     virtual void ToggleRenderFlag(int flag) = 0;

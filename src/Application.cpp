@@ -31,16 +31,20 @@ void Application::OnWindowMinimized(bool minimized)
         g_threadProcessor.Wait();
 }
 
-void Application::OnStart(int argc, char **argv, bool multithreaded)
+void Application::OnStart(int argc, char **argv)
 {
-    m_multithreaded = multithreaded;
     Q3BspLoader loader;
     // assume the parameter with a string ".bsp" is the map we want to load
     for (int i = 1; i < argc; ++i)
     {
-        if (std::string(argv[i]).find(".bsp") != std::string::npos)
+        if (!m_q3map && std::string(argv[i]).find(".bsp") != std::string::npos)
         {
             m_q3map = loader.Load(argv[i]);
+        }
+
+        if (!strcmp(argv[i], "-mt"))
+        {
+            m_multithreaded = true;
         }
     }
 
@@ -48,7 +52,7 @@ void Application::OnStart(int argc, char **argv, bool multithreaded)
     if (!m_q3map)
         m_q3map = new Q3BspMap(false);
 
-    m_q3map->Init();
+    m_q3map->Init(m_multithreaded);
     m_q3map->ToggleRenderFlag(Q3RenderUseLightmaps);
 
     // try to locate the first info_player_deathmatch entity and place the camera there

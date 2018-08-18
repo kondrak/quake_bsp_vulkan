@@ -6,6 +6,7 @@
 #include "Utils.hpp"
 #include <algorithm>
 
+// number of primary command buffers to be used
 static int NUM_CMDBUFFERS = 1;
 
 // index of the command buffer that's currently in use
@@ -25,16 +26,14 @@ static VkSampleCountFlagBits getMaxUsableSampleCount(const VkPhysicalDevicePrope
 }
 
 // initialize Vulkan render context
-bool RenderContext::Init(const char *title, bool multithreaded, int x, int y, int w, int h)
+bool RenderContext::Init(const char *title, bool primaryDoubleBuffer, int x, int y, int w, int h)
 {
     window = SDL_CreateWindow(title, x, y, w, h, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
     m_windowTitle = title;
     SDL_GetWindowSize(window, &width, &height);
 
-    m_multithreaded = multithreaded;
-
-    // use 2 synchronized command buffers for rendering (double buffering) if single threaded, otherwise use single primary command buffer
-    if (!multithreaded)
+    // use double buffered primary command buffers for rendering if not using secondary command buffers
+    if (primaryDoubleBuffer)
         NUM_CMDBUFFERS++;
 
     halfWidth  = width  >> 1;
@@ -135,7 +134,7 @@ VkResult RenderContext::RenderStart()
     renderBeginInfo.clearValueCount = 2;
     renderBeginInfo.pClearValues = clearColors;
 
-    if (m_multithreaded)
+    if (NUM_CMDBUFFERS == 1)
     {
         vkCmdBeginRenderPass(m_commandBuffers[s_currentCmdBuffer], &renderBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
     }
