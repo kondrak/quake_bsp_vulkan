@@ -9,7 +9,7 @@ extern RenderContext  g_renderContext;
 GameTexture::GameTexture(const char *filename)
 {
     VkFormatProperties fp = {};
-    vkGetPhysicalDeviceFormatProperties(g_renderContext.device.physical, VK_FORMAT_R8G8B8_UNORM, &fp);
+    vkGetPhysicalDeviceFormatProperties(g_renderContext.Device().physical, VK_FORMAT_R8G8B8_UNORM, &fp);
 
     bool canBlitLinear  = (fp.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT) != 0;
     bool canBlitOptimal = (fp.linearTilingFeatures  & VK_FORMAT_FEATURE_BLIT_DST_BIT) != 0;
@@ -30,7 +30,7 @@ GameTexture::~GameTexture()
     if (m_textureData != nullptr)
         stbi_image_free(m_textureData);
 
-    vk::releaseTexture(g_renderContext.device, m_vkTexture);
+    vk::releaseTexture(g_renderContext.Device(), m_vkTexture);
 }
 
 bool GameTexture::Load(bool filtering)
@@ -49,7 +49,7 @@ bool GameTexture::Load(bool filtering)
     // calculate number of mipmaps to generate for given texture dimensions
     m_vkTexture.mipLevels = (uint32_t)std::floor(std::log2(std::max(m_width, m_height))) + 1;
 
-    vk::createTexture(g_renderContext.device, &m_vkTexture, m_textureData, m_width, m_height);
+    vk::createTexture(g_renderContext.Device(), &m_vkTexture, m_textureData, m_width, m_height);
 
     stbi_image_free(m_textureData);
     m_textureData = nullptr;

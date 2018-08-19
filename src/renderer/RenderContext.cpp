@@ -58,13 +58,13 @@ void RenderContext::Destroy()
 {
     if (window)
     {
-        vkDeviceWaitIdle(device.logical);
+        vkDeviceWaitIdle(m_device.logical);
 
-        vk::destroyRenderPass(device, m_renderPass);
-        vk::destroyRenderPass(device, m_msaaRenderPass);
-        vk::freeCommandBuffers(device, device.commandPool, m_commandBuffers);
-        vkDestroyCommandPool(device.logical, device.commandPool, nullptr);
-        vkDestroyCommandPool(device.logical, device.transferCommandPool, nullptr);
+        vk::destroyRenderPass(m_device, m_renderPass);
+        vk::destroyRenderPass(m_device, m_msaaRenderPass);
+        vk::freeCommandBuffers(m_device, m_device.commandPool, m_commandBuffers);
+        vkDestroyCommandPool(m_device.logical, m_device.commandPool, nullptr);
+        vkDestroyCommandPool(m_device.logical, m_device.transferCommandPool, nullptr);
  
         DestroyFramebuffers();
         DestroyImageViews();
@@ -72,18 +72,18 @@ void RenderContext::Destroy()
 
         TextureManager::GetInstance()->ReleaseTextures();
 
-        vkDestroySwapchainKHR(device.logical, swapChain.sc, nullptr);
+        vkDestroySwapchainKHR(m_device.logical, m_swapChain.sc, nullptr);
 
         for (int i = 0; i < NUM_CMDBUFFERS; ++i)
         {
-            vkDestroySemaphore(device.logical, m_imageAvailableSemaphores[i], nullptr);
-            vkDestroySemaphore(device.logical, m_renderFinishedSemaphores[i], nullptr);
-            vkDestroyFence(device.logical, m_fences[i], nullptr);
+            vkDestroySemaphore(m_device.logical, m_imageAvailableSemaphores[i], nullptr);
+            vkDestroySemaphore(m_device.logical, m_renderFinishedSemaphores[i], nullptr);
+            vkDestroyFence(m_device.logical, m_fences[i], nullptr);
         }
 
-        vk::destroyAllocator(device.allocator);
-        vkDestroyPipelineCache(device.logical, pipelineCache, nullptr);
-        vkDestroyDevice(device.logical, nullptr);
+        vk::destroyAllocator(m_device.allocator);
+        vkDestroyPipelineCache(m_device.logical, m_pipelineCache, nullptr);
+        vkDestroyDevice(m_device.logical, nullptr);
         vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 #ifdef VALIDATION_LAYERS_ON
         vk::destroyValidationLayers(m_instance);
@@ -96,9 +96,9 @@ void RenderContext::Destroy()
 
 VkResult RenderContext::RenderStart()
 {
-    VkResult result = vkAcquireNextImageKHR(device.logical, swapChain.sc, UINT64_MAX, m_imageAvailableSemaphores[s_currentCmdBuffer], VK_NULL_HANDLE, &m_imageIndex);
-    activeCmdBuffer = m_commandBuffers[s_currentCmdBuffer];
-    activeFramebuffer = (activeRenderPass.sampleCount == VK_SAMPLE_COUNT_1_BIT) ? m_frameBuffers[m_imageIndex] : m_msaaFrameBuffers[m_imageIndex];
+    VkResult result = vkAcquireNextImageKHR(m_device.logical, m_swapChain.sc, UINT64_MAX, m_imageAvailableSemaphores[s_currentCmdBuffer], VK_NULL_HANDLE, &m_imageIndex);
+    m_activeCmdBuffer = m_commandBuffers[s_currentCmdBuffer];
+    m_activeFramebuffer = (m_activeRenderPass.sampleCount == VK_SAMPLE_COUNT_1_BIT) ? m_frameBuffers[m_imageIndex] : m_msaaFrameBuffers[m_imageIndex];
 
     // swapchain has become incompatible - need to recreate it
     if (result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -108,8 +108,8 @@ VkResult RenderContext::RenderStart()
         return result;
     }
 
-    VK_VERIFY(vkWaitForFences(device.logical, 1, &m_fences[s_currentCmdBuffer], VK_TRUE, UINT64_MAX));
-    vkResetFences(device.logical, 1, &m_fences[s_currentCmdBuffer]);
+    VK_VERIFY(vkWaitForFences(m_device.logical, 1, &m_fences[s_currentCmdBuffer], VK_TRUE, UINT64_MAX));
+    vkResetFences(m_device.logical, 1, &m_fences[s_currentCmdBuffer]);
 
     LOG_MESSAGE_ASSERT(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR, "Could not acquire swapchain image: " << result);
 
@@ -127,10 +127,10 @@ VkResult RenderContext::RenderStart()
     clearColors[1].depthStencil = { 1.0f, 0 };
     VkRenderPassBeginInfo renderBeginInfo = {};
     renderBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderBeginInfo.renderPass = activeRenderPass.renderPass;
-    renderBeginInfo.framebuffer = activeFramebuffer;
+    renderBeginInfo.renderPass = m_activeRenderPass.renderPass;
+    renderBeginInfo.framebuffer = m_activeFramebuffer;
     renderBeginInfo.renderArea.offset = { 0, 0 };
-    renderBeginInfo.renderArea.extent = swapChain.extent;
+    renderBeginInfo.renderArea.extent = m_swapChain.extent;
     renderBeginInfo.clearValueCount = 2;
     renderBeginInfo.pClearValues = clearColors;
 
@@ -166,12 +166,12 @@ VkResult RenderContext::Submit()
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &m_commandBuffers[s_currentCmdBuffer];
 
-    return vkQueueSubmit(device.graphicsQueue, 1, &submitInfo, m_fences[s_currentCmdBuffer]);
+    return vkQueueSubmit(m_device.graphicsQueue, 1, &submitInfo, m_fences[s_currentCmdBuffer]);
 }
 
 VkResult RenderContext::Present()
 {
-    VkSwapchainKHR swapChains[] = { swapChain.sc };
+    VkSwapchainKHR swapChains[] = { m_swapChain.sc };
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = 1;
@@ -181,7 +181,7 @@ VkResult RenderContext::Present()
     presentInfo.pImageIndices = &m_imageIndex;
     presentInfo.pResults = nullptr;
 
-    VkResult renderResult = vkQueuePresentKHR(device.presentQueue, &presentInfo);
+    VkResult renderResult = vkQueuePresentKHR(m_device.presentQueue, &presentInfo);
 
     // recreate swapchain if it's out of date
     if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR)
@@ -198,7 +198,7 @@ VkResult RenderContext::Present()
 Math::Vector2f RenderContext::WindowSize()
 {
     VkSurfaceCapabilitiesKHR surfaceCaps;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.physical, m_surface, &surfaceCaps);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_device.physical, m_surface, &surfaceCaps);
     LOG_MESSAGE_ASSERT(surfaceCaps.currentExtent.width != std::numeric_limits<uint32_t>::max(), "WM sets extent width and height to max uint32!");
 
     // fallback if WM sets extent dimensions to max uint32
@@ -217,29 +217,29 @@ Math::Vector2f RenderContext::WindowSize()
 VkSampleCountFlagBits RenderContext::ToggleMSAA()
 {
     // "flip" render passes on MSAA toggle
-    vkDeviceWaitIdle(device.logical);
-    activeRenderPass = (activeRenderPass.renderPass == m_msaaRenderPass.renderPass) ? m_renderPass : m_msaaRenderPass;
+    vkDeviceWaitIdle(m_device.logical);
+    m_activeRenderPass = (m_activeRenderPass.renderPass == m_msaaRenderPass.renderPass) ? m_renderPass : m_msaaRenderPass;
 
-    return activeRenderPass.sampleCount;
+    return m_activeRenderPass.sampleCount;
 }
 
 bool RenderContext::RecreateSwapChain()
 {
-    vkDeviceWaitIdle(device.logical);
+    vkDeviceWaitIdle(m_device.logical);
     DestroyFramebuffers();
     DestroyImageViews();
 
     // set initial swap chain extent to current window size - in case WM can't determine it by itself
-    swapChain.extent = { (uint32_t)width, (uint32_t)height };
-    VK_VERIFY(vk::createSwapChain(device, m_surface, &swapChain, swapChain.sc));
+    m_swapChain.extent = { (uint32_t)width, (uint32_t)height };
+    VK_VERIFY(vk::createSwapChain(m_device, m_surface, &m_swapChain, m_swapChain.sc));
 
-    m_viewport.width  = (float)swapChain.extent.width;
-    m_viewport.height = (float)swapChain.extent.height;
-    m_scissor.extent = swapChain.extent;
+    m_viewport.width  = (float)m_swapChain.extent.width;
+    m_viewport.height = (float)m_swapChain.extent.height;
+    m_scissor.extent  = m_swapChain.extent;
 
     // update internal render context dimensions
-    width  = swapChain.extent.width;
-    height = swapChain.extent.height;
+    width  = m_swapChain.extent.width;
+    height = m_swapChain.extent.height;
     halfWidth  = width >> 1;
     halfHeight = height >> 1;
     scrRatio = m_viewport.width / m_viewport.height;
@@ -262,25 +262,25 @@ bool RenderContext::InitVulkan(const char *appTitle)
     //VK_VERIFY(vk::createSurface(window, m_instance, &m_surface));
     SDL_Vulkan_CreateSurface(window, m_instance, &m_surface);
 
-    device = vk::createDevice(m_instance, m_surface);
-    VK_VERIFY(vk::createAllocator(device, &device.allocator));
+    m_device = vk::createDevice(m_instance, m_surface);
+    VK_VERIFY(vk::createAllocator(m_device, &m_device.allocator));
     // set initial swap chain extent to current window size - in case WM can't determine it by itself
-    swapChain.extent = { (uint32_t)width, (uint32_t)height };
+    m_swapChain.extent = { (uint32_t)width, (uint32_t)height };
     // desired present mode
-    swapChain.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+    m_swapChain.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 
-    VK_VERIFY(vk::createSwapChain(device, m_surface, &swapChain, VK_NULL_HANDLE));
+    VK_VERIFY(vk::createSwapChain(m_device, m_surface, &m_swapChain, VK_NULL_HANDLE));
 
     m_viewport.x = 0.f;
     m_viewport.y = 0.f;
     m_viewport.minDepth = 0.f;
     m_viewport.maxDepth = 1.f;
-    m_viewport.width  = (float)swapChain.extent.width;
-    m_viewport.height = (float)swapChain.extent.height;
+    m_viewport.width  = (float)m_swapChain.extent.width;
+    m_viewport.height = (float)m_swapChain.extent.height;
 
     m_scissor.offset.x = 0;
     m_scissor.offset.y = 0;
-    m_scissor.extent = swapChain.extent;
+    m_scissor.extent = m_swapChain.extent;
 
     m_fences.resize(NUM_CMDBUFFERS);
     m_imageAvailableSemaphores.resize(NUM_CMDBUFFERS);
@@ -290,20 +290,20 @@ bool RenderContext::InitVulkan(const char *appTitle)
     CreateSemaphores();
     CreatePipelineCache();
 
-    m_msaaRenderPass.sampleCount = getMaxUsableSampleCount(device.properties);
+    m_msaaRenderPass.sampleCount = getMaxUsableSampleCount(m_device.properties);
 
-    VK_VERIFY(vk::createRenderPass(device, swapChain, &m_renderPass));
-    VK_VERIFY(vk::createRenderPass(device, swapChain, &m_msaaRenderPass));
-    VK_VERIFY(vk::createCommandPool(device, device.graphicsFamilyIndex, &device.commandPool));
-    VK_VERIFY(vk::createCommandPool(device, device.transferFamilyIndex, &device.transferCommandPool));
+    VK_VERIFY(vk::createRenderPass(m_device, m_swapChain, &m_renderPass));
+    VK_VERIFY(vk::createRenderPass(m_device, m_swapChain, &m_msaaRenderPass));
+    VK_VERIFY(vk::createCommandPool(m_device, m_device.graphicsFamilyIndex, &m_device.commandPool));
+    VK_VERIFY(vk::createCommandPool(m_device, m_device.transferFamilyIndex, &m_device.transferCommandPool));
     CreateDrawBuffers();
     if (!CreateImageViews()) return false;
     m_frameBuffers = CreateFramebuffers(m_renderPass);
     m_msaaFrameBuffers = CreateFramebuffers(m_msaaRenderPass);
-    activeRenderPass = m_renderPass;
+    m_activeRenderPass = m_renderPass;
 
     // allocate NUM_CMDBUFFERS command buffers (used to be m_frameBuffers.size())
-    VK_VERIFY(vk::createCommandBuffers(device, device.commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, m_commandBuffers, NUM_CMDBUFFERS));
+    VK_VERIFY(vk::createCommandBuffers(m_device, m_device.commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, m_commandBuffers, NUM_CMDBUFFERS));
 
     return true;
 }
@@ -311,10 +311,10 @@ bool RenderContext::InitVulkan(const char *appTitle)
 void RenderContext::CreateDrawBuffers()
 {
     // standard depth buffer
-    m_depthBuffer = vk::createDepthBuffer(device, swapChain, m_renderPass.sampleCount);
+    m_depthBuffer = vk::createDepthBuffer(m_device, m_swapChain, m_renderPass.sampleCount);
     // additional render targets for MSAA
-    m_msaaDepthBuffer = vk::createDepthBuffer(device, swapChain, m_msaaRenderPass.sampleCount);
-    m_msaaColor = vk::createColorBuffer(device, swapChain, m_msaaRenderPass.sampleCount);
+    m_msaaDepthBuffer = vk::createDepthBuffer(m_device, m_swapChain, m_msaaRenderPass.sampleCount);
+    m_msaaColor = vk::createColorBuffer(m_device, m_swapChain, m_msaaRenderPass.sampleCount);
 }
 
 void RenderContext::DestroyDrawBuffers()
@@ -329,18 +329,18 @@ void RenderContext::DestroyDrawBuffers()
         }
     };
 
-    destroyDrawBuffer(device, m_depthBuffer);
-    destroyDrawBuffer(device, m_msaaDepthBuffer);
-    destroyDrawBuffer(device, m_msaaColor);
+    destroyDrawBuffer(m_device, m_depthBuffer);
+    destroyDrawBuffer(m_device, m_msaaDepthBuffer);
+    destroyDrawBuffer(m_device, m_msaaColor);
 }
 
 bool RenderContext::CreateImageViews()
 {
-    m_imageViews.resize(swapChain.images.size());
+    m_imageViews.resize(m_swapChain.images.size());
 
-    for (size_t i = 0; i < swapChain.images.size(); ++i)
+    for (size_t i = 0; i < m_swapChain.images.size(); ++i)
     {
-        VkResult result = vk::createImageView(device, swapChain.images[i], VK_IMAGE_ASPECT_COLOR_BIT, &m_imageViews[i], swapChain.format, 1);
+        VkResult result = vk::createImageView(m_device, m_swapChain.images[i], VK_IMAGE_ASPECT_COLOR_BIT, &m_imageViews[i], m_swapChain.format, 1);
 
         if (result != VK_SUCCESS)
         {
@@ -356,7 +356,7 @@ bool RenderContext::CreateImageViews()
 void RenderContext::DestroyImageViews()
 {
     for (VkImageView &iv : m_imageViews)
-        vkDestroyImageView(device.logical, iv, nullptr);
+        vkDestroyImageView(m_device.logical, iv, nullptr);
 }
 
 std::vector<VkFramebuffer> RenderContext::CreateFramebuffers(const vk::RenderPass &rp)
@@ -367,8 +367,8 @@ std::vector<VkFramebuffer> RenderContext::CreateFramebuffers(const vk::RenderPas
     fbCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     fbCreateInfo.renderPass = rp.renderPass;
     fbCreateInfo.attachmentCount = (rp.sampleCount != VK_SAMPLE_COUNT_1_BIT) ? 3 : 2;
-    fbCreateInfo.width  = swapChain.extent.width;
-    fbCreateInfo.height = swapChain.extent.height;
+    fbCreateInfo.width  = m_swapChain.extent.width;
+    fbCreateInfo.height = m_swapChain.extent.height;
     fbCreateInfo.layers = 1;
 
     for (size_t i = 0; i < frameBuffers.size(); ++i)
@@ -377,7 +377,7 @@ std::vector<VkFramebuffer> RenderContext::CreateFramebuffers(const vk::RenderPas
         VkImageView attachmentsMSAA[] = { m_msaaColor.imageView, m_msaaDepthBuffer.imageView, m_imageViews[i] };
 
         fbCreateInfo.pAttachments = (rp.sampleCount != VK_SAMPLE_COUNT_1_BIT) ? attachmentsMSAA : attachments;
-        VkResult result = vkCreateFramebuffer(device.logical, &fbCreateInfo, nullptr, &frameBuffers[i]);
+        VkResult result = vkCreateFramebuffer(m_device.logical, &fbCreateInfo, nullptr, &frameBuffers[i]);
 
         if (result != VK_SUCCESS)
         {
@@ -394,8 +394,8 @@ void RenderContext::DestroyFramebuffers()
 {
     for (size_t i = 0; i < m_imageViews.size(); ++i)
     {
-        vkDestroyFramebuffer(device.logical, m_frameBuffers[i], nullptr);
-        vkDestroyFramebuffer(device.logical, m_msaaFrameBuffers[i], nullptr);
+        vkDestroyFramebuffer(m_device.logical, m_frameBuffers[i], nullptr);
+        vkDestroyFramebuffer(m_device.logical, m_msaaFrameBuffers[i], nullptr);
     }
 
     m_frameBuffers.clear();
@@ -410,7 +410,7 @@ void RenderContext::CreateFences()
 
     for (int i = 0; i < NUM_CMDBUFFERS; ++i)
     {
-        VK_VERIFY(vkCreateFence(device.logical, &fCreateInfo, nullptr, &m_fences[i]));
+        VK_VERIFY(vkCreateFence(m_device.logical, &fCreateInfo, nullptr, &m_fences[i]));
     }
 }
 
@@ -421,8 +421,8 @@ void RenderContext::CreateSemaphores()
 
     for (int i = 0; i < NUM_CMDBUFFERS; ++i)
     {
-        VK_VERIFY(vkCreateSemaphore(device.logical, &sCreateInfo, nullptr, &m_imageAvailableSemaphores[i]));
-        VK_VERIFY(vkCreateSemaphore(device.logical, &sCreateInfo, nullptr, &m_renderFinishedSemaphores[i]));
+        VK_VERIFY(vkCreateSemaphore(m_device.logical, &sCreateInfo, nullptr, &m_imageAvailableSemaphores[i]));
+        VK_VERIFY(vkCreateSemaphore(m_device.logical, &sCreateInfo, nullptr, &m_renderFinishedSemaphores[i]));
     }
 }
 
@@ -431,5 +431,5 @@ void RenderContext::CreatePipelineCache()
     VkPipelineCacheCreateInfo pcInfo = {};
     pcInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 
-    VK_VERIFY(vkCreatePipelineCache(device.logical, &pcInfo, nullptr, &pipelineCache));
+    VK_VERIFY(vkCreatePipelineCache(m_device.logical, &pcInfo, nullptr, &m_pipelineCache));
 }

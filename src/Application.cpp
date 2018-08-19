@@ -113,7 +113,7 @@ void Application::OnUpdate(float dt)
 
 void Application::OnTerminate()
 {
-    vkDeviceWaitIdle(g_renderContext.device.logical);
+    vkDeviceWaitIdle(g_renderContext.Device().logical);
     delete m_q3stats;
     delete m_q3map;
 }

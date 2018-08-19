@@ -33,14 +33,6 @@ public:
 
     SDL_Window *window = nullptr;
 
-    // Vulkan global objects
-    vk::Device device;
-    vk::SwapChain swapChain;
-    vk::RenderPass activeRenderPass;
-    VkFramebuffer activeFramebuffer;
-    VkCommandBuffer activeCmdBuffer = VK_NULL_HANDLE;
-    VkPipelineCache pipelineCache = VK_NULL_HANDLE;
-
     float fov = 75.f * PIdiv180;
     float nearPlane = 0.1f;
     float farPlane  = 1000.f;
@@ -58,9 +50,15 @@ public:
 
     Math::Matrix4f ModelViewProjectionMatrix; // global MVP used to orient the entire world
 
-    // using dynamic states for pipelines, so we need to update viewport and scissor manually
-    VkViewport m_viewport = {};
-    VkRect2D   m_scissor = {};
+    // const accessors to Vulkan objects required by application
+    const vk::Device &Device()   const { return m_device; }
+    const vk::SwapChain &SwapChain() const { return m_swapChain; }
+    const VkPipelineCache &PipelineCache() const { return m_pipelineCache; }
+    const VkViewport &Viewport() const { return m_viewport; }
+    const VkRect2D &Scissor()    const { return m_scissor; }
+    const vk::RenderPass &ActiveRenderPass() const { return m_activeRenderPass; }
+    const VkFramebuffer &ActiveFramebuffer() const { return m_activeFramebuffer; }
+    const VkCommandBuffer &ActiveCmdBuffer() const { return m_activeCmdBuffer; }
 private:
     bool InitVulkan(const char *appTitle);
     void CreateDrawBuffers();
@@ -79,9 +77,22 @@ private:
     VkInstance   m_instance = VK_NULL_HANDLE;
     VkSurfaceKHR m_surface  = VK_NULL_HANDLE;
 
+    // Vulkan global objects
+    vk::Device m_device;
+    vk::SwapChain m_swapChain;
+    VkPipelineCache m_pipelineCache = VK_NULL_HANDLE;
+
+    // using dynamic states for pipelines, so we need to update viewport and scissor manually
+    VkViewport m_viewport = {};
+    VkRect2D   m_scissor = {};
+
     // Vulkan render passes - we don't want to rebuild them mid-flight when toggling MSAA due to issues in full screen (black screen, blinking, etc.)
     vk::RenderPass m_renderPass;
     vk::RenderPass m_msaaRenderPass;
+
+    vk::RenderPass  m_activeRenderPass;
+    VkFramebuffer   m_activeFramebuffer = VK_NULL_HANDLE;
+    VkCommandBuffer m_activeCmdBuffer = VK_NULL_HANDLE;
 
     // Vulkan framebuffers
     std::vector<VkFramebuffer> m_frameBuffers;

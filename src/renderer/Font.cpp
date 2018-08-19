@@ -21,7 +21,7 @@ Font::Font(const char *tex) : m_scale(1.f, 1.f), m_position(0.0f, 0.0f, 0.0f), m
     m_pipeline.cullMode  = VK_CULL_MODE_NONE;
     m_pipeline.topology  = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     m_pipeline.blendMode = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    m_pipeline.cache     = g_renderContext.pipelineCache;
+    m_pipeline.cache     = g_renderContext.PipelineCache();
     m_pipeline.depthTestEnable = VK_FALSE;
 
     // load font texture
@@ -35,25 +35,25 @@ Font::Font(const char *tex) : m_scale(1.f, 1.f), m_position(0.0f, 0.0f, 0.0f), m
     m_vbInfo.attributeDescriptions.push_back(vk::getAttributeDescription(inColor, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 5));
 
     // create vertex buffer and Vulkan descriptor
-    vk::createVertexBuffer(g_renderContext.device, &m_charBuffer, sizeof(Glyph) * MAX_CHARS, &m_vertexBuffer);
+    vk::createVertexBuffer(g_renderContext.Device(), &m_charBuffer, sizeof(Glyph) * MAX_CHARS, &m_vertexBuffer);
     CreateDescriptor(*m_texture, &m_descriptor);
 
     RebuildPipeline();
 
-    VK_VERIFY(vk::createCommandPool(g_renderContext.device, g_renderContext.device.graphicsFamilyIndex, &m_commandPool));
-    m_commandBuffer = vk::createCommandBuffer(g_renderContext.device, m_commandPool, VK_COMMAND_BUFFER_LEVEL_SECONDARY);
+    VK_VERIFY(vk::createCommandPool(g_renderContext.Device(), g_renderContext.Device().graphicsFamilyIndex, &m_commandPool));
+    m_commandBuffer = vk::createCommandBuffer(g_renderContext.Device(), m_commandPool, VK_COMMAND_BUFFER_LEVEL_SECONDARY);
 }
 
 Font::~Font()
 {
-    vk::destroyPipeline(g_renderContext.device, m_pipeline);
+    vk::destroyPipeline(g_renderContext.Device(), m_pipeline);
 
-    vkDestroyDescriptorSetLayout(g_renderContext.device.logical, m_descriptor.setLayout, nullptr);
-    vkDestroyDescriptorPool(g_renderContext.device.logical, m_descriptor.pool, nullptr);
-    vk::freeBuffer(g_renderContext.device, m_vertexBuffer);
+    vkDestroyDescriptorSetLayout(g_renderContext.Device().logical, m_descriptor.setLayout, nullptr);
+    vkDestroyDescriptorPool(g_renderContext.Device().logical, m_descriptor.pool, nullptr);
+    vk::freeBuffer(g_renderContext.Device(), m_vertexBuffer);
 
-    vkFreeCommandBuffers(g_renderContext.device.logical, m_commandPool, 1, &m_commandBuffer);
-    vkDestroyCommandPool(g_renderContext.device.logical, m_commandPool, nullptr);
+    vkFreeCommandBuffers(g_renderContext.Device().logical, m_commandPool, 1, &m_commandBuffer);
+    vkDestroyCommandPool(g_renderContext.Device().logical, m_commandPool, nullptr);
 }
 
 void Font::RenderText(const std::string &text, float x, float y, float z, float r, float g, float b)
@@ -101,25 +101,25 @@ void Font::RenderStart()
 {
     // reset character counter and start mapping vertex buffer memory
     m_charCount = 0;
-    vmaMapMemory(g_renderContext.device.allocator, m_vertexBuffer.allocation, (void**)&m_mappedData);
+    vmaMapMemory(g_renderContext.Device().allocator, m_vertexBuffer.allocation, (void**)&m_mappedData);
 }
 
 void Font::RenderFinish()
 {
-    vmaUnmapMemory(g_renderContext.device.allocator, m_vertexBuffer.allocation);
+    vmaUnmapMemory(g_renderContext.Device().allocator, m_vertexBuffer.allocation);
 
     // update command buffers with new characters
     Draw();
-    vkCmdExecuteCommands(g_renderContext.activeCmdBuffer, 1, &m_commandBuffer);
+    vkCmdExecuteCommands(g_renderContext.ActiveCmdBuffer(), 1, &m_commandBuffer);
 }
 
 void Font::RebuildPipeline()
 {
-    vk::destroyPipeline(g_renderContext.device, m_pipeline);
+    vk::destroyPipeline(g_renderContext.Device(), m_pipeline);
 
     // todo: pipeline derivatives https://github.com/SaschaWillems/Vulkan/blob/master/examples/pipelines/pipelines.cpp
     const char *shaders[] = { "res/Font_vert.spv", "res/Font_frag.spv" };
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.activeRenderPass, m_descriptor.setLayout, &m_vbInfo, &m_pipeline, shaders));
+    VK_VERIFY(vk::createPipeline(g_renderContext.Device(), g_renderContext.SwapChain(), g_renderContext.ActiveRenderPass(), m_descriptor.setLayout, &m_vbInfo, &m_pipeline, shaders));
 }
 
 void Font::DrawChar(const Math::Vector3f &pos, int w, int h, int uo, int vo, int offset, const Math::Vector3f &color)
@@ -156,8 +156,8 @@ void Font::Draw()
 {
     VkCommandBufferInheritanceInfo inheritanceInfo = {};
     inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-    inheritanceInfo.renderPass = g_renderContext.activeRenderPass.renderPass;
-    inheritanceInfo.framebuffer = g_renderContext.activeFramebuffer;
+    inheritanceInfo.renderPass = g_renderContext.ActiveRenderPass().renderPass;
+    inheritanceInfo.framebuffer = g_renderContext.ActiveFramebuffer();
 
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -165,8 +165,8 @@ void Font::Draw()
     beginInfo.pInheritanceInfo = &inheritanceInfo;
 
     VK_VERIFY(vkBeginCommandBuffer(m_commandBuffer, &beginInfo));
-    vkCmdSetViewport(m_commandBuffer, 0, 1, &g_renderContext.m_viewport);
-    vkCmdSetScissor(m_commandBuffer, 0, 1, &g_renderContext.m_scissor);
+    vkCmdSetViewport(m_commandBuffer, 0, 1, &g_renderContext.Viewport());
+    vkCmdSetScissor(m_commandBuffer, 0, 1, &g_renderContext.Scissor());
 
     vkCmdBindPipeline(m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.pipeline);
 
@@ -197,7 +197,7 @@ void Font::CreateDescriptor(const vk::Texture *texture, vk::Descriptor *descript
     layoutInfo.bindingCount = 1;
     layoutInfo.pBindings = bindings;
 
-    VK_VERIFY(vkCreateDescriptorSetLayout(g_renderContext.device.logical, &layoutInfo, nullptr, &descriptor->setLayout));
+    VK_VERIFY(vkCreateDescriptorSetLayout(g_renderContext.Device().logical, &layoutInfo, nullptr, &descriptor->setLayout));
 
     // create descriptor pool
     VkDescriptorPoolSize poolSizes;
@@ -210,8 +210,8 @@ void Font::CreateDescriptor(const vk::Texture *texture, vk::Descriptor *descript
     poolInfo.pPoolSizes = &poolSizes;
     poolInfo.maxSets = 1;
 
-    VK_VERIFY(vkCreateDescriptorPool(g_renderContext.device.logical, &poolInfo, nullptr, &descriptor->pool));
-    VK_VERIFY(vk::createDescriptorSet(g_renderContext.device, descriptor));
+    VK_VERIFY(vkCreateDescriptorPool(g_renderContext.Device().logical, &poolInfo, nullptr, &descriptor->pool));
+    VK_VERIFY(vk::createDescriptorSet(g_renderContext.Device(), descriptor));
 
     VkDescriptorImageInfo imageInfo = {};
     imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -230,5 +230,5 @@ void Font::CreateDescriptor(const vk::Texture *texture, vk::Descriptor *descript
     descriptorWrites.pTexelBufferView = nullptr;
     descriptorWrites.pNext = nullptr;
 
-    vkUpdateDescriptorSets(g_renderContext.device.logical, 1, &descriptorWrites, 0, nullptr);
+    vkUpdateDescriptorSets(g_renderContext.Device().logical, 1, &descriptorWrites, 0, nullptr);
 }
