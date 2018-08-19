@@ -13,7 +13,7 @@ public:
     StatsUI(BspMap *map) : m_map(map) {}
     virtual ~StatsUI() {}
 
-    virtual void OnRender() = 0; // perform rendering
+    virtual void OnRender()        = 0; // perform rendering
     virtual void RebuildPipeline() = 0; // rebuild Vulkan pipeline from scratch
 protected:
     BspMap *m_map;
