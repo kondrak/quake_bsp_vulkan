@@ -20,7 +20,7 @@ public:
 
     virtual bool ClusterVisible(int cameraCluster, int testCluster) const    = 0;  // determine bsp cluster visibility
     virtual int  FindCameraLeaf(const Math::Vector3f &cameraPosition) const  = 0;  // return bsp leaf index containing the camera
-    virtual void CalculateVisibleFaces(int threadIndex, int startOffset, const Math::Vector3f &cameraPosition) = 0;  // determine which bsp faces are visible
+    virtual void CalculateVisibleFaces(int threadIndex, int startOffset, int cameraLeaf) = 0;  // determine which bsp faces are visible
 
     // render helpers - extra flags + map statistics
     virtual void ToggleRenderFlag(int flag) = 0;

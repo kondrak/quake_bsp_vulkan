@@ -236,17 +236,19 @@ void Q3BspMap::OnUpdate(const Math::Vector3f &cameraPosition)
     std::unique_lock<std::recursive_mutex> lock(m_statsMutex);
     m_mapStats.visibleFaces = 0;
     m_mapStats.visiblePatches = 0;
+    //calculate the camera leaf
+    int cameraLeaf = FindCameraLeaf(cameraPosition * Q3BspMap::s_worldScale);
 
     if (g_threadProcessor.NumThreads() > 1)
     {
         for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
         {
-            g_threadProcessor.AddTask(i, [=] { CalculateVisibleFaces(i, i * m_facesPerThread, cameraPosition); });
+            g_threadProcessor.AddTask(i, [=] { CalculateVisibleFaces(i, i * m_facesPerThread, cameraLeaf); });
         }
     }
     else
     {
-        CalculateVisibleFaces(0, 0, cameraPosition);
+        CalculateVisibleFaces(0, 0, cameraLeaf);
     }
 }
 
@@ -300,13 +302,10 @@ int Q3BspMap::FindCameraLeaf(const Math::Vector3f &cameraPosition) const
 
 
 //Calculate which faces to draw given a camera position & view frustum
-void Q3BspMap::CalculateVisibleFaces(int threadIndex, int startOffset, const Math::Vector3f &cameraPosition)
+void Q3BspMap::CalculateVisibleFaces(int threadIndex, int startOffset, int cameraLeaf)
 {
     m_visibleFaces[threadIndex].clear();
     m_visiblePatches[threadIndex].clear();
-
-    //calculate the camera leaf
-    int cameraLeaf = FindCameraLeaf(cameraPosition * Q3BspMap::s_worldScale);
     int cameraCluster = m_renderLeaves[cameraLeaf].visCluster;
 
     //loop through the leaves

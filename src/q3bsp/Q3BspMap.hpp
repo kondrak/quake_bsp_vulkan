@@ -34,7 +34,7 @@ public:
 
     bool ClusterVisible(int cameraCluster, int testCluster)   const;
     int  FindCameraLeaf(const Math::Vector3f &cameraPosition) const;
-    void CalculateVisibleFaces(int threadIndex, int startOffset, const Math::Vector3f &cameraPosition);
+    void CalculateVisibleFaces(int threadIndex, int startOffset, int cameraLeaf);
     void ToggleRenderFlag(int flag);
 
     // bsp data
