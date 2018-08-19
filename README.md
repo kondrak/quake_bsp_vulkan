@@ -47,7 +47,7 @@ Keyword list:
 - texture mapping (filtered and unfiltered)
 - memory allocation handled using VMA
 - validation layers enabled by default in debug builds
-- multisampling (MSAA) defaulting to maximum sample count supported by hardware
+- multisampling (MSAA) using maximum sample count supported by hardware
 - mipmapping
 
 Vulkan references
