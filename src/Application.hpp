@@ -4,7 +4,6 @@
 #include <map>
 #include "InputHandlers.hpp"
 #include "Math.hpp"
-#include "ThreadProcessor.hpp"
 
 class BspMap;
 class StatsUI;
