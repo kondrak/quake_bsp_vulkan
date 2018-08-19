@@ -15,7 +15,7 @@ public:
 
     virtual void Init() = 0;
     virtual void OnRender()        = 0; // perform rendering
-    virtual void OnUpdate()        = 0; // update BSP visibility info
+    virtual void OnUpdate(const Math::Vector3f &cameraPosition) = 0; // update BSP visibility info for given camera position
     virtual void RebuildPipeline() = 0; // rebuild Vulkan pipelines from scratch
 
     virtual bool ClusterVisible(int cameraCluster, int testCluster) const    = 0;  // determine bsp cluster visibility

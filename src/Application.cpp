@@ -108,7 +108,7 @@ void Application::OnUpdate(float dt)
 
     // determine which faces are visible
     if (m_q3map->Valid() && !m_noRedraw)
-        m_q3map->OnUpdate();
+        m_q3map->OnUpdate(g_cameraDirector.GetActiveCamera()->Position());
 }
 
 void Application::OnTerminate()

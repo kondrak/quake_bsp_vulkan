@@ -29,7 +29,7 @@ public:
 
     void Init();
     void OnRender();
-    void OnUpdate();
+    void OnUpdate(const Math::Vector3f &cameraPosition);
     void RebuildPipeline();
 
     bool ClusterVisible(int cameraCluster, int testCluster)   const;

@@ -1,6 +1,5 @@
 #include "q3bsp/Q3BspMap.hpp"
 #include "q3bsp/Q3BspPatch.hpp"
-#include "renderer/CameraDirector.hpp"
 #include "renderer/TextureManager.hpp"
 #include "renderer/vulkan/CmdBuffer.hpp"
 #include "renderer/vulkan/Pipeline.hpp"
@@ -10,7 +9,6 @@
 #include <algorithm>
 #include <sstream>
 
-extern CameraDirector  g_cameraDirector;
 extern RenderContext   g_renderContext;
 extern ThreadProcessor g_threadProcessor;
 const int   Q3BspMap::s_tesselationLevel = 10;   // level of curved surface tesselation
@@ -234,7 +232,7 @@ void Q3BspMap::OnRender()
     vkCmdExecuteCommands(g_renderContext.activeCmdBuffer, (uint32_t)m_commandBuffers.size(), m_commandBuffers.data());
 }
 
-void Q3BspMap::OnUpdate()
+void Q3BspMap::OnUpdate(const Math::Vector3f &cameraPosition)
 {
     std::unique_lock<std::recursive_mutex> lock(m_statsMutex);
     m_mapStats.visibleFaces = 0;
@@ -244,12 +242,12 @@ void Q3BspMap::OnUpdate()
     {
         for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
         {
-            g_threadProcessor.AddTask(i, [=] { CalculateVisibleFaces(i, i * m_facesPerThread, g_cameraDirector.GetActiveCamera()->Position()); });
+            g_threadProcessor.AddTask(i, [=] { CalculateVisibleFaces(i, i * m_facesPerThread, cameraPosition); });
         }
     }
     else
     {
-        CalculateVisibleFaces(0, 0, g_cameraDirector.GetActiveCamera()->Position());
+        CalculateVisibleFaces(0, 0, cameraPosition);
     }
 }
 
