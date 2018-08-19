@@ -42,7 +42,7 @@ Q3BspMap::~Q3BspMap()
     vkDestroyDescriptorPool(g_renderContext.device.logical, m_descriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(g_renderContext.device.logical, m_dsLayout, nullptr);
 
-    for (unsigned int i = 0; i < m_commandBuffers.size(); ++i)
+    for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
     {
         vkFreeCommandBuffers(g_renderContext.device.logical, m_commandPools[i], 1, &m_commandBuffers[i]);
         vkDestroyCommandPool(g_renderContext.device.logical, m_commandPools[i], nullptr);
@@ -174,7 +174,6 @@ void Q3BspMap::Init()
 
     // setup and allocate multithreading resources (if enabled)
     unsigned int threadCnt = g_threadProcessor.NumThreads();
-    threadCnt = g_threadProcessor.NumThreads();
     m_facesPerThread = (unsigned int)m_renderLeaves.size() / threadCnt;
 
     m_visibleFaces.resize(threadCnt);
