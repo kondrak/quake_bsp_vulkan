@@ -42,9 +42,8 @@ For people interested in learning Vulkan and jumping into core features, the `re
 
 Keyword list:
 - multiple pipeline rendering
-- multithreaded command buffer generation
+- multithreaded command buffer generation (secondary buffers for threads and one primary presentation buffer)
 - pipeline dynamic state, derivatives and cache
-- immediate screen updates with double buffering and semaphore scheduling (using single, universal queue)
 - texture mapping (filtered and unfiltered)
 - memory allocation handled using VMA
 - validation layers enabled by default in debug builds
