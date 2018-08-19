@@ -44,17 +44,14 @@ void Application::OnStart(int argc, char **argv)
 
         if (!strcmp(argv[i], "-mt"))
         {
-            m_multithreaded = true;
+            // spawn thread workers if MT is enabled
+            g_threadProcessor.SpawnWorkers();
         }
     }
 
     // avoid excessive if-checks if no argv BSP was supplied and just display the UI message
     if (!m_q3map)
         m_q3map = new Q3BspMap(false);
-
-    // spawn thread workers if MT is enabled
-    if (m_multithreaded)
-        g_threadProcessor.Init();
 
     m_q3map->Init();
     m_q3map->ToggleRenderFlag(Q3RenderUseLightmaps);

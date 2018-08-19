@@ -60,11 +60,14 @@ ThreadProcessor::~ThreadProcessor()
     Finish();
 }
 
-void ThreadProcessor::Init()
+void ThreadProcessor::SpawnWorkers()
 {
-    m_numThreads = std::thread::hardware_concurrency();
-    LOG_MESSAGE("Found " << m_numThreads << " threads.");
-    m_workers = std::vector<Worker>(m_numThreads);
+    if (m_workers.empty())
+    {
+        m_numThreads = std::thread::hardware_concurrency();
+        LOG_MESSAGE("Found " << m_numThreads << " threads.");
+        m_workers = std::vector<Worker>(m_numThreads);
+    }
 }
 
 void ThreadProcessor::AddTask(uint8_t threadIdx, ThreadTask &&task)
