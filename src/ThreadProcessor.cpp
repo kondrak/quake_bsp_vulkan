@@ -72,6 +72,7 @@ void ThreadProcessor::SpawnWorkers()
 
 void ThreadProcessor::AddTask(uint8_t threadIdx, ThreadTask &&task)
 {
+    LOG_MESSAGE_ASSERT(!m_workers.empty(), "There are no active workers!");
     m_workers[threadIdx].AddTask(std::move(task));
 }
 
