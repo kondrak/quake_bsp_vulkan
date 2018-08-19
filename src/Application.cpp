@@ -52,6 +52,10 @@ void Application::OnStart(int argc, char **argv)
     if (!m_q3map)
         m_q3map = new Q3BspMap(false);
 
+    // spawn thread workers if MT is enabled
+    if (m_multithreaded)
+        g_threadProcessor.Init();
+
     m_q3map->Init(m_multithreaded);
     m_q3map->ToggleRenderFlag(Q3RenderUseLightmaps);
 

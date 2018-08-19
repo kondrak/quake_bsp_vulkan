@@ -55,15 +55,15 @@ void ThreadProcessor::Worker::Finish()
     }
 }
 
-ThreadProcessor::ThreadProcessor()
-{
-    LOG_MESSAGE("Found " << m_numThreads << " threads.");
-    m_workers = std::vector<Worker>(m_numThreads);
-}
-
 ThreadProcessor::~ThreadProcessor()
 {
     Finish();
+}
+
+void ThreadProcessor::Init()
+{
+    LOG_MESSAGE("Found " << m_numThreads << " threads.");
+    m_workers = std::vector<Worker>(m_numThreads);
 }
 
 void ThreadProcessor::AddTask(uint8_t threadIdx, ThreadTask &&task)
