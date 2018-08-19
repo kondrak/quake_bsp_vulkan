@@ -1,7 +1,7 @@
 Quake BSP map viewer in Vulkan
 ================
 
-This is a BSP tree Vulkan renderer written in C++ and a port of the same viewer [written in OpenGL](https://github.com/kondrak/quake_bsp_viewer_vr). It handles basic geometry and curved patch rendering but with no support for game-specific shaders, entities etc. It implement PVS and frustum culling so performance is optimal. At the moment only Quake III Arena maps are supported but an interface is provided for adding other BSP versions in the future.
+This is a multithreaded BSP tree Vulkan renderer written in C++ and a port of the same viewer [written in OpenGL](https://github.com/kondrak/quake_bsp_viewer_vr). It handles basic geometry and curved patch rendering but with no support for game-specific shaders, entities etc. It implement PVS and frustum culling so performance is optimal. At the moment only Quake III Arena maps are supported but an interface is provided for adding other BSP versions in the future. 
 
 ![Screenshot](http://kondrak.info/images/qbsp/qbspvk.png?raw=true)
 
@@ -9,7 +9,7 @@ Building
 -----
 The project should work out of the box with latest Vulkan SDK (tested against SDK 1.1.77.0) and Visual Studio 2015+
 
-Building on Linux and MacOS
+Building on Linux and MacOS 
 -----
 Assuming that the Vulkan SDK is already downloaded and properly set up on your target platform:
 - set the VULKAN_SDK environment variable pointing to the location of downloaded Vulkan SDK
