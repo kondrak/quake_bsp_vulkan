@@ -7,7 +7,7 @@ This is a multithreaded BSP tree Vulkan renderer written in C++ and a port of th
 
 Building
 -----
-The project should work out of the box with latest Vulkan SDK (tested against SDK 1.1.77.0) and Visual Studio 2015+
+The project should work out of the box with latest Vulkan SDK (tested against SDK 1.1.82.0) and Visual Studio 2015+
 
 Building on Linux and MacOS 
 -----
