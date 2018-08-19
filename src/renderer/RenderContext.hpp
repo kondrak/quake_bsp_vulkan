@@ -59,6 +59,7 @@ public:
     const vk::RenderPass &ActiveRenderPass() const { return m_activeRenderPass; }
     const VkFramebuffer &ActiveFramebuffer() const { return m_activeFramebuffer; }
     const VkCommandBuffer &ActiveCmdBuffer() const { return m_activeCmdBuffer; }
+    const int MSAASamples() const { return (int)m_msaaRenderPass.sampleCount; }
 private:
     bool InitVulkan(const char *appTitle);
     void CreateDrawBuffers();
