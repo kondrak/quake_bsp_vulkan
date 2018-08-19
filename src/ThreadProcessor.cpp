@@ -62,6 +62,7 @@ ThreadProcessor::~ThreadProcessor()
 
 void ThreadProcessor::Init()
 {
+    m_numThreads = std::thread::hardware_concurrency();
     LOG_MESSAGE("Found " << m_numThreads << " threads.");
     m_workers = std::vector<Worker>(m_numThreads);
 }

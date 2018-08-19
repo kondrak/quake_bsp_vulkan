@@ -51,7 +51,7 @@ Q3BspMap::~Q3BspMap()
     }
 }
 
-void Q3BspMap::Init(bool multithreaded)
+void Q3BspMap::Init()
 {
     // if there are no faces, this means a problem or a missing BSP - abort
     if (faces.empty())
@@ -174,15 +174,10 @@ void Q3BspMap::Init(bool multithreaded)
     // set the scale-down uniform
     m_ubo.worldScaleFactor = 1.f / Q3BspMap::s_worldScale;
 
-    unsigned int threadCnt = 1;
-    m_facesPerThread = (unsigned int)m_renderLeaves.size();
-
-    // setup and allocate multithreading resources
-    if (multithreaded)
-    {
-        threadCnt = g_threadProcessor.NumThreads();
-        m_facesPerThread = (unsigned int)m_renderLeaves.size() / threadCnt;
-    }
+    // setup and allocate multithreading resources (if enabled)
+    unsigned int threadCnt = g_threadProcessor.NumThreads();
+    threadCnt = g_threadProcessor.NumThreads();
+    m_facesPerThread = (unsigned int)m_renderLeaves.size() / threadCnt;
 
     m_visibleFaces.resize(threadCnt);
     m_visiblePatches.resize(threadCnt);
@@ -194,7 +189,7 @@ void Q3BspMap::Init(bool multithreaded)
     }
 }
 
-void Q3BspMap::OnRender(bool multithreaded)
+void Q3BspMap::OnRender()
 {
     // no faces at all in this BSP? something's not right, abort
     if (faces.empty())
@@ -214,7 +209,7 @@ void Q3BspMap::OnRender(bool multithreaded)
     inheritanceInfo.renderPass = g_renderContext.activeRenderPass.renderPass;
     inheritanceInfo.framebuffer = g_renderContext.activeFramebuffer;
     // record new set of command buffers including only visible faces and patches
-    if (multithreaded)
+    if (g_threadProcessor.NumThreads() > 1)
     {
         std::string windowTitle(g_renderContext.WindowTitle());
         windowTitle += " (multithreaded: " + std::to_string(g_threadProcessor.NumThreads()) + " threads) ";
@@ -239,13 +234,13 @@ void Q3BspMap::OnRender(bool multithreaded)
     vkCmdExecuteCommands(g_renderContext.activeCmdBuffer, (uint32_t)m_commandBuffers.size(), m_commandBuffers.data());
 }
 
-void Q3BspMap::OnUpdate(bool multithreaded)
+void Q3BspMap::OnUpdate()
 {
     std::unique_lock<std::recursive_mutex> lock(m_statsMutex);
     m_mapStats.visibleFaces = 0;
     m_mapStats.visiblePatches = 0;
 
-    if (multithreaded)
+    if (g_threadProcessor.NumThreads() > 1)
     {
         for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
         {

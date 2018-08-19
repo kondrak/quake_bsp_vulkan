@@ -56,7 +56,7 @@ void Application::OnStart(int argc, char **argv)
     if (m_multithreaded)
         g_threadProcessor.Init();
 
-    m_q3map->Init(m_multithreaded);
+    m_q3map->Init();
     m_q3map->ToggleRenderFlag(Q3RenderUseLightmaps);
 
     // try to locate the first info_player_deathmatch entity and place the camera there
@@ -86,7 +86,7 @@ void Application::OnRender()
 
     // render the bsp
     g_cameraDirector.GetActiveCamera()->UpdateView();
-    m_q3map->OnRender(m_multithreaded);
+    m_q3map->OnRender();
 
     // render map stats
     switch (m_debugRenderState)
@@ -111,7 +111,7 @@ void Application::OnUpdate(float dt)
 
     // determine which faces are visible
     if (m_q3map->Valid() && !m_noRedraw)
-        m_q3map->OnUpdate(m_multithreaded);
+        m_q3map->OnUpdate();
 }
 
 void Application::OnTerminate()

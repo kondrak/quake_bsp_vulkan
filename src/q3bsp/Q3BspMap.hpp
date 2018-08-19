@@ -27,9 +27,9 @@ public:
     Q3BspMap(bool bspValid) : BspMap(bspValid) {}
     ~Q3BspMap();
 
-    void Init(bool multithreaded);
-    void OnRender(bool multithreaded);
-    void OnUpdate(bool multithreaded);
+    void Init();
+    void OnRender();
+    void OnUpdate();
     void RebuildPipeline();
 
     bool ClusterVisible(int cameraCluster, int testCluster)   const;
