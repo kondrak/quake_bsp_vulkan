@@ -11,6 +11,14 @@ typedef std::function<void()> ThreadTask;
 class ThreadProcessor
 {
 public:
+    ~ThreadProcessor();
+
+    const unsigned int NumThreads() const { return m_numThreads; }
+    void SpawnWorkers();
+    void AddTask(uint8_t threadId, ThreadTask &&task);
+    void Wait();
+    void Finish();
+private:
     // worker is a set of tasks executed per-thread
     struct Worker
     {
@@ -27,14 +35,6 @@ public:
         bool finish = false;
     };
 
-    ~ThreadProcessor();
-
-    const unsigned int NumThreads() const { return m_numThreads; }
-    void SpawnWorkers();
-    void AddTask(uint8_t threadId, ThreadTask &&task);
-    void Wait();
-    void Finish();
-private:
     unsigned int m_numThreads = 1;
     std::vector<Worker> m_workers;
 };
