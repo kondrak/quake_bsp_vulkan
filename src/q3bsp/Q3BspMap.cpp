@@ -228,14 +228,20 @@ void Q3BspMap::OnRender()
         Draw(0, inheritanceInfo);
     }
 
+    // safe to perform a read from visibility lists without a mutex, since by this point thread processor had waited for all threads to finish, so no writes will occur
+    m_mapStats.visibleFaces = 0;
+    m_mapStats.visiblePatches = 0;
+    for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
+    {
+        m_mapStats.visibleFaces += (int)m_visibleFaces[i].size();
+        m_mapStats.visiblePatches += (int)m_visiblePatches[i].size();
+    }
+
     vkCmdExecuteCommands(g_renderContext.ActiveCmdBuffer(), (uint32_t)m_commandBuffers.size(), m_commandBuffers.data());
 }
 
 void Q3BspMap::OnUpdate(const Math::Vector3f &cameraPosition)
 {
-    std::unique_lock<std::recursive_mutex> lock(m_statsMutex);
-    m_mapStats.visibleFaces = 0;
-    m_mapStats.visiblePatches = 0;
     //calculate the camera leaf
     int cameraLeaf = FindCameraLeaf(cameraPosition * Q3BspMap::s_worldScale);
 
@@ -342,10 +348,6 @@ void Q3BspMap::CalculateVisibleFaces(int threadIndex, int startOffset, int camer
             }
         }
     }
-
-    std::unique_lock<std::recursive_mutex> lock(m_statsMutex);
-    m_mapStats.visibleFaces += (int)m_visibleFaces[threadIndex].size();
-    m_mapStats.visiblePatches += (int)m_visiblePatches[threadIndex].size();
 }
 
 void Q3BspMap::ToggleRenderFlag(int flag)

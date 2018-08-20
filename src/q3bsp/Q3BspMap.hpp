@@ -7,7 +7,6 @@
 #include "renderer/RenderContext.hpp"
 #include "renderer/Ubo.hpp"
 #include <map>
-#include <mutex>
 #include <vector>
 
 class  GameTexture;
@@ -110,7 +109,6 @@ private:
     std::vector<VkCommandPool> m_commandPools;
     std::vector<VkCommandBuffer> m_commandBuffers;
     unsigned int m_facesPerThread;
-    std::recursive_mutex m_statsMutex;
 };
 
 #endif
