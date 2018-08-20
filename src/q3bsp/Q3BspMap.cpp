@@ -218,6 +218,7 @@ void Q3BspMap::OnRender()
             windowTitle += "[#" + std::to_string(i) + ": " + std::to_string(m_visibleFaces[i].size()) + ", " + std::to_string(m_visiblePatches[i].size()) + "]";
         }
 
+        // fill all threaded secondary command buffers before final submission to primary command buffer
         g_threadProcessor.Wait();
 
         // display thread statistics
