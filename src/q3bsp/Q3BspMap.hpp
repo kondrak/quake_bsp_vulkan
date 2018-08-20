@@ -7,6 +7,7 @@
 #include "renderer/RenderContext.hpp"
 #include "renderer/Ubo.hpp"
 #include <map>
+#include <set>
 #include <vector>
 
 class  GameTexture;
@@ -78,8 +79,10 @@ private:
     std::vector<Q3FaceRenderable>   m_renderFaces;    // bsp faces in "renderable format"
     std::vector<Q3BspPatch *>       m_patches;        // curved surfaces
     std::vector<GameTexture *>      m_textures;       // loaded in-game textures
-    std::vector<std::vector<Q3FaceRenderable *>> m_visibleFaces;   // list of visible surfaces to render (per thread)
-    std::vector<std::vector<int>>                m_visiblePatches; // list of visible patches to render (per thread)
+    std::set<Q3FaceRenderable *> m_visibleFaces;      // list of visible surfaces to render
+    std::set<int> m_visiblePatches;                   // list of visible patches to render
+    std::vector<std::set<Q3FaceRenderable *>> m_visibleFacesPerThread;   // list of visible surfaces to render (per thread)
+    std::vector<std::set<int>>                m_visiblePatchesPerThread; // list of visible patches to render (per thread)
     vk::Texture *m_lightmapTextures = nullptr;        // bsp lightmaps
 
     Frustum  m_frustum; // view frustum

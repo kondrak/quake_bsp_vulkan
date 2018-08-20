@@ -8,11 +8,14 @@
 #include "Utils.hpp"
 #include <algorithm>
 #include <sstream>
+#include <mutex>
 
 extern RenderContext   g_renderContext;
 extern ThreadProcessor g_threadProcessor;
 const int   Q3BspMap::s_tesselationLevel = 10;   // level of curved surface tesselation
 const float Q3BspMap::s_worldScale       = 64.f; // scale down factor for the map
+
+static std::recursive_mutex s_visibilityListMutex;
 
 Q3BspMap::~Q3BspMap()
 {
@@ -176,8 +179,8 @@ void Q3BspMap::Init()
     unsigned int threadCnt = g_threadProcessor.NumThreads();
     m_facesPerThread = (unsigned int)m_renderLeaves.size() / threadCnt;
 
-    m_visibleFaces.resize(threadCnt);
-    m_visiblePatches.resize(threadCnt);
+    m_visibleFacesPerThread.resize(threadCnt);
+    m_visiblePatchesPerThread.resize(threadCnt);
     m_commandPools.resize(threadCnt);
     for (unsigned int i = 0; i < threadCnt; ++i)
     {
@@ -215,7 +218,7 @@ void Q3BspMap::OnRender()
         {
             g_threadProcessor.AddTask(i, [=] { Draw(i, inheritanceInfo); });
             // show thread stats for rendered faces and patches in window title
-            windowTitle += "[#" + std::to_string(i) + ": " + std::to_string(m_visibleFaces[i].size()) + ", " + std::to_string(m_visiblePatches[i].size()) + "]";
+            windowTitle += "[#" + std::to_string(i) + ": " + std::to_string(m_visibleFacesPerThread[i].size()) + ", " + std::to_string(m_visiblePatchesPerThread[i].size()) + "]";
         }
 
         // fill all threaded secondary command buffers before final submission to primary command buffer
@@ -230,19 +233,16 @@ void Q3BspMap::OnRender()
     }
 
     // safe to perform a read from visibility lists without a mutex, since by this point thread processor had waited for all threads to finish, so no writes will occur
-    m_mapStats.visibleFaces = 0;
-    m_mapStats.visiblePatches = 0;
-    for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
-    {
-        m_mapStats.visibleFaces += (int)m_visibleFaces[i].size();
-        m_mapStats.visiblePatches += (int)m_visiblePatches[i].size();
-    }
+    m_mapStats.visibleFaces = (int)m_visibleFaces.size();
+    m_mapStats.visiblePatches = (int)m_visiblePatches.size();
 
     vkCmdExecuteCommands(g_renderContext.ActiveCmdBuffer(), (uint32_t)m_commandBuffers.size(), m_commandBuffers.data());
 }
 
 void Q3BspMap::OnUpdate(const Math::Vector3f &cameraPosition)
 {
+    m_visibleFaces.clear();
+    m_visiblePatches.clear();
     //calculate the camera leaf
     int cameraLeaf = FindCameraLeaf(cameraPosition * Q3BspMap::s_worldScale);
 
@@ -311,8 +311,8 @@ int Q3BspMap::FindCameraLeaf(const Math::Vector3f &cameraPosition) const
 //Calculate which faces to draw given a camera position & view frustum
 void Q3BspMap::CalculateVisibleFaces(int threadIndex, int startOffset, int cameraLeaf)
 {
-    m_visibleFaces[threadIndex].clear();
-    m_visiblePatches[threadIndex].clear();
+    m_visibleFacesPerThread[threadIndex].clear();
+    m_visiblePatchesPerThread[threadIndex].clear();
     int cameraCluster = m_renderLeaves[cameraLeaf].visCluster;
 
     //loop through the leaves
@@ -336,16 +336,15 @@ void Q3BspMap::CalculateVisibleFaces(int threadIndex, int startOffset, int camer
             if (HasRenderFlag(Q3RenderSkipMissingTex) && !m_textures[faces[idx].texture])
                 continue;
 
-            if ((face->type == FaceTypePolygon || face->type == FaceTypeMesh) &&
-                std::find(m_visibleFaces[threadIndex].begin(), m_visibleFaces[threadIndex].end(), face) == m_visibleFaces[threadIndex].end())
+            std::unique_lock<std::recursive_mutex> lock(s_visibilityListMutex);
+            if ((face->type == FaceTypePolygon || face->type == FaceTypeMesh) && m_visibleFaces.insert(face).second)
             {
-                m_visibleFaces[threadIndex].push_back(face);
+                m_visibleFacesPerThread[threadIndex].insert(face);
             }
 
-            if (face->type == FaceTypePatch &&
-                std::find(m_visiblePatches[threadIndex].begin(), m_visiblePatches[threadIndex].end(), idx) == m_visiblePatches[threadIndex].end())
+            if ((face->type == FaceTypePatch) && m_visiblePatches.insert(idx).second)
             {
-                m_visiblePatches[threadIndex].push_back(idx);
+                m_visiblePatchesPerThread[threadIndex].insert(idx);
             }
         }
     }
@@ -516,7 +515,7 @@ void Q3BspMap::CreatePatch(const Q3BspFaceLump &f)
 void Q3BspMap::Draw(int threadIndex, VkCommandBufferInheritanceInfo inheritanceInfo)
 {
     // no visible patches nor faces for this thread - bail out
-    if (m_visibleFaces[threadIndex].empty() && !m_visiblePatches[threadIndex].empty())
+    if (m_visibleFacesPerThread[threadIndex].empty() && !m_visiblePatchesPerThread[threadIndex].empty())
         return;
 
     VkBuffer vertexBuffers[] = { m_faceVertexBuffer.buffer, m_patchVertexBuffer.buffer };
@@ -537,7 +536,7 @@ void Q3BspMap::Draw(int threadIndex, VkCommandBufferInheritanceInfo inheritanceI
     // quake 3 bsp requires uint32 for index type - 16 is too small
     vkCmdBindIndexBuffer(m_commandBuffers[threadIndex], m_faceIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
-    for (auto &f : m_visibleFaces[threadIndex])
+    for (auto &f : m_visibleFacesPerThread[threadIndex])
     {
         FaceBuffers &fb = m_renderBuffers.m_faceBuffers[f->index];
         vkCmdBindDescriptorSets(m_commandBuffers[threadIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, m_facesPipeline.layout, 0, 1, &fb.descriptor.set, 0, nullptr);
@@ -550,7 +549,7 @@ void Q3BspMap::Draw(int threadIndex, VkCommandBufferInheritanceInfo inheritanceI
     // quake 3 bsp requires uint32 for index type - 16 is too small
     vkCmdBindIndexBuffer(m_commandBuffers[threadIndex], m_patchIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
-    for (auto &pi : m_visiblePatches[threadIndex])
+    for (auto &pi : m_visiblePatchesPerThread[threadIndex])
     {
         vkCmdBindDescriptorSets(m_commandBuffers[threadIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.layout, 0, 1, &m_renderBuffers.m_patchBuffers[pi][0].descriptor.set, 0, nullptr);
         for (auto &p : m_renderBuffers.m_patchBuffers[pi])
