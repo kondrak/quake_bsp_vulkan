@@ -22,15 +22,19 @@ void ThreadProcessor::Worker::Work()
 {
     while (true)
     {
+        ThreadTask execTask;
         std::unique_lock<std::mutex> queueLock(taskMutex);
         cv.wait(queueLock, [this]() { return !tasks.empty() || finish; });
         if(finish)
             break;
+        execTask = tasks.front();
 
-        // execute
-        tasks.front()();
+        // run task (no lock, so that more tasks can arrive during execution)
+        queueLock.unlock();
+        execTask();
 
         // remove from task list
+        queueLock.lock();
         tasks.pop();
         cv.notify_one();
     }
