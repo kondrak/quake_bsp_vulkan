@@ -8,14 +8,11 @@
 #include "Utils.hpp"
 #include <algorithm>
 #include <sstream>
-#include <mutex>
 
 extern RenderContext   g_renderContext;
 extern ThreadProcessor g_threadProcessor;
 const int   Q3BspMap::s_tesselationLevel = 10;   // level of curved surface tesselation
 const float Q3BspMap::s_worldScale       = 64.f; // scale down factor for the map
-
-static std::recursive_mutex s_visibilityListMutex;
 
 Q3BspMap::~Q3BspMap()
 {
@@ -195,6 +192,8 @@ void Q3BspMap::OnRender()
     if (faces.empty())
         return;
 
+    unsigned int threadCnt = g_threadProcessor.NumThreads();
+
     // update uniform buffers
     m_ubo.ModelViewProjectionMatrix = g_renderContext.ModelViewProjectionMatrix;
     m_frustum.UpdatePlanes();
@@ -209,34 +208,39 @@ void Q3BspMap::OnRender()
     inheritanceInfo.renderPass = g_renderContext.ActiveRenderPass().renderPass;
     inheritanceInfo.framebuffer = g_renderContext.ActiveFramebuffer();
     // record new set of command buffers including only visible faces and patches
-    if (g_threadProcessor.NumThreads() > 1)
+    if (threadCnt > 1)
     {
-        std::string windowTitle(g_renderContext.WindowTitle());
-        windowTitle += " (multithreaded: " + std::to_string(g_threadProcessor.NumThreads()) + " threads) ";
-
-        for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
+        for (unsigned int i = 0; i < threadCnt; ++i)
         {
             g_threadProcessor.AddTask(i, [=] { Draw(i, inheritanceInfo); });
-            // show thread stats for rendered faces and patches in window title
-            windowTitle += "[#" + std::to_string(i) + ": " + std::to_string(m_visibleFacesPerThread[i].size()) + ", " + std::to_string(m_visiblePatchesPerThread[i].size()) + "]";
         }
 
         // fill all threaded secondary command buffers before final submission to primary command buffer
         g_threadProcessor.Wait();
-
-        // display thread statistics
-        SDL_SetWindowTitle(g_renderContext.window, windowTitle.c_str());
     }
     else
     {
         Draw(0, inheritanceInfo);
     }
 
-    // safe to perform a read from visibility lists without a mutex, since by this point thread processor had waited for all threads to finish, so no writes will occur
-    m_mapStats.visibleFaces = (int)m_visibleFaces.size();
-    m_mapStats.visiblePatches = (int)m_visiblePatches.size();
-
     vkCmdExecuteCommands(g_renderContext.ActiveCmdBuffer(), (uint32_t)m_commandBuffers.size(), m_commandBuffers.data());
+
+    // safe to perform a read from visibility sets without a mutex, since by this point thread processor had waited for all threads to finish, so no writes will occur
+    m_mapStats.visibleFaces = 0;
+    m_mapStats.visiblePatches = 0;
+    std::string threadStats;
+    for (unsigned int i = 0; i < threadCnt; ++i)
+    {
+        m_mapStats.visibleFaces += (int)m_visibleFacesPerThread[i].size();
+        m_mapStats.visiblePatches += (int)m_visiblePatchesPerThread[i].size();
+        // show thread stats for rendered faces and patches in window title
+        threadStats += "[#" + std::to_string(i) + ": " + std::to_string(m_visibleFacesPerThread[i].size()) + ", " + std::to_string(m_visiblePatchesPerThread[i].size()) + "]";
+    }
+
+    // display thread statistics (setting window title every frame is SLOW!)
+    std::string windowTitle(g_renderContext.WindowTitle());
+    windowTitle += " (" + std::to_string(threadCnt) + " thread" + (threadCnt > 1 ? "s" : "") + "): ";
+    SDL_SetWindowTitle(g_renderContext.window, (windowTitle + threadStats).c_str());
 }
 
 void Q3BspMap::OnUpdate(const Math::Vector3f &cameraPosition)
@@ -336,13 +340,12 @@ void Q3BspMap::CalculateVisibleFaces(int threadIndex, int startOffset, int camer
             if (HasRenderFlag(Q3RenderSkipMissingTex) && !m_textures[faces[idx].texture])
                 continue;
 
-            std::unique_lock<std::recursive_mutex> lock(s_visibilityListMutex);
-            if ((face->type == FaceTypePolygon || face->type == FaceTypeMesh) && m_visibleFaces.insert(face).second)
+            if (face->type == FaceTypePolygon || face->type == FaceTypeMesh)
             {
                 m_visibleFacesPerThread[threadIndex].insert(face);
             }
 
-            if ((face->type == FaceTypePatch) && m_visiblePatches.insert(idx).second)
+            if (face->type == FaceTypePatch)
             {
                 m_visiblePatchesPerThread[threadIndex].insert(idx);
             }
