@@ -51,6 +51,19 @@ Q3BspMap::~Q3BspMap()
 
 void Q3BspMap::Init()
 {
+    // setup render buffers - take multithreading into account (if enabled)
+    unsigned int threadCnt = g_threadProcessor.NumThreads();
+    m_facesPerThread = (int)leafFaces.size() / threadCnt;
+
+    m_visibleFacesPerThread.resize(threadCnt);
+    m_visiblePatchesPerThread.resize(threadCnt);
+    m_commandPools.resize(threadCnt);
+    for (unsigned int i = 0; i < threadCnt; ++i)
+    {
+        VK_VERIFY(vk::createCommandPool(g_renderContext.Device(), g_renderContext.Device().graphicsFamilyIndex, &m_commandPools[i]));
+        m_commandBuffers.push_back(vk::createCommandBuffer(g_renderContext.Device(), m_commandPools[i], VK_COMMAND_BUFFER_LEVEL_SECONDARY));
+    }
+
     // if there are no faces, this means a problem or a missing BSP - abort
     if (faces.empty())
         return;
@@ -171,19 +184,6 @@ void Q3BspMap::Init()
 
     // set the scale-down uniform
     m_ubo.worldScaleFactor = 1.f / Q3BspMap::s_worldScale;
-
-    // setup and allocate multithreading resources (if enabled)
-    unsigned int threadCnt = g_threadProcessor.NumThreads();
-    m_facesPerThread = (int)leafFaces.size() / threadCnt;
-
-    m_visibleFacesPerThread.resize(threadCnt);
-    m_visiblePatchesPerThread.resize(threadCnt);
-    m_commandPools.resize(threadCnt);
-    for (unsigned int i = 0; i < threadCnt; ++i)
-    {
-        VK_VERIFY(vk::createCommandPool(g_renderContext.Device(), g_renderContext.Device().graphicsFamilyIndex, &m_commandPools[i]));
-        m_commandBuffers.push_back(vk::createCommandBuffer(g_renderContext.Device(), m_commandPools[i], VK_COMMAND_BUFFER_LEVEL_SECONDARY));
-    }
 }
 
 void Q3BspMap::OnRender()
