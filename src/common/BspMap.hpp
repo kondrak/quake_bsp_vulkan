@@ -19,9 +19,9 @@ public:
     virtual void RebuildPipeline()          = 0; // rebuild Vulkan pipelines from scratch
     virtual std::string ThreadAndBspStats() = 0; // update BSP per-frame statistics and return a formatted string with thread workload
 
-    virtual bool ClusterVisible(int cameraCluster, int testCluster) const    = 0;  // determine bsp cluster visibility
-    virtual int  FindCameraLeaf(const Math::Vector3f &cameraPosition) const  = 0;  // return bsp leaf index containing the camera
-    virtual void CalculateVisibleFaces(int threadIndex, int startOffset, int cameraLeaf) = 0;  // determine which bsp faces are visible
+    virtual bool ClusterVisible(int cameraCluster, int testCluster) const   = 0;  // determine bsp cluster visibility
+    virtual int  FindCameraLeaf(const Math::Vector3f &cameraPosition) const = 0;  // return bsp leaf index containing the camera
+    virtual void CalculateVisibleFaces(int threadIndex, int cameraLeaf)     = 0;  // determine which bsp faces are visible
 
     // render helpers - extra flags + map statistics
     virtual void ToggleRenderFlag(int flag) = 0;

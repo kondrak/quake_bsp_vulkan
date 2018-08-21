@@ -174,7 +174,7 @@ void Q3BspMap::Init()
 
     // setup and allocate multithreading resources (if enabled)
     unsigned int threadCnt = g_threadProcessor.NumThreads();
-    m_facesPerThread = (unsigned int)m_renderLeaves.size() / threadCnt;
+    m_facesPerThread = (int)leafFaces.size() / threadCnt;
 
     m_visibleFacesPerThread.resize(threadCnt);
     m_visiblePatchesPerThread.resize(threadCnt);
@@ -228,8 +228,6 @@ void Q3BspMap::OnRender()
 
 void Q3BspMap::OnUpdate(const Math::Vector3f &cameraPosition)
 {
-    m_visibleFaces.clear();
-    m_visiblePatches.clear();
     //calculate the camera leaf
     int cameraLeaf = FindCameraLeaf(cameraPosition * Q3BspMap::s_worldScale);
 
@@ -237,12 +235,12 @@ void Q3BspMap::OnUpdate(const Math::Vector3f &cameraPosition)
     {
         for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
         {
-            g_threadProcessor.AddTask(i, [=] { CalculateVisibleFaces(i, i * m_facesPerThread, cameraLeaf); });
+            g_threadProcessor.AddTask(i, [=] { CalculateVisibleFaces(i, cameraLeaf); });
         }
     }
     else
     {
-        CalculateVisibleFaces(0, 0, cameraLeaf);
+        CalculateVisibleFaces(0, cameraLeaf);
     }
 }
 
@@ -313,14 +311,14 @@ int Q3BspMap::FindCameraLeaf(const Math::Vector3f &cameraPosition) const
 
 
 //Calculate which faces to draw given a camera position & view frustum
-void Q3BspMap::CalculateVisibleFaces(int threadIndex, int startOffset, int cameraLeaf)
+void Q3BspMap::CalculateVisibleFaces(int threadIndex, int cameraLeaf)
 {
     m_visibleFacesPerThread[threadIndex].clear();
     m_visiblePatchesPerThread[threadIndex].clear();
     int cameraCluster = m_renderLeaves[cameraLeaf].visCluster;
 
     //loop through the leaves
-    for (size_t i = startOffset; i < startOffset + m_facesPerThread && i < m_renderLeaves.size(); ++i)
+    for (size_t i = 0; i < m_renderLeaves.size(); ++i)
     {
         Q3LeafRenderable &rl = m_renderLeaves[i];
         //if the leaf is not in the PVS - skip it
@@ -335,9 +333,12 @@ void Q3BspMap::CalculateVisibleFaces(int threadIndex, int startOffset, int camer
         for (int j = 0; j < rl.numFaces; ++j)
         {
             int idx = leafFaces[rl.firstFace + j].face;
+            // determine if this face should be rendered by current thread - we do this to avoid "blinking" if same face ends up in different threads each frame
+            // this is also faster than forcing the threads to wait for each other with mutexes and keeping global visibility lists!
+            bool idxInRange = (idx >= threadIndex * m_facesPerThread) && (idx < (threadIndex + 1) * m_facesPerThread);
             Q3FaceRenderable *face = &m_renderFaces[idx];
 
-            if (HasRenderFlag(Q3RenderSkipMissingTex) && !m_textures[faces[idx].texture])
+            if (HasRenderFlag(Q3RenderSkipMissingTex) && !m_textures[faces[idx].texture] || !idxInRange)
                 continue;
 
             if (face->type == FaceTypePolygon || face->type == FaceTypeMesh)

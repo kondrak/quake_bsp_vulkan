@@ -35,7 +35,7 @@ public:
 
     bool ClusterVisible(int cameraCluster, int testCluster)   const;
     int  FindCameraLeaf(const Math::Vector3f &cameraPosition) const;
-    void CalculateVisibleFaces(int threadIndex, int startOffset, int cameraLeaf);
+    void CalculateVisibleFaces(int threadIndex, int cameraLeaf);
     void ToggleRenderFlag(int flag);
 
     // bsp data
@@ -80,8 +80,6 @@ private:
     std::vector<Q3FaceRenderable>   m_renderFaces;    // bsp faces in "renderable format"
     std::vector<Q3BspPatch *>       m_patches;        // curved surfaces
     std::vector<GameTexture *>      m_textures;       // loaded in-game textures
-    std::set<Q3FaceRenderable *> m_visibleFaces;      // list of visible surfaces to render
-    std::set<int> m_visiblePatches;                   // list of visible patches to render
     std::vector<std::set<Q3FaceRenderable *>> m_visibleFacesPerThread;   // list of visible surfaces to render (per thread)
     std::vector<std::set<int>>                m_visiblePatchesPerThread; // list of visible patches to render (per thread)
     vk::Texture *m_lightmapTextures = nullptr;        // bsp lightmaps
@@ -112,7 +110,7 @@ private:
     // secondary command buffers and respective command pools used for rendering - one per thread
     std::vector<VkCommandPool> m_commandPools;
     std::vector<VkCommandBuffer> m_commandBuffers;
-    unsigned int m_facesPerThread;
+    int m_facesPerThread;
 };
 
 #endif
