@@ -11,6 +11,15 @@ extern RenderContext  g_renderContext;
 extern CameraDirector g_cameraDirector;
 extern ThreadProcessor g_threadProcessor;
 
+// append number of threads to application title
+static void AddThreadsToTitle()
+{
+    int threadCnt = g_threadProcessor.NumThreads();
+    std::string windowTitle(g_renderContext.WindowTitle());
+    windowTitle.append(" (" + std::to_string(threadCnt) + " thread" + (threadCnt > 1 ? "s)" : ")"));
+    SDL_SetWindowTitle(g_renderContext.window, windowTitle.c_str());
+}
+
 void Application::OnWindowResize(int newWidth, int newHeight)
 {
     // fast window resizes return incorrect results from polled event - Vulkan surface query does it better
@@ -46,6 +55,7 @@ void Application::OnStart(int argc, char **argv)
         {
             // spawn thread workers if MT is enabled
             g_threadProcessor.SpawnWorkers();
+            AddThreadsToTitle();
         }
     }
 
@@ -107,12 +117,11 @@ void Application::OnUpdate(float dt)
 
 void Application::UpdateStats()
 {
-    std::string windowTitle(g_renderContext.WindowTitle());
-    windowTitle.append(m_q3map->ThreadAndBspStats());
+    const char *threadStats = m_q3map->ThreadAndBspStats();
 
     // display thread statistics in window title (doing it every frame is SLOW, so do it only if a toggle is enabled)
-    if(m_debugRenderState & PrintThreadStats)
-        SDL_SetWindowTitle(g_renderContext.window, windowTitle.c_str());
+    if (m_debugRenderState & PrintThreadStats)
+        SDL_SetWindowTitle(g_renderContext.window, threadStats);
 }
 
 void Application::OnTerminate()
@@ -167,7 +176,7 @@ void Application::OnKeyPress(KeyCode key)
     case KEY_F9:
         // reset window title if disabling thread statistics
         if (m_debugRenderState & PrintThreadStats)
-            SDL_SetWindowTitle(g_renderContext.window, g_renderContext.WindowTitle());
+            AddThreadsToTitle();
         m_debugRenderState ^= PrintThreadStats;
         break;
     case KEY_TILDE:

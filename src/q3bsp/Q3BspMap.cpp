@@ -259,12 +259,11 @@ void Q3BspMap::RebuildPipeline()
 
 const char* Q3BspMap::ThreadAndBspStats()
 {
-    unsigned int threadCnt = g_threadProcessor.NumThreads();
-    std::string threadStats(" (" + std::to_string(threadCnt) + " thread" + (threadCnt > 1 ? "s" : "") + "): ");
+    std::string threadStats;
 
     m_mapStats.visibleFaces = 0;
     m_mapStats.visiblePatches = 0;
-    for (unsigned int i = 0; i < threadCnt; ++i)
+    for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
     {
         // safe to perform a read from visibility sets without a mutex, since by this point thread processor had waited for all threads to finish, so no writes will occur
         m_mapStats.visibleFaces += (int)m_visibleFacesPerThread[i].size();
