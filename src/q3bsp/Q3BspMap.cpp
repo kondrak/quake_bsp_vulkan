@@ -257,7 +257,7 @@ void Q3BspMap::RebuildPipeline()
     VK_VERIFY(vk::createPipeline(g_renderContext.Device(), g_renderContext.SwapChain(), g_renderContext.ActiveRenderPass(), m_dsLayout, &m_vbInfo, &m_patchPipeline, shaders));
 }
 
-const char* Q3BspMap::ThreadAndBspStats()
+std::string Q3BspMap::ThreadAndBspStats()
 {
     std::string threadStats;
 
@@ -271,7 +271,7 @@ const char* Q3BspMap::ThreadAndBspStats()
         threadStats += "[#" + std::to_string(i) + ": " + std::to_string(m_visibleFacesPerThread[i].size()) + ", " + std::to_string(m_visiblePatchesPerThread[i].size()) + "]";
     }
 
-    return threadStats.c_str();
+    return threadStats;
 }
 
 // determine if a bsp cluster is visible from a given camera cluster

@@ -119,11 +119,11 @@ void Application::OnUpdate(float dt)
 
 void Application::UpdateStats()
 {
-    const char *threadStats = m_q3map->ThreadAndBspStats();
+    std::string threadStats(m_q3map->ThreadAndBspStats());
 
     // display thread statistics in window title (doing it every frame is SLOW, so do it only if a toggle is enabled)
     if (m_debugRenderState & PrintThreadStats)
-        SDL_SetWindowTitle(g_renderContext.window, threadStats);
+        SDL_SetWindowTitle(g_renderContext.window, threadStats.c_str());
 }
 
 void Application::OnTerminate()
