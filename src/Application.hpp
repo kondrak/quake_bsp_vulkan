@@ -21,6 +21,7 @@ public:
     void OnStart(int argc, char **argv);
     void OnRender();
     void OnUpdate(float dt);
+    void UpdateStats();
     void OnTerminate();
 
     inline bool Running() const { return m_running; }

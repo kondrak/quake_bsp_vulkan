@@ -224,23 +224,6 @@ void Q3BspMap::OnRender()
     }
 
     vkCmdExecuteCommands(g_renderContext.ActiveCmdBuffer(), (uint32_t)m_commandBuffers.size(), m_commandBuffers.data());
-
-    // safe to perform a read from visibility sets without a mutex, since by this point thread processor had waited for all threads to finish, so no writes will occur
-    m_mapStats.visibleFaces = 0;
-    m_mapStats.visiblePatches = 0;
-    std::string threadStats;
-    for (unsigned int i = 0; i < threadCnt; ++i)
-    {
-        m_mapStats.visibleFaces += (int)m_visibleFacesPerThread[i].size();
-        m_mapStats.visiblePatches += (int)m_visiblePatchesPerThread[i].size();
-        // show thread stats for rendered faces and patches in window title
-        threadStats += "[#" + std::to_string(i) + ": " + std::to_string(m_visibleFacesPerThread[i].size()) + ", " + std::to_string(m_visiblePatchesPerThread[i].size()) + "]";
-    }
-
-    // display thread statistics (setting window title every frame is SLOW!)
-    std::string windowTitle(g_renderContext.WindowTitle());
-    windowTitle += " (" + std::to_string(threadCnt) + " thread" + (threadCnt > 1 ? "s" : "") + "): ";
-    SDL_SetWindowTitle(g_renderContext.window, (windowTitle + threadStats).c_str());
 }
 
 void Q3BspMap::OnUpdate(const Math::Vector3f &cameraPosition)
@@ -272,6 +255,24 @@ void Q3BspMap::RebuildPipeline()
     VK_VERIFY(vk::createPipeline(g_renderContext.Device(), g_renderContext.SwapChain(), g_renderContext.ActiveRenderPass(), m_dsLayout, &m_vbInfo, &m_facesPipeline, shaders));
     m_patchPipeline.basePipelineHandle = m_facesPipeline.pipeline;
     VK_VERIFY(vk::createPipeline(g_renderContext.Device(), g_renderContext.SwapChain(), g_renderContext.ActiveRenderPass(), m_dsLayout, &m_vbInfo, &m_patchPipeline, shaders));
+}
+
+const char* Q3BspMap::ThreadAndBspStats()
+{
+    unsigned int threadCnt = g_threadProcessor.NumThreads();
+    std::string threadStats(" (" + std::to_string(threadCnt) + " thread" + (threadCnt > 1 ? "s" : "") + "): ");
+
+    m_mapStats.visibleFaces = 0;
+    m_mapStats.visiblePatches = 0;
+    for (unsigned int i = 0; i < threadCnt; ++i)
+    {
+        // safe to perform a read from visibility sets without a mutex, since by this point thread processor had waited for all threads to finish, so no writes will occur
+        m_mapStats.visibleFaces += (int)m_visibleFacesPerThread[i].size();
+        m_mapStats.visiblePatches += (int)m_visiblePatchesPerThread[i].size();
+        threadStats += "[#" + std::to_string(i) + ": " + std::to_string(m_visibleFacesPerThread[i].size()) + ", " + std::to_string(m_visiblePatchesPerThread[i].size()) + "]";
+    }
+
+    return threadStats.c_str();
 }
 
 // determine if a bsp cluster is visible from a given camera cluster

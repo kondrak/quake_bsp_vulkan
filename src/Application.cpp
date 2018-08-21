@@ -111,6 +111,14 @@ void Application::OnUpdate(float dt)
         m_q3map->OnUpdate(g_cameraDirector.GetActiveCamera()->Position());
 }
 
+void Application::UpdateStats()
+{
+    // display thread statistics in window title (doing it every frame is SLOW!)
+    std::string windowTitle(g_renderContext.WindowTitle());
+    windowTitle.append(m_q3map->ThreadAndBspStats());
+    SDL_SetWindowTitle(g_renderContext.window, windowTitle.c_str());
+}
+
 void Application::OnTerminate()
 {
     vkDeviceWaitIdle(g_renderContext.Device().logical);

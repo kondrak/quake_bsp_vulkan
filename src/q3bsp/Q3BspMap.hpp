@@ -31,6 +31,7 @@ public:
     void OnRender();
     void OnUpdate(const Math::Vector3f &cameraPosition);
     void RebuildPipeline();
+    const char* ThreadAndBspStats();
 
     bool ClusterVisible(int cameraCluster, int testCluster)   const;
     int  FindCameraLeaf(const Math::Vector3f &cameraPosition) const;

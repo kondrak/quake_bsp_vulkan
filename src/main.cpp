@@ -58,6 +58,9 @@ int main(int argc, char **argv)
             numFrames = 0;
             time = 0.f;
         }
+
+        // update debug stats and window title  - it's pretty slow, so do it after frame time measurement for more accurate results
+        g_application.UpdateStats();
     }
 
     g_application.OnTerminate();
