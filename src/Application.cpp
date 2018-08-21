@@ -55,9 +55,11 @@ void Application::OnStart(int argc, char **argv)
         {
             // spawn thread workers if MT is enabled
             g_threadProcessor.SpawnWorkers();
-            AddThreadsToTitle();
         }
     }
+
+    // print in window title how many threads are being used
+    AddThreadsToTitle();
 
     // avoid excessive if-checks if no argv BSP was supplied and just display the UI message
     if (!m_q3map)
