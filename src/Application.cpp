@@ -86,14 +86,8 @@ void Application::OnRender()
     m_q3map->OnRender();
 
     // render map stats
-    switch (m_debugRenderState)
-    {
-    case RenderMapStats:
+    if (m_debugRenderState & RenderMapStats)
         m_q3stats->OnRender();
-        break;
-    default:
-        break;
-    }
 
     // submit graphics queue and present it to screen
     VK_VERIFY(g_renderContext.Submit());
@@ -113,10 +107,12 @@ void Application::OnUpdate(float dt)
 
 void Application::UpdateStats()
 {
-    // display thread statistics in window title (doing it every frame is SLOW!)
     std::string windowTitle(g_renderContext.WindowTitle());
     windowTitle.append(m_q3map->ThreadAndBspStats());
-    SDL_SetWindowTitle(g_renderContext.window, windowTitle.c_str());
+
+    // display thread statistics in window title (doing it every frame is SLOW, so do it only if a toggle is enabled)
+    if(m_debugRenderState & PrintThreadStats)
+        SDL_SetWindowTitle(g_renderContext.window, windowTitle.c_str());
 }
 
 void Application::OnTerminate()
@@ -168,11 +164,14 @@ void Application::OnKeyPress(KeyCode key)
         m_q3map->RebuildPipeline();
         m_q3stats->RebuildPipeline();
         break;
+    case KEY_F9:
+        // reset window title if disabling thread statistics
+        if (m_debugRenderState & PrintThreadStats)
+            SDL_SetWindowTitle(g_renderContext.window, g_renderContext.WindowTitle());
+        m_debugRenderState ^= PrintThreadStats;
+        break;
     case KEY_TILDE:
-        m_debugRenderState++;
-
-        if (m_debugRenderState >= DebugRenderMax)
-            m_debugRenderState = None;
+        m_debugRenderState ^= RenderMapStats;
         break;
     case KEY_ESC:
         Terminate();
