@@ -335,7 +335,7 @@ void Q3BspMap::CalculateVisibleFaces(int threadIndex, int startOffset, int camer
         for (int j = 0; j < rl.numFaces; ++j)
         {
             int idx = leafFaces[rl.firstFace + j].face;
-            Q3FaceRenderable *face = &m_renderFaces[leafFaces[rl.firstFace + j].face];
+            Q3FaceRenderable *face = &m_renderFaces[idx];
 
             if (HasRenderFlag(Q3RenderSkipMissingTex) && !m_textures[faces[idx].texture])
                 continue;
