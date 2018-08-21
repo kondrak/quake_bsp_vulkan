@@ -318,9 +318,8 @@ void Q3BspMap::CalculateVisibleFaces(int threadIndex, int cameraLeaf)
     int cameraCluster = m_renderLeaves[cameraLeaf].visCluster;
 
     //loop through the leaves
-    for (size_t i = 0; i < m_renderLeaves.size(); ++i)
+    for (const auto &rl : m_renderLeaves)
     {
-        Q3LeafRenderable &rl = m_renderLeaves[i];
         //if the leaf is not in the PVS - skip it
         if (!HasRenderFlag(Q3RenderSkipPVS) && !ClusterVisible(cameraCluster, rl.visCluster))
             continue;

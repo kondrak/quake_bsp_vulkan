@@ -85,7 +85,7 @@ private:
 
     // using dynamic states for pipelines, so we need to update viewport and scissor manually
     VkViewport m_viewport = {};
-    VkRect2D   m_scissor = {};
+    VkRect2D   m_scissor  = {};
 
     // Vulkan render passes - we don't want to rebuild them mid-flight when toggling MSAA due to issues in full screen (black screen, blinking, etc.)
     vk::RenderPass m_renderPass;
