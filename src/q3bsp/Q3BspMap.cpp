@@ -207,7 +207,9 @@ void Q3BspMap::OnRender()
     inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
     inheritanceInfo.renderPass = g_renderContext.ActiveRenderPass().renderPass;
     inheritanceInfo.framebuffer = g_renderContext.ActiveFramebuffer();
+
     // record new set of command buffers including only visible faces and patches
+    std::vector<VkCommandBuffer> buffersToRender;
     if (threadCnt > 1)
     {
         for (unsigned int i = 0; i < threadCnt; ++i)
@@ -223,7 +225,17 @@ void Q3BspMap::OnRender()
         Draw(0, inheritanceInfo);
     }
 
-    vkCmdExecuteCommands(g_renderContext.ActiveCmdBuffer(), (uint32_t)m_commandBuffers.size(), m_commandBuffers.data());
+    // queue for rendering only non-empty command buffers
+    for (unsigned int i = 0; i < threadCnt; ++i)
+    {
+        if (!m_visibleFacesPerThread[i].empty() || !m_visiblePatchesPerThread[i].empty())
+        {
+            buffersToRender.push_back(m_commandBuffers[i]);
+        }
+    }
+
+    if (!buffersToRender.empty())
+        vkCmdExecuteCommands(g_renderContext.ActiveCmdBuffer(), (uint32_t)buffersToRender.size(), buffersToRender.data());
 }
 
 void Q3BspMap::OnUpdate(const Math::Vector3f &cameraPosition)
@@ -518,7 +530,7 @@ void Q3BspMap::CreatePatch(const Q3BspFaceLump &f)
 void Q3BspMap::Draw(int threadIndex, VkCommandBufferInheritanceInfo inheritanceInfo)
 {
     // no visible patches nor faces for this thread - bail out
-    if (m_visibleFacesPerThread[threadIndex].empty() && !m_visiblePatchesPerThread[threadIndex].empty())
+    if (m_visibleFacesPerThread[threadIndex].empty() && m_visiblePatchesPerThread[threadIndex].empty())
         return;
 
     VkBuffer vertexBuffers[] = { m_faceVertexBuffer.buffer, m_patchVertexBuffer.buffer };
