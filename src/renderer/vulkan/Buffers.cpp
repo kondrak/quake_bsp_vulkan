@@ -147,7 +147,7 @@ namespace vk
     // internal helper
     void copyBuffer(const Device &device, const VkBuffer &src, VkBuffer &dst, VkDeviceSize size)
     {
-        VkCommandBuffer commandBuffer = createCommandBuffer(device, device.transferCommandPool);
+        VkCommandBuffer commandBuffer = createCommandBuffer(device, device.transferCommandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
         beginCommand(commandBuffer);
 
         VkBufferCopy copyRegion = {};

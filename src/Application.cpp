@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include "Application.hpp"
 #include "StringHelpers.hpp"
+#include "ThreadProcessor.hpp"
 #include "renderer/CameraDirector.hpp"
 #include "renderer/RenderContext.hpp"
 #include "q3bsp/Q3BspLoader.hpp"
@@ -8,7 +9,16 @@
 
 extern RenderContext  g_renderContext;
 extern CameraDirector g_cameraDirector;
+extern ThreadProcessor g_threadProcessor;
 
+// append number of threads to application title
+static void AddThreadsToTitle()
+{
+    int threadCnt = g_threadProcessor.NumThreads();
+    std::string windowTitle(g_renderContext.WindowTitle());
+    windowTitle.append(" (" + std::to_string(threadCnt) + " thread" + (threadCnt > 1 ? "s)" : ")"));
+    SDL_SetWindowTitle(g_renderContext.window, windowTitle.c_str());
+}
 
 void Application::OnWindowResize(int newWidth, int newHeight)
 {
@@ -25,6 +35,9 @@ void Application::OnWindowResize(int newWidth, int newHeight)
 void Application::OnWindowMinimized(bool minimized)
 {
     m_noRedraw = minimized;
+
+    if (minimized)
+        g_threadProcessor.Wait();
 }
 
 void Application::OnStart(int argc, char **argv)
@@ -33,12 +46,20 @@ void Application::OnStart(int argc, char **argv)
     // assume the parameter with a string ".bsp" is the map we want to load
     for (int i = 1; i < argc; ++i)
     {
-        if (std::string(argv[i]).find(".bsp") != std::string::npos)
+        if (!m_q3map && std::string(argv[i]).find(".bsp") != std::string::npos)
         {
             m_q3map = loader.Load(argv[i]);
-            break;
+        }
+
+        if (!strcmp(argv[i], "-mt"))
+        {
+            // spawn thread workers if MT is enabled
+            g_threadProcessor.SpawnWorkers();
         }
     }
+
+    // print in window title how many threads are being used
+    AddThreadsToTitle();
 
     // avoid excessive if-checks if no argv BSP was supplied and just display the UI message
     if (!m_q3map)
@@ -77,14 +98,8 @@ void Application::OnRender()
     m_q3map->OnRender();
 
     // render map stats
-    switch (m_debugRenderState)
-    {
-    case RenderMapStats:
+    if (m_debugRenderState & RenderMapStats)
         m_q3stats->OnRender();
-        break;
-    default:
-        break;
-    }
 
     // submit graphics queue and present it to screen
     VK_VERIFY(g_renderContext.Submit());
@@ -98,13 +113,22 @@ void Application::OnUpdate(float dt)
     UpdateCamera(dt);
 
     // determine which faces are visible
-    if (m_q3map->Valid())
-        m_q3map->CalculateVisibleFaces(g_cameraDirector.GetActiveCamera()->Position());
+    if (m_q3map->Valid() && !m_noRedraw)
+        m_q3map->OnUpdate(g_cameraDirector.GetActiveCamera()->Position());
+}
+
+void Application::UpdateStats()
+{
+    std::string threadStats(m_q3map->ThreadAndBspStats());
+
+    // display thread statistics in window title (doing it every frame is SLOW, so do it only if a toggle is enabled)
+    if (m_debugRenderState & PrintThreadStats)
+        SDL_SetWindowTitle(g_renderContext.window, threadStats.c_str());
 }
 
 void Application::OnTerminate()
 {
-    vkDeviceWaitIdle(g_renderContext.device.logical);
+    vkDeviceWaitIdle(g_renderContext.Device().logical);
     delete m_q3stats;
     delete m_q3map;
 }
@@ -151,11 +175,14 @@ void Application::OnKeyPress(KeyCode key)
         m_q3map->RebuildPipeline();
         m_q3stats->RebuildPipeline();
         break;
+    case KEY_F9:
+        // reset window title if disabling thread statistics
+        if (m_debugRenderState & PrintThreadStats)
+            AddThreadsToTitle();
+        m_debugRenderState ^= PrintThreadStats;
+        break;
     case KEY_TILDE:
-        m_debugRenderState++;
-
-        if (m_debugRenderState >= DebugRenderMax)
-            m_debugRenderState = None;
+        m_debugRenderState ^= RenderMapStats;
         break;
     case KEY_ESC:
         Terminate();

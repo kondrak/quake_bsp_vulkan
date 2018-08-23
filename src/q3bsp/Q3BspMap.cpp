@@ -4,11 +4,13 @@
 #include "renderer/vulkan/CmdBuffer.hpp"
 #include "renderer/vulkan/Pipeline.hpp"
 #include "Math.hpp"
+#include "ThreadProcessor.hpp"
 #include "Utils.hpp"
 #include <algorithm>
 #include <sstream>
 
-extern RenderContext  g_renderContext;
+extern RenderContext   g_renderContext;
+extern ThreadProcessor g_threadProcessor;
 const int   Q3BspMap::s_tesselationLevel = 10;   // level of curved surface tesselation
 const float Q3BspMap::s_worldScale       = 64.f; // scale down factor for the map
 
@@ -21,28 +23,47 @@ Q3BspMap::~Q3BspMap()
         delete it;
 
     // release all allocated Vulkan resources
-    vk::destroyPipeline(g_renderContext.device, m_facesPipeline);
-    vk::destroyPipeline(g_renderContext.device, m_patchPipeline);
+    vk::destroyPipeline(g_renderContext.Device(), m_facesPipeline);
+    vk::destroyPipeline(g_renderContext.Device(), m_patchPipeline);
 
-    vk::freeBuffer(g_renderContext.device, m_faceVertexBuffer);
-    vk::freeBuffer(g_renderContext.device, m_faceIndexBuffer);
-    vk::freeBuffer(g_renderContext.device, m_patchVertexBuffer);
-    vk::freeBuffer(g_renderContext.device, m_patchIndexBuffer);
+    vk::freeBuffer(g_renderContext.Device(), m_faceVertexBuffer);
+    vk::freeBuffer(g_renderContext.Device(), m_faceIndexBuffer);
+    vk::freeBuffer(g_renderContext.Device(), m_patchVertexBuffer);
+    vk::freeBuffer(g_renderContext.Device(), m_patchIndexBuffer);
 
     for (size_t i = 0; i < lightMaps.size(); ++i)
     {
-        vk::releaseTexture(g_renderContext.device, m_lightmapTextures[i]);
+        vk::releaseTexture(g_renderContext.Device(), m_lightmapTextures[i]);
     }
     delete[] m_lightmapTextures;
 
-    vk::freeBuffer(g_renderContext.device, m_renderBuffers.uniformBuffer);
-    vk::releaseTexture(g_renderContext.device, m_whiteTex);
-    vkDestroyDescriptorPool(g_renderContext.device.logical, m_descriptorPool, nullptr);
-    vkDestroyDescriptorSetLayout(g_renderContext.device.logical, m_dsLayout, nullptr);
+    vk::freeBuffer(g_renderContext.Device(), m_renderBuffers.uniformBuffer);
+    vk::releaseTexture(g_renderContext.Device(), m_whiteTex);
+    vkDestroyDescriptorPool(g_renderContext.Device().logical, m_descriptorPool, nullptr);
+    vkDestroyDescriptorSetLayout(g_renderContext.Device().logical, m_dsLayout, nullptr);
+
+    for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
+    {
+        vkFreeCommandBuffers(g_renderContext.Device().logical, m_commandPools[i], 1, &m_commandBuffers[i]);
+        vkDestroyCommandPool(g_renderContext.Device().logical, m_commandPools[i], nullptr);
+    }
 }
 
 void Q3BspMap::Init()
 {
+    // setup render buffers - take multithreading into account (if enabled)
+    unsigned int threadCnt = g_threadProcessor.NumThreads();
+    m_facesPerThread = (int)leafFaces.size() / threadCnt;
+
+    m_visibleFacesPerThread.resize(threadCnt);
+    m_visiblePatchesPerThread.resize(threadCnt);
+    m_commandPools.resize(threadCnt);
+    for (unsigned int i = 0; i < threadCnt; ++i)
+    {
+        VK_VERIFY(vk::createCommandPool(g_renderContext.Device(), g_renderContext.Device().graphicsFamilyIndex, &m_commandPools[i]));
+        m_commandBuffers.push_back(vk::createCommandBuffer(g_renderContext.Device(), m_commandPools[i], VK_COMMAND_BUFFER_LEVEL_SECONDARY));
+    }
+
     // if there are no faces, this means a problem or a missing BSP - abort
     if (faces.empty())
         return;
@@ -50,8 +71,8 @@ void Q3BspMap::Init()
     // regular faces are simple triangle lists, patches are drawn as triangle strips, so we need extra pipeline
     m_facesPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     m_patchPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-    m_facesPipeline.cache = g_renderContext.pipelineCache;
-    m_patchPipeline.cache = g_renderContext.pipelineCache;
+    m_facesPipeline.cache = g_renderContext.PipelineCache();
+    m_patchPipeline.cache = g_renderContext.PipelineCache();
     // use pipeline derivatives to create patch pipeline using faces pipeline as base
     m_facesPipeline.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
     m_patchPipeline.flags = VK_PIPELINE_CREATE_DERIVATIVE_BIT;
@@ -106,7 +127,7 @@ void Q3BspMap::Init()
     CreateDescriptorPool((uint32_t)faces.size());
 
     // single shared uniform buffer
-    VK_VERIFY(vk::createUniformBuffer(g_renderContext.device, sizeof(UniformBufferObject), &m_renderBuffers.uniformBuffer));
+    VK_VERIFY(vk::createUniformBuffer(g_renderContext.Device(), sizeof(UniformBufferObject), &m_renderBuffers.uniformBuffer));
 
     int faceArrayIdx  = 0;
     int patchArrayIdx = 0;
@@ -171,28 +192,96 @@ void Q3BspMap::OnRender()
     if (faces.empty())
         return;
 
+    unsigned int threadCnt = g_threadProcessor.NumThreads();
+
     // update uniform buffers
     m_ubo.ModelViewProjectionMatrix = g_renderContext.ModelViewProjectionMatrix;
     m_frustum.UpdatePlanes();
 
     void *data;
-    vmaMapMemory(g_renderContext.device.allocator, m_renderBuffers.uniformBuffer.allocation, &data);
+    vmaMapMemory(g_renderContext.Device().allocator, m_renderBuffers.uniformBuffer.allocation, &data);
     memcpy(data, &m_ubo, sizeof(m_ubo));
-    vmaUnmapMemory(g_renderContext.device.allocator, m_renderBuffers.uniformBuffer.allocation);
+    vmaUnmapMemory(g_renderContext.Device().allocator, m_renderBuffers.uniformBuffer.allocation);
+
+    VkCommandBufferInheritanceInfo inheritanceInfo = {};
+    inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+    inheritanceInfo.renderPass = g_renderContext.ActiveRenderPass().renderPass;
+    inheritanceInfo.framebuffer = g_renderContext.ActiveFramebuffer();
 
     // record new set of command buffers including only visible faces and patches
-    Draw();
+    std::vector<VkCommandBuffer> buffersToRender;
+    if (threadCnt > 1)
+    {
+        for (unsigned int i = 0; i < threadCnt; ++i)
+        {
+            g_threadProcessor.AddTask(i, [=] { Draw(i, inheritanceInfo); });
+        }
+
+        // fill all threaded secondary command buffers before final submission to primary command buffer
+        g_threadProcessor.Wait();
+    }
+    else
+    {
+        Draw(0, inheritanceInfo);
+    }
+
+    // queue for rendering only non-empty command buffers
+    for (unsigned int i = 0; i < threadCnt; ++i)
+    {
+        if (!m_visibleFacesPerThread[i].empty() || !m_visiblePatchesPerThread[i].empty())
+        {
+            buffersToRender.push_back(m_commandBuffers[i]);
+        }
+    }
+
+    if (!buffersToRender.empty())
+        vkCmdExecuteCommands(g_renderContext.ActiveCmdBuffer(), (uint32_t)buffersToRender.size(), buffersToRender.data());
+}
+
+void Q3BspMap::OnUpdate(const Math::Vector3f &cameraPosition)
+{
+    //calculate the camera leaf
+    int cameraLeaf = FindCameraLeaf(cameraPosition * Q3BspMap::s_worldScale);
+
+    if (g_threadProcessor.NumThreads() > 1)
+    {
+        for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
+        {
+            g_threadProcessor.AddTask(i, [=] { CalculateVisibleFaces(i, cameraLeaf); });
+        }
+    }
+    else
+    {
+        CalculateVisibleFaces(0, cameraLeaf);
+    }
 }
 
 void Q3BspMap::RebuildPipeline()
 {
-    vk::destroyPipeline(g_renderContext.device, m_facesPipeline);
-    vk::destroyPipeline(g_renderContext.device, m_patchPipeline);
+    vk::destroyPipeline(g_renderContext.Device(), m_facesPipeline);
+    vk::destroyPipeline(g_renderContext.Device(), m_patchPipeline);
 
     const char *shaders[] = { "res/Basic_vert.spv", "res/Basic_frag.spv" };
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.activeRenderPass, m_dsLayout, &m_vbInfo, &m_facesPipeline, shaders));
+    VK_VERIFY(vk::createPipeline(g_renderContext.Device(), g_renderContext.SwapChain(), g_renderContext.ActiveRenderPass(), m_dsLayout, &m_vbInfo, &m_facesPipeline, shaders));
     m_patchPipeline.basePipelineHandle = m_facesPipeline.pipeline;
-    VK_VERIFY(vk::createPipeline(g_renderContext.device, g_renderContext.swapChain, g_renderContext.activeRenderPass, m_dsLayout, &m_vbInfo, &m_patchPipeline, shaders));
+    VK_VERIFY(vk::createPipeline(g_renderContext.Device(), g_renderContext.SwapChain(), g_renderContext.ActiveRenderPass(), m_dsLayout, &m_vbInfo, &m_patchPipeline, shaders));
+}
+
+std::string Q3BspMap::ThreadAndBspStats()
+{
+    std::string threadStats;
+
+    m_mapStats.visibleFaces = 0;
+    m_mapStats.visiblePatches = 0;
+    for (unsigned int i = 0; i < g_threadProcessor.NumThreads(); ++i)
+    {
+        // safe to perform a read from visibility sets without a mutex, since by this point thread processor had waited for all threads to finish, so no writes will occur
+        m_mapStats.visibleFaces += (int)m_visibleFacesPerThread[i].size();
+        m_mapStats.visiblePatches += (int)m_visiblePatchesPerThread[i].size();
+        threadStats += "[#" + std::to_string(i) + ": " + std::to_string(m_visibleFacesPerThread[i].size()) + ", " + std::to_string(m_visiblePatchesPerThread[i].size()) + "]";
+    }
+
+    return threadStats;
 }
 
 // determine if a bsp cluster is visible from a given camera cluster
@@ -234,13 +323,10 @@ int Q3BspMap::FindCameraLeaf(const Math::Vector3f &cameraPosition) const
 
 
 //Calculate which faces to draw given a camera position & view frustum
-void Q3BspMap::CalculateVisibleFaces(const Math::Vector3f &cameraPosition)
+void Q3BspMap::CalculateVisibleFaces(int threadIndex, int cameraLeaf)
 {
-    m_visibleFaces.clear();
-    m_visiblePatches.clear();
-
-    //calculate the camera leaf
-    int cameraLeaf    = FindCameraLeaf(cameraPosition * Q3BspMap::s_worldScale);
+    m_visibleFacesPerThread[threadIndex].clear();
+    m_visiblePatchesPerThread[threadIndex].clear();
     int cameraCluster = m_renderLeaves[cameraLeaf].visCluster;
 
     //loop through the leaves
@@ -258,27 +344,25 @@ void Q3BspMap::CalculateVisibleFaces(const Math::Vector3f &cameraPosition)
         for (int j = 0; j < rl.numFaces; ++j)
         {
             int idx = leafFaces[rl.firstFace + j].face;
-            Q3FaceRenderable *face = &m_renderFaces[leafFaces[rl.firstFace + j].face];
+            // determine if this face should be rendered by current thread - we do this to avoid "blinking" if same face ends up in different threads each frame
+            // this is also faster than forcing the threads to wait for each other with mutexes and keeping global visibility lists!
+            bool idxInRange = (idx >= threadIndex * m_facesPerThread) && (idx < (threadIndex + 1) * m_facesPerThread);
+            Q3FaceRenderable *face = &m_renderFaces[idx];
 
-            if (HasRenderFlag(Q3RenderSkipMissingTex) && !m_textures[faces[idx].texture])
+            if (HasRenderFlag(Q3RenderSkipMissingTex) && !m_textures[faces[idx].texture] || !idxInRange)
                 continue;
 
-            if ((face->type == FaceTypePolygon || face->type == FaceTypeMesh) &&
-                std::find(m_visibleFaces.begin(), m_visibleFaces.end(), face) == m_visibleFaces.end())
+            if (face->type == FaceTypePolygon || face->type == FaceTypeMesh)
             {
-                m_visibleFaces.push_back(face);
+                m_visibleFacesPerThread[threadIndex].insert(face);
             }
 
-            if (face->type == FaceTypePatch &&
-                std::find(m_visiblePatches.begin(), m_visiblePatches.end(), idx) == m_visiblePatches.end())
+            if (face->type == FaceTypePatch)
             {
-                m_visiblePatches.push_back(idx);
+                m_visiblePatchesPerThread[threadIndex].insert(idx);
             }
         }
     }
-
-    m_mapStats.visibleFaces   = (int)m_visibleFaces.size();
-    m_mapStats.visiblePatches = (int)m_visiblePatches.size();
 }
 
 void Q3BspMap::ToggleRenderFlag(int flag)
@@ -291,7 +375,7 @@ void Q3BspMap::ToggleRenderFlag(int flag)
     case Q3RenderShowWireframe:
         m_facesPipeline.mode = set ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
         m_patchPipeline.mode = set ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
-        vkDeviceWaitIdle(g_renderContext.device.logical);
+        vkDeviceWaitIdle(g_renderContext.Device().logical);
         RebuildPipeline();
         break;
     case Q3RenderShowLightmaps:
@@ -360,13 +444,13 @@ void Q3BspMap::LoadLightmaps()
 
         // Create texture from bsp lightmap data (8 mip levels for 128x128 textures)
         m_lightmapTextures[i].mipLevels = 8;
-        vk::createTexture(g_renderContext.device, &m_lightmapTextures[i], rgba_lmap, 128, 128);
+        vk::createTexture(g_renderContext.Device(), &m_lightmapTextures[i], rgba_lmap, 128, 128);
     }
 
     // Create white texture for if no lightmap specified
     unsigned char white[] = { 255, 255, 255, 255 };
 
-    vk::createTexture(g_renderContext.device, &m_whiteTex, white, 1, 1);
+    vk::createTexture(g_renderContext.Device(), &m_whiteTex, white, 1, 1);
 }
 
 // tweak lightmap gamma settings
@@ -443,38 +527,53 @@ void Q3BspMap::CreatePatch(const Q3BspFaceLump &f)
     m_patches.push_back(newPatch);
 }
 
-void Q3BspMap::Draw()
+void Q3BspMap::Draw(int threadIndex, VkCommandBufferInheritanceInfo inheritanceInfo)
 {
+    // no visible patches nor faces for this thread - bail out
+    if (m_visibleFacesPerThread[threadIndex].empty() && m_visiblePatchesPerThread[threadIndex].empty())
+        return;
+
     VkBuffer vertexBuffers[] = { m_faceVertexBuffer.buffer, m_patchVertexBuffer.buffer };
     VkDeviceSize offsets[] = { 0 };
 
-    // draw regular faces
-    vkCmdBindPipeline(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_facesPipeline.pipeline);
-    vkCmdBindVertexBuffers(g_renderContext.activeCmdBuffer, 0, 1, vertexBuffers, offsets);
-    // quake 3 bsp requires uint32 for index type - 16 is too small
-    vkCmdBindIndexBuffer(g_renderContext.activeCmdBuffer, m_faceIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+    beginInfo.pInheritanceInfo = &inheritanceInfo;
 
-    for (auto &f : m_visibleFaces)
+    VK_VERIFY(vkBeginCommandBuffer(m_commandBuffers[threadIndex], &beginInfo));
+    vkCmdSetViewport(m_commandBuffers[threadIndex], 0, 1, &g_renderContext.Viewport());
+    vkCmdSetScissor(m_commandBuffers[threadIndex], 0, 1, &g_renderContext.Scissor());
+
+    // draw regular faces
+    vkCmdBindPipeline(m_commandBuffers[threadIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, m_facesPipeline.pipeline);
+    vkCmdBindVertexBuffers(m_commandBuffers[threadIndex], 0, 1, vertexBuffers, offsets);
+    // quake 3 bsp requires uint32 for index type - 16 is too small
+    vkCmdBindIndexBuffer(m_commandBuffers[threadIndex], m_faceIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+
+    for (auto &f : m_visibleFacesPerThread[threadIndex])
     {
         FaceBuffers &fb = m_renderBuffers.m_faceBuffers[f->index];
-        vkCmdBindDescriptorSets(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_facesPipeline.layout, 0, 1, &fb.descriptor.set, 0, nullptr);
-        vkCmdDrawIndexed(g_renderContext.activeCmdBuffer, fb.indexCount, 1, fb.indexOffset, fb.vertexOffset, 0);
+        vkCmdBindDescriptorSets(m_commandBuffers[threadIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, m_facesPipeline.layout, 0, 1, &fb.descriptor.set, 0, nullptr);
+        vkCmdDrawIndexed(m_commandBuffers[threadIndex], fb.indexCount, 1, fb.indexOffset, fb.vertexOffset, 0);
     }
 
     // draw patches
-    vkCmdBindPipeline(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.pipeline);
-    vkCmdBindVertexBuffers(g_renderContext.activeCmdBuffer, 0, 1, &vertexBuffers[1], offsets);
+    vkCmdBindPipeline(m_commandBuffers[threadIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.pipeline);
+    vkCmdBindVertexBuffers(m_commandBuffers[threadIndex], 0, 1, &vertexBuffers[1], offsets);
     // quake 3 bsp requires uint32 for index type - 16 is too small
-    vkCmdBindIndexBuffer(g_renderContext.activeCmdBuffer, m_patchIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindIndexBuffer(m_commandBuffers[threadIndex], m_patchIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
-    for (auto &pi : m_visiblePatches)
+    for (auto &pi : m_visiblePatchesPerThread[threadIndex])
     {
-        vkCmdBindDescriptorSets(g_renderContext.activeCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.layout, 0, 1, &m_renderBuffers.m_patchBuffers[pi][0].descriptor.set, 0, nullptr);
+        vkCmdBindDescriptorSets(m_commandBuffers[threadIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.layout, 0, 1, &m_renderBuffers.m_patchBuffers[pi][0].descriptor.set, 0, nullptr);
         for (auto &p : m_renderBuffers.m_patchBuffers[pi])
         {
-            vkCmdDrawIndexed(g_renderContext.activeCmdBuffer, p.indexCount, 1, p.indexOffset, p.vertexOffset, 0);
+            vkCmdDrawIndexed(m_commandBuffers[threadIndex], p.indexCount, 1, p.indexOffset, p.vertexOffset, 0);
         }
     }
+
+    VK_VERIFY(vkEndCommandBuffer(m_commandBuffers[threadIndex]));
 }
 
 void Q3BspMap::CreateDescriptorsForFace(const Q3BspFaceLump &face, int idx, int vertexOffset, int indexOffset)
@@ -547,13 +646,13 @@ void Q3BspMap::CreateFaceBuffers(const std::vector<Q3BspFaceLump*> &faceData, in
     size_t vertexOffset = 0, indexOffset  = 0;
 
     // staging buffer for vertex data
-    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspVertexLump) * vertexCount, &vertexStaging);
+    vk::createStagingBuffer(g_renderContext.Device(), sizeof(Q3BspVertexLump) * vertexCount, &vertexStaging);
     // staging buffer for index data
-    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspMeshVertLump) * indexCount, &indexStaging);
+    vk::createStagingBuffer(g_renderContext.Device(), sizeof(Q3BspMeshVertLump) * indexCount, &indexStaging);
 
     void *dstV, *dstI;
-    vmaMapMemory(g_renderContext.device.allocator, vertexStaging.allocation, &dstV);
-    vmaMapMemory(g_renderContext.device.allocator, indexStaging.allocation, &dstI);
+    vmaMapMemory(g_renderContext.Device().allocator, vertexStaging.allocation, &dstV);
+    vmaMapMemory(g_renderContext.Device().allocator, indexStaging.allocation, &dstI);
     for (auto &f : faceData)
     {
         memcpy((char*)dstV + vertexOffset, &(vertices[f->vertex].position), sizeof(Q3BspVertexLump) * f->n_vertexes);
@@ -562,15 +661,15 @@ void Q3BspMap::CreateFaceBuffers(const std::vector<Q3BspFaceLump*> &faceData, in
         vertexOffset += sizeof(Q3BspVertexLump) * f->n_vertexes;
         indexOffset  += sizeof(Q3BspMeshVertLump) * f->n_meshverts;
     }
-    vmaUnmapMemory(g_renderContext.device.allocator, vertexStaging.allocation);
-    vmaUnmapMemory(g_renderContext.device.allocator, indexStaging.allocation);
+    vmaUnmapMemory(g_renderContext.Device().allocator, vertexStaging.allocation);
+    vmaUnmapMemory(g_renderContext.Device().allocator, indexStaging.allocation);
 
     // create rendering buffers
-    vk::createVertexBufferStaged(g_renderContext.device, sizeof(Q3BspVertexLump) * vertexCount, vertexStaging, &m_faceVertexBuffer);
-     vk::createIndexBufferStaged(g_renderContext.device, sizeof(Q3BspMeshVertLump) * indexCount, indexStaging, &m_faceIndexBuffer);
+    vk::createVertexBufferStaged(g_renderContext.Device(), sizeof(Q3BspVertexLump) * vertexCount, vertexStaging, &m_faceVertexBuffer);
+     vk::createIndexBufferStaged(g_renderContext.Device(), sizeof(Q3BspMeshVertLump) * indexCount, indexStaging, &m_faceIndexBuffer);
 
-    freeBuffer(g_renderContext.device, vertexStaging);
-    freeBuffer(g_renderContext.device, indexStaging);
+    freeBuffer(g_renderContext.Device(), vertexStaging);
+    freeBuffer(g_renderContext.Device(), indexStaging);
 }
 
 void Q3BspMap::CreatePatchBuffers(const std::vector<Q3BspBiquadPatch*> &patchData, int vertexCount, int indexCount)
@@ -579,13 +678,13 @@ void Q3BspMap::CreatePatchBuffers(const std::vector<Q3BspBiquadPatch*> &patchDat
     size_t vertexOffset = 0, indexOffset = 0;
 
     // staging buffer for vertex data
-    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspVertexLump) * vertexCount, &vertexStaging);
+    vk::createStagingBuffer(g_renderContext.Device(), sizeof(Q3BspVertexLump) * vertexCount, &vertexStaging);
     // staging buffer for index data
-    vk::createStagingBuffer(g_renderContext.device, sizeof(Q3BspMeshVertLump) * indexCount, &indexStaging);
+    vk::createStagingBuffer(g_renderContext.Device(), sizeof(Q3BspMeshVertLump) * indexCount, &indexStaging);
 
     void *dstV, *dstI;
-    vmaMapMemory(g_renderContext.device.allocator, vertexStaging.allocation, &dstV);
-    vmaMapMemory(g_renderContext.device.allocator, indexStaging.allocation, &dstI);
+    vmaMapMemory(g_renderContext.Device().allocator, vertexStaging.allocation, &dstV);
+    vmaMapMemory(g_renderContext.Device().allocator, indexStaging.allocation, &dstI);
     for (auto &p : patchData)
     {
         memcpy((char*)dstV + vertexOffset, &p->m_vertices[0].position, sizeof(Q3BspVertexLump) * p->m_vertices.size());
@@ -599,15 +698,15 @@ void Q3BspMap::CreatePatchBuffers(const std::vector<Q3BspBiquadPatch*> &patchDat
             indexOffset += sizeof(Q3BspMeshVertLump) * indexCount;
         }
     }
-    vmaUnmapMemory(g_renderContext.device.allocator, vertexStaging.allocation);
-    vmaUnmapMemory(g_renderContext.device.allocator, indexStaging.allocation);
+    vmaUnmapMemory(g_renderContext.Device().allocator, vertexStaging.allocation);
+    vmaUnmapMemory(g_renderContext.Device().allocator, indexStaging.allocation);
 
     // create rendering buffers
-    vk::createVertexBufferStaged(g_renderContext.device, sizeof(Q3BspVertexLump) * vertexCount, vertexStaging, &m_patchVertexBuffer);
-     vk::createIndexBufferStaged(g_renderContext.device, sizeof(Q3BspMeshVertLump) * indexCount, indexStaging, &m_patchIndexBuffer);
+    vk::createVertexBufferStaged(g_renderContext.Device(), sizeof(Q3BspVertexLump) * vertexCount, vertexStaging, &m_patchVertexBuffer);
+     vk::createIndexBufferStaged(g_renderContext.Device(), sizeof(Q3BspMeshVertLump) * indexCount, indexStaging, &m_patchIndexBuffer);
 
-    freeBuffer(g_renderContext.device, vertexStaging);
-    freeBuffer(g_renderContext.device, indexStaging);
+    freeBuffer(g_renderContext.Device(), vertexStaging);
+    freeBuffer(g_renderContext.Device(), indexStaging);
 }
 
 void Q3BspMap::CreateDescriptorSetLayout()
@@ -639,7 +738,7 @@ void Q3BspMap::CreateDescriptorSetLayout()
     layoutInfo.bindingCount = 3;
     layoutInfo.pBindings = bindings;
 
-    VK_VERIFY(vkCreateDescriptorSetLayout(g_renderContext.device.logical, &layoutInfo, nullptr, &m_dsLayout));
+    VK_VERIFY(vkCreateDescriptorSetLayout(g_renderContext.Device().logical, &layoutInfo, nullptr, &m_dsLayout));
 }
 
 void Q3BspMap::CreateDescriptorPool(uint32_t numDescriptors)
@@ -658,13 +757,13 @@ void Q3BspMap::CreateDescriptorPool(uint32_t numDescriptors)
     poolInfo.pPoolSizes = poolSizes;
     poolInfo.maxSets = numDescriptors;
 
-    VK_VERIFY(vkCreateDescriptorPool(g_renderContext.device.logical, &poolInfo, nullptr, &m_descriptorPool));
+    VK_VERIFY(vkCreateDescriptorPool(g_renderContext.Device().logical, &poolInfo, nullptr, &m_descriptorPool));
 }
 
 void Q3BspMap::CreateDescriptor(const vk::Texture **textures, vk::Descriptor *descriptor)
 {
     // create descriptor set
-    VK_VERIFY(vk::createDescriptorSet(g_renderContext.device, descriptor));
+    VK_VERIFY(vk::createDescriptorSet(g_renderContext.Device(), descriptor));
     VkDescriptorBufferInfo bufferInfo = {};
     bufferInfo.offset = 0;
     bufferInfo.buffer = m_renderBuffers.uniformBuffer.buffer;
@@ -712,5 +811,5 @@ void Q3BspMap::CreateDescriptor(const vk::Texture **textures, vk::Descriptor *de
     descriptorWrites[2].pTexelBufferView = nullptr;
     descriptorWrites[2].pNext = nullptr;
 
-    vkUpdateDescriptorSets(g_renderContext.device.logical, 3, descriptorWrites, 0, nullptr);
+    vkUpdateDescriptorSets(g_renderContext.Device().logical, 3, descriptorWrites, 0, nullptr);
 }

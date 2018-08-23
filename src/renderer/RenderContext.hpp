@@ -14,8 +14,9 @@
 class RenderContext
 {
 public:
-    bool Init(const char *title, int x, int y, int w, int h);
+    bool Init(const char *title, bool primaryDoubleBuffer, int x, int y, int w, int h);
     void Destroy();
+    const char *WindowTitle() const { return m_windowTitle; }
 
     // start rendering frame and setup all necessary structs
     VkResult RenderStart();
@@ -31,13 +32,6 @@ public:
     VkSampleCountFlagBits ToggleMSAA();
 
     SDL_Window *window = nullptr;
-
-    // Vulkan global objects
-    vk::Device device;
-    vk::SwapChain swapChain;
-    vk::RenderPass activeRenderPass;
-    VkCommandBuffer activeCmdBuffer = VK_NULL_HANDLE;
-    VkPipelineCache pipelineCache = VK_NULL_HANDLE;
 
     float fov = 75.f * PIdiv180;
     float nearPlane = 0.1f;
@@ -55,6 +49,17 @@ public:
     float top = 0.f;
 
     Math::Matrix4f ModelViewProjectionMatrix; // global MVP used to orient the entire world
+
+    // const accessors to Vulkan objects required by application
+    const vk::Device &Device()   const { return m_device; }
+    const vk::SwapChain &SwapChain() const { return m_swapChain; }
+    const VkPipelineCache &PipelineCache() const { return m_pipelineCache; }
+    const VkViewport &Viewport() const { return m_viewport; }
+    const VkRect2D &Scissor()    const { return m_scissor; }
+    const vk::RenderPass &ActiveRenderPass() const { return m_activeRenderPass; }
+    const VkFramebuffer &ActiveFramebuffer() const { return m_activeFramebuffer; }
+    const VkCommandBuffer &ActiveCmdBuffer() const { return m_activeCmdBuffer; }
+    const int MSAASamples() const { return (int)m_msaaRenderPass.sampleCount; }
 private:
     bool InitVulkan(const char *appTitle);
     void CreateDrawBuffers();
@@ -67,9 +72,16 @@ private:
     void CreateSemaphores();
     void CreatePipelineCache();
 
+    const char *m_windowTitle;
+
     // Vulkan instance and surface
     VkInstance   m_instance = VK_NULL_HANDLE;
     VkSurfaceKHR m_surface  = VK_NULL_HANDLE;
+
+    // Vulkan global objects
+    vk::Device m_device;
+    vk::SwapChain m_swapChain;
+    VkPipelineCache m_pipelineCache = VK_NULL_HANDLE;
 
     // using dynamic states for pipelines, so we need to update viewport and scissor manually
     VkViewport m_viewport = {};
@@ -79,6 +91,10 @@ private:
     vk::RenderPass m_renderPass;
     vk::RenderPass m_msaaRenderPass;
 
+    vk::RenderPass  m_activeRenderPass;
+    VkFramebuffer   m_activeFramebuffer = VK_NULL_HANDLE;
+    VkCommandBuffer m_activeCmdBuffer = VK_NULL_HANDLE;
+
     // Vulkan framebuffers
     std::vector<VkFramebuffer> m_frameBuffers;
     std::vector<VkFramebuffer> m_msaaFrameBuffers;
@@ -86,17 +102,14 @@ private:
     // Vulkan image views
     std::vector<VkImageView> m_imageViews;
 
-    // use 2 synchronized command buffers for rendering (double buffering)
-    static const int NUM_CMDBUFFERS = 2;
-
     // command buffers
     std::vector<VkCommandBuffer> m_commandBuffers;
-    // command buffer double buffering fences
-    VkFence m_fences[NUM_CMDBUFFERS];
+    // command buffer fences
+    std::vector<VkFence> m_fences;
     // semaphore: signal when next image is available for rendering
-    VkSemaphore m_imageAvailableSemaphores[NUM_CMDBUFFERS];
+    std::vector<VkSemaphore> m_imageAvailableSemaphores;
     // semaphore: signal when rendering to current command buffer is complete
-    VkSemaphore m_renderFinishedSemaphores[NUM_CMDBUFFERS];
+    std::vector<VkSemaphore> m_renderFinishedSemaphores;
 
     // depth buffer
     vk::Texture m_depthBuffer;

@@ -28,7 +28,7 @@ void Q3StatsUI::OnRender()
     }
 
     static const float statsX   = -0.99f;
-    static const float keysX    =  0.35f;
+    static const float keysX    =  0.34f;
     static const float statsY   =  0.70f;
     static const float keysY    = -0.25f;
     static const float ySpacing =  0.05f;
@@ -102,7 +102,7 @@ void Q3StatsUI::OnRender()
 
     if (m_map->HasRenderFlag(Q3Multisampling))
         m_font->SetColor(Math::Vector3f(0.f, 1.f, 0.f));
-    m_font->RenderText("F8 - multisampling (MSAA)", keysX, keysY - ySpacing * 8.f, 0.f);
+    m_font->RenderText("F8 - multisampling (MSAAx" + std::to_string(g_renderContext.MSAASamples()) + ")", keysX, keysY - ySpacing * 8.f, 0.f);
     m_font->SetColor(Math::Vector3f(1.f, 1.f, 1.f));
 
     m_font->RenderFinish();

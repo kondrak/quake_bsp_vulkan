@@ -6,8 +6,9 @@
 #include "q3bsp/Q3Bsp.hpp"
 #include "renderer/RenderContext.hpp"
 #include "renderer/Ubo.hpp"
-#include <vector>
 #include <map>
+#include <set>
+#include <vector>
 
 class  GameTexture;
 class  Q3BspBiquadPatch;
@@ -28,11 +29,13 @@ public:
 
     void Init();
     void OnRender();
+    void OnUpdate(const Math::Vector3f &cameraPosition);
     void RebuildPipeline();
+    std::string ThreadAndBspStats();
 
     bool ClusterVisible(int cameraCluster, int testCluster)   const;
     int  FindCameraLeaf(const Math::Vector3f &cameraPosition) const;
-    void CalculateVisibleFaces(const Math::Vector3f &cameraPosition);
+    void CalculateVisibleFaces(int threadIndex, int cameraLeaf);
     void ToggleRenderFlag(int flag);
 
     // bsp data
@@ -61,7 +64,7 @@ private:
     void CreatePatch(const Q3BspFaceLump &f);
 
     // queue data for drawing
-    void Draw();
+    void Draw(int threadIndex, VkCommandBufferInheritanceInfo inheritanceInfo);
 
     // Vulkan buffer creation
     void CreateDescriptorsForFace(const Q3BspFaceLump &face, int idx, int vertexOffset, int indexOffset);
@@ -77,8 +80,8 @@ private:
     std::vector<Q3FaceRenderable>   m_renderFaces;    // bsp faces in "renderable format"
     std::vector<Q3BspPatch *>       m_patches;        // curved surfaces
     std::vector<GameTexture *>      m_textures;       // loaded in-game textures
-    std::vector<Q3FaceRenderable *> m_visibleFaces;   // list of visible surfaces to render
-    std::vector<int>                m_visiblePatches; // list of visible patches to render
+    std::vector<std::set<Q3FaceRenderable *>> m_visibleFacesPerThread;   // list of visible surfaces to render (per thread)
+    std::vector<std::set<int>>                m_visiblePatchesPerThread; // list of visible patches to render (per thread)
     vk::Texture *m_lightmapTextures = nullptr;        // bsp lightmaps
 
     Frustum  m_frustum; // view frustum
@@ -103,6 +106,11 @@ private:
     vk::Buffer m_faceIndexBuffer;
     vk::Buffer m_patchVertexBuffer;
     vk::Buffer m_patchIndexBuffer;
+
+    // secondary command buffers and respective command pools used for rendering - one per thread
+    std::vector<VkCommandPool> m_commandPools;
+    std::vector<VkCommandBuffer> m_commandBuffers;
+    int m_facesPerThread;
 };
 
 #endif

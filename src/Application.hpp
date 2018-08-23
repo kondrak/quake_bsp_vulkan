@@ -21,6 +21,7 @@ public:
     void OnStart(int argc, char **argv);
     void OnRender();
     void OnUpdate(float dt);
+    void UpdateStats();
     void OnTerminate();
 
     inline bool Running() const { return m_running; }
@@ -34,8 +35,8 @@ private:
     enum DebugRender : uint8_t
     {
         None = 0,
-        RenderMapStats,
-        DebugRenderMax
+        RenderMapStats = 1 << 0,
+        PrintThreadStats = 1 << 1
     };
 
     void UpdateCamera(float dt);

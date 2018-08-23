@@ -2,12 +2,14 @@
 #include "InputHandlers.hpp"
 #include "renderer/RenderContext.hpp"
 #include "renderer/CameraDirector.hpp"
+#include "ThreadProcessor.hpp"
 #include "Utils.hpp"
 
 // for simplicity, let's use globals
-RenderContext  g_renderContext;
-Application    g_application;
-CameraDirector g_cameraDirector;
+RenderContext   g_renderContext;
+Application     g_application;
+CameraDirector  g_cameraDirector;
+ThreadProcessor g_threadProcessor;
 int g_fps = 1;
 
 int main(int argc, char **argv)
@@ -19,7 +21,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    if (!g_renderContext.Init("Quake BSP Viewer in Vulkan", 100, 100, 1024, 768))
+    if (!g_renderContext.Init("Quake BSP Viewer in Vulkan", false, 100, 100, 1024, 768))
     {
         LOG_MESSAGE_ASSERT(false, "Could not initialize render context!");
         SDL_Quit();
@@ -56,6 +58,9 @@ int main(int argc, char **argv)
             numFrames = 0;
             time = 0.f;
         }
+
+        // update debug info
+        g_application.UpdateStats();
     }
 
     g_application.OnTerminate();

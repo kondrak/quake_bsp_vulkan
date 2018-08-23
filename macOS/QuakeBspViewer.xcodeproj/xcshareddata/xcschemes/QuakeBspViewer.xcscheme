@@ -65,7 +65,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "maps/ntkjidm2.bsp"
+            argument = "maps/ntkjidm2.bsp -mt"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

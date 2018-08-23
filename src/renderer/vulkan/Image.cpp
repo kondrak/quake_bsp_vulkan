@@ -32,8 +32,8 @@ namespace vk
         VK_VERIFY(createImage(device, width, height, dstTex->format, VK_IMAGE_TILING_OPTIMAL, imageUsage, VMA_MEMORY_USAGE_GPU_ONLY, dstTex));
 
         // copy buffers
-        VkCommandBuffer transferCmdBuffer = createCommandBuffer(device, device.transferCommandPool);
-        VkCommandBuffer drawCmdBuffer = unifiedTransferAndGfx ? transferCmdBuffer : createCommandBuffer(device, device.commandPool);
+        VkCommandBuffer transferCmdBuffer = createCommandBuffer(device, device.transferCommandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+        VkCommandBuffer drawCmdBuffer = unifiedTransferAndGfx ? transferCmdBuffer : createCommandBuffer(device, device.commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
         beginCommand(transferCmdBuffer);
         transitionImageLayout(device, transferCmdBuffer, device.transferQueue, *dstTex, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
@@ -144,7 +144,7 @@ namespace vk
         VK_VERIFY(createImage(device, swapChain.extent.width, swapChain.extent.height, colorTexture.format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, &colorTexture));
         VK_VERIFY(createImageView(device, colorTexture.image, VK_IMAGE_ASPECT_COLOR_BIT, &colorTexture.imageView, colorTexture.format, colorTexture.mipLevels));
 
-        VkCommandBuffer cmdBuffer = createCommandBuffer(device, device.commandPool);
+        VkCommandBuffer cmdBuffer = createCommandBuffer(device, device.commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
         beginCommand(cmdBuffer);
         transitionImageLayout(device, cmdBuffer, device.graphicsQueue, colorTexture, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
         submitCommand(device, cmdBuffer, device.graphicsQueue);
@@ -162,7 +162,7 @@ namespace vk
         VK_VERIFY(createImage(device, swapChain.extent.width, swapChain.extent.height, depthTexture.format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, &depthTexture));
         VK_VERIFY(createImageView(device, depthTexture.image, VK_IMAGE_ASPECT_DEPTH_BIT, &depthTexture.imageView, depthTexture.format, depthTexture.mipLevels));
 
-        VkCommandBuffer cmdBuffer = createCommandBuffer(device, device.commandPool);
+        VkCommandBuffer cmdBuffer = createCommandBuffer(device, device.commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
         beginCommand(cmdBuffer);
         transitionImageLayout(device, cmdBuffer, device.graphicsQueue, depthTexture, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
         submitCommand(device, cmdBuffer, device.graphicsQueue);

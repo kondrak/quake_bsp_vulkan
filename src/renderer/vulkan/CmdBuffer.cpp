@@ -44,27 +44,27 @@ namespace vk
         return vkCreateCommandPool(device.logical, &cpCreateInfo, nullptr, commandPool);
     }
 
-    VkCommandBuffer createCommandBuffer(const Device &device, const VkCommandPool &commandPool)
+    VkCommandBuffer createCommandBuffer(const Device &device, const VkCommandPool &commandPool, const VkCommandBufferLevel &level)
     {
         VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
         VkCommandBufferAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandPool = commandPool;
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.level = level;
         allocInfo.commandBufferCount = 1;
 
         VK_VERIFY(vkAllocateCommandBuffers(device.logical, &allocInfo, &commandBuffer));
         return commandBuffer;
     }
 
-    VkResult createCommandBuffers(const Device &device, const VkCommandPool &commandPool, std::vector<VkCommandBuffer> &commandBuffers, size_t cmdBuffCount)
+    VkResult createCommandBuffers(const Device &device, const VkCommandPool &commandPool, const VkCommandBufferLevel &level, std::vector<VkCommandBuffer> &commandBuffers, size_t cmdBuffCount)
     {
         commandBuffers.resize(cmdBuffCount);
 
         VkCommandBufferAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandPool = commandPool;
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.level = level;
         allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
 
         return vkAllocateCommandBuffers(device.logical, &allocInfo, commandBuffers.data());

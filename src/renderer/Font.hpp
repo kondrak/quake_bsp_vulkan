@@ -64,6 +64,10 @@ private:
     int    m_charCount = 0;         // number of characters currently queued for drawing
     Glyph  m_charBuffer[MAX_CHARS]; // character data for vertex buffer
     Glyph *m_mappedData = nullptr;  // pointer to currently mapped Vulkan data
+
+    // secondary command buffer and pool to render into
+    VkCommandPool m_commandPool;
+    VkCommandBuffer m_commandBuffer;
 };
 
 #endif

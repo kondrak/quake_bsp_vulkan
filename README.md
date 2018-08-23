@@ -1,13 +1,13 @@
 Quake BSP map viewer in Vulkan
 ================
 
-This is a BSP tree Vulkan renderer written in C++ and a port of the same viewer [written in OpenGL](https://github.com/kondrak/quake_bsp_viewer_vr). It handles basic geometry and curved patch rendering but with no support for game-specific shaders, entities etc. It implement PVS and frustum culling so performance is optimal. At the moment only Quake III Arena maps are supported but an interface is provided for adding other BSP versions in the future.
+This is a multithreaded BSP tree Vulkan renderer written in C++ and a port of the same viewer [written in OpenGL](https://github.com/kondrak/quake_bsp_viewer_vr). It handles basic geometry and curved patch rendering but with no support for game-specific shaders, entities etc. It implement PVS and frustum culling so performance is optimal. At the moment only Quake III Arena maps are supported but an interface is provided for adding other BSP versions in the future.
 
 ![Screenshot](http://kondrak.info/images/qbsp/qbspvk.png?raw=true)
 
 Building
 -----
-The project should work out of the box with latest Vulkan SDK (tested against SDK 1.1.77.0) and Visual Studio 2015+
+The project should work out of the box with latest Vulkan SDK (tested against SDK 1.1.82.0) and Visual Studio 2015+
 
 Building on Linux and MacOS
 -----
@@ -21,6 +21,10 @@ Usage
 Running the viewer:
 
 <code>QuakeBspViewer.exe &lt;path-to-bsp-file&gt; </code>
+
+Running the viewer with multithreaded renderer:
+
+<code>QuakeBspViewer.exe &lt;path-to-bsp-file&gt; -mt </code>
 
 Use tilde key (~) to toggle statistics menu on/off. Note that you must have Quake III Arena textures and models unpacked in the root directory if you want to see proper texturing. To move around use the WASD keys. RF keys lift you up/down and QE keys let you do the barrel roll.
 
@@ -38,12 +42,12 @@ For people interested in learning Vulkan and jumping into core features, the `re
 
 Keyword list:
 - multiple pipeline rendering
+- multithreaded command buffer generation (secondary buffers for threads and one primary presentation buffer)
 - pipeline dynamic state, derivatives and cache
-- immediate screen updates with double buffering and semaphore scheduling (using single, universal queue)
 - texture mapping (filtered and unfiltered)
 - memory allocation handled using VMA
 - validation layers enabled by default in debug builds
-- multisampling (MSAA) defaulting to maximum sample count supported by hardware
+- multisampling (MSAA) using maximum sample count supported by hardware
 - mipmapping
 
 Vulkan references
@@ -52,3 +56,4 @@ Vulkan references
 - https://arm-software.github.io/vulkan-sdk
 - https://www.khronos.org/assets/uploads/developers/library/2016-vulkan-devday-uk/7-Keeping-your-GPU-fed.pdf
 - https://github.com/KhronosGroup/Vulkan-Docs/wiki/Synchronization-Examples
+- https://developer.nvidia.com/sites/default/files/akamai/gameworks/blog/munich/mschott_vulkan_multi_threading.pdf

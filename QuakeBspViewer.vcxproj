@@ -36,6 +36,7 @@
     <ClCompile Include="src\renderer\vulkan\Validation.cpp" />
     <ClCompile Include="src\renderer\vulkan\VkMemAlloc.cpp" />
     <ClCompile Include="src\StringHelpers.cpp" />
+    <ClCompile Include="src\ThreadProcessor.cpp" />
     <ClCompile Include="src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -68,6 +69,7 @@
     <ClInclude Include="src\renderer\vulkan\Validation.hpp" />
     <ClInclude Include="src\renderer\vulkan\vk_mem_alloc.h" />
     <ClInclude Include="src\StringHelpers.hpp" />
+    <ClInclude Include="src\ThreadProcessor.hpp" />
     <ClInclude Include="src\Utils.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
