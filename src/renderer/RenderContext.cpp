@@ -6,11 +6,8 @@
 #include "Utils.hpp"
 #include <algorithm>
 
-// number of primary command buffers to be used
-static int NUM_CMDBUFFERS = 1;
-
-// index of the command buffer that's currently in use
-static int s_currentCmdBuffer = 0;
+// not using pipeline dynamic state?
+//#define INLINE_COMMANDS
 
 // Returns the maximum sample count usable by the platform
 static VkSampleCountFlagBits getMaxUsableSampleCount(const VkPhysicalDeviceProperties &deviceProperties)
@@ -26,15 +23,11 @@ static VkSampleCountFlagBits getMaxUsableSampleCount(const VkPhysicalDevicePrope
 }
 
 // initialize Vulkan render context
-bool RenderContext::Init(const char *title, bool primaryDoubleBuffer, int x, int y, int w, int h)
+bool RenderContext::Init(const char *title, int x, int y, int w, int h)
 {
     window = SDL_CreateWindow(title, x, y, w, h, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
     m_windowTitle = title;
     SDL_GetWindowSize(window, &width, &height);
-
-    // use double buffered primary command buffers for rendering if not using secondary command buffers
-    if (primaryDoubleBuffer)
-        NUM_CMDBUFFERS++;
 
     halfWidth  = width  >> 1;
     halfHeight = height >> 1;
@@ -96,8 +89,8 @@ void RenderContext::Destroy()
 
 VkResult RenderContext::RenderStart()
 {
-    VkResult result = vkAcquireNextImageKHR(m_device.logical, m_swapChain.sc, UINT64_MAX, m_imageAvailableSemaphores[s_currentCmdBuffer], VK_NULL_HANDLE, &m_imageIndex);
-    m_activeCmdBuffer = m_commandBuffers[s_currentCmdBuffer];
+    VkResult result = vkAcquireNextImageKHR(m_device.logical, m_swapChain.sc, UINT64_MAX, m_imageAvailableSemaphores[m_currentCmdBuffer], VK_NULL_HANDLE, &m_imageIndex);
+    m_activeCmdBuffer = m_commandBuffers[m_currentCmdBuffer];
     m_activeFramebuffer = (m_activeRenderPass.sampleCount == VK_SAMPLE_COUNT_1_BIT) ? m_frameBuffers[m_imageIndex] : m_msaaFrameBuffers[m_imageIndex];
 
     // swapchain has become incompatible - need to recreate it
@@ -108,8 +101,8 @@ VkResult RenderContext::RenderStart()
         return result;
     }
 
-    VK_VERIFY(vkWaitForFences(m_device.logical, 1, &m_fences[s_currentCmdBuffer], VK_TRUE, UINT64_MAX));
-    vkResetFences(m_device.logical, 1, &m_fences[s_currentCmdBuffer]);
+    VK_VERIFY(vkWaitForFences(m_device.logical, 1, &m_fences[m_currentCmdBuffer], VK_TRUE, UINT64_MAX));
+    vkResetFences(m_device.logical, 1, &m_fences[m_currentCmdBuffer]);
 
     LOG_MESSAGE_ASSERT(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR, "Could not acquire swapchain image: " << result);
 
@@ -119,7 +112,7 @@ VkResult RenderContext::RenderStart()
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
     beginInfo.pInheritanceInfo = nullptr;
 
-    result = vkBeginCommandBuffer(m_commandBuffers[s_currentCmdBuffer], &beginInfo);
+    result = vkBeginCommandBuffer(m_commandBuffers[m_currentCmdBuffer], &beginInfo);
     LOG_MESSAGE_ASSERT(result == VK_SUCCESS, "Could not begin command buffer: " << result);
 
     VkClearValue clearColors[2];
@@ -134,39 +127,36 @@ VkResult RenderContext::RenderStart()
     renderBeginInfo.clearValueCount = 2;
     renderBeginInfo.pClearValues = clearColors;
 
-    if (NUM_CMDBUFFERS == 1)
-    {
-        vkCmdBeginRenderPass(m_commandBuffers[s_currentCmdBuffer], &renderBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
-    }
-    else
-    {
-        vkCmdBeginRenderPass(m_commandBuffers[s_currentCmdBuffer], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdSetViewport(m_commandBuffers[s_currentCmdBuffer], 0, 1, &m_viewport);
-        vkCmdSetScissor(m_commandBuffers[s_currentCmdBuffer], 0, 1, &m_scissor);
-    }
+#ifndef INLINE_COMMANDS
+    vkCmdBeginRenderPass(m_commandBuffers[m_currentCmdBuffer], &renderBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+#else
+    vkCmdBeginRenderPass(m_commandBuffers[m_currentCmdBuffer], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdSetViewport(m_commandBuffers[m_currentCmdBuffer], 0, 1, &m_viewport);
+    vkCmdSetScissor(m_commandBuffers[m_currentCmdBuffer], 0, 1, &m_scissor);
+#endif
 
     return VK_SUCCESS;
 }
 
 VkResult RenderContext::Submit()
 {
-    vkCmdEndRenderPass(m_commandBuffers[s_currentCmdBuffer]);
+    vkCmdEndRenderPass(m_commandBuffers[m_currentCmdBuffer]);
 
-    VkResult result = vkEndCommandBuffer(m_commandBuffers[s_currentCmdBuffer]);
+    VkResult result = vkEndCommandBuffer(m_commandBuffers[m_currentCmdBuffer]);
     LOG_MESSAGE_ASSERT(result == VK_SUCCESS, "Error recording command buffer: " << result);
 
     VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = &m_imageAvailableSemaphores[s_currentCmdBuffer];
+    submitInfo.pWaitSemaphores = &m_imageAvailableSemaphores[m_currentCmdBuffer];
     submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &m_renderFinishedSemaphores[s_currentCmdBuffer];
+    submitInfo.pSignalSemaphores = &m_renderFinishedSemaphores[m_currentCmdBuffer];
     submitInfo.pWaitDstStageMask = waitStages;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &m_commandBuffers[s_currentCmdBuffer];
+    submitInfo.pCommandBuffers = &m_commandBuffers[m_currentCmdBuffer];
 
-    return vkQueueSubmit(m_device.graphicsQueue, 1, &submitInfo, m_fences[s_currentCmdBuffer]);
+    return vkQueueSubmit(m_device.graphicsQueue, 1, &submitInfo, m_fences[m_currentCmdBuffer]);
 }
 
 VkResult RenderContext::Present()
@@ -175,7 +165,7 @@ VkResult RenderContext::Present()
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = &m_renderFinishedSemaphores[s_currentCmdBuffer];
+    presentInfo.pWaitSemaphores = &m_renderFinishedSemaphores[m_currentCmdBuffer];
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = &m_imageIndex;
@@ -190,7 +180,7 @@ VkResult RenderContext::Present()
         RecreateSwapChain();
     }
 
-    s_currentCmdBuffer = (s_currentCmdBuffer + 1) % NUM_CMDBUFFERS;
+    m_currentCmdBuffer = (m_currentCmdBuffer + 1) % NUM_CMDBUFFERS;
 
     return renderResult;
 }
@@ -281,10 +271,6 @@ bool RenderContext::InitVulkan(const char *appTitle)
     m_scissor.offset.x = 0;
     m_scissor.offset.y = 0;
     m_scissor.extent = m_swapChain.extent;
-
-    m_fences.resize(NUM_CMDBUFFERS);
-    m_imageAvailableSemaphores.resize(NUM_CMDBUFFERS);
-    m_renderFinishedSemaphores.resize(NUM_CMDBUFFERS);
 
     CreateFences();
     CreateSemaphores();

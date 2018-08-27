@@ -14,7 +14,7 @@
 class RenderContext
 {
 public:
-    bool Init(const char *title, bool primaryDoubleBuffer, int x, int y, int w, int h);
+    bool Init(const char *title, int x, int y, int w, int h);
     void Destroy();
     const char *WindowTitle() const { return m_windowTitle; }
 
@@ -59,6 +59,7 @@ public:
     const vk::RenderPass &ActiveRenderPass() const { return m_activeRenderPass; }
     const VkFramebuffer &ActiveFramebuffer() const { return m_activeFramebuffer; }
     const VkCommandBuffer &ActiveCmdBuffer() const { return m_activeCmdBuffer; }
+    const int &ActiveFrame() const { return m_currentCmdBuffer; }
     const int MSAASamples() const { return (int)m_msaaRenderPass.sampleCount; }
 private:
     bool InitVulkan(const char *appTitle);
@@ -102,14 +103,17 @@ private:
     // Vulkan image views
     std::vector<VkImageView> m_imageViews;
 
+    // use 2 synchronized command buffers for rendering (double buffering)
+    static const int NUM_CMDBUFFERS = 2;
+
     // command buffers
     std::vector<VkCommandBuffer> m_commandBuffers;
-    // command buffer fences
-    std::vector<VkFence> m_fences;
+    // command buffer double buffering fences
+    VkFence m_fences[NUM_CMDBUFFERS];
     // semaphore: signal when next image is available for rendering
-    std::vector<VkSemaphore> m_imageAvailableSemaphores;
+    VkSemaphore m_imageAvailableSemaphores[NUM_CMDBUFFERS];
     // semaphore: signal when rendering to current command buffer is complete
-    std::vector<VkSemaphore> m_renderFinishedSemaphores;
+    VkSemaphore m_renderFinishedSemaphores[NUM_CMDBUFFERS];
 
     // depth buffer
     vk::Texture m_depthBuffer;
@@ -120,6 +124,8 @@ private:
 
     // handle submission from multiple render passes
     uint32_t m_imageIndex;
+    // index of the command buffer that's currently in use
+    int m_currentCmdBuffer = 0;
 };
 
 #endif

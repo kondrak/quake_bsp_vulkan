@@ -21,7 +21,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    if (!g_renderContext.Init("Quake BSP Viewer in Vulkan", false, 100, 100, 1024, 768))
+    if (!g_renderContext.Init("Quake BSP Viewer in Vulkan", 100, 100, 1024, 768))
     {
         LOG_MESSAGE_ASSERT(false, "Could not initialize render context!");
         SDL_Quit();

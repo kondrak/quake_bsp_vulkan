@@ -108,9 +108,9 @@ private:
     vk::Buffer m_patchVertexBuffer;
     vk::Buffer m_patchIndexBuffer;
 
-    // secondary command buffers and respective command pools used for rendering - one per thread
+    // secondary command buffers (double buffered) and respective command pools used for rendering - one per thread
     std::vector<VkCommandPool> m_commandPools;
-    std::vector<VkCommandBuffer> m_commandBuffers;
+    std::vector<VkCommandBuffer> m_commandBuffers[2];
     int m_facesPerThread;
 };
 

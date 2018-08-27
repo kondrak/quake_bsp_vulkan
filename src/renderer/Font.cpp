@@ -41,7 +41,8 @@ Font::Font(const char *tex) : m_scale(1.f, 1.f), m_position(0.0f, 0.0f, 0.0f), m
     RebuildPipeline();
 
     VK_VERIFY(vk::createCommandPool(g_renderContext.Device(), g_renderContext.Device().graphicsFamilyIndex, &m_commandPool));
-    m_commandBuffer = vk::createCommandBuffer(g_renderContext.Device(), m_commandPool, VK_COMMAND_BUFFER_LEVEL_SECONDARY);
+    m_commandBuffers[0] = vk::createCommandBuffer(g_renderContext.Device(), m_commandPool, VK_COMMAND_BUFFER_LEVEL_SECONDARY);
+    m_commandBuffers[1] = vk::createCommandBuffer(g_renderContext.Device(), m_commandPool, VK_COMMAND_BUFFER_LEVEL_SECONDARY);
 }
 
 Font::~Font()
@@ -52,7 +53,7 @@ Font::~Font()
     vkDestroyDescriptorPool(g_renderContext.Device().logical, m_descriptor.pool, nullptr);
     vk::freeBuffer(g_renderContext.Device(), m_vertexBuffer);
 
-    vkFreeCommandBuffers(g_renderContext.Device().logical, m_commandPool, 1, &m_commandBuffer);
+    vkFreeCommandBuffers(g_renderContext.Device().logical, m_commandPool, 2, m_commandBuffers);
     vkDestroyCommandPool(g_renderContext.Device().logical, m_commandPool, nullptr);
 }
 
@@ -110,7 +111,7 @@ void Font::RenderFinish()
 
     // update command buffers with new characters
     Draw();
-    vkCmdExecuteCommands(g_renderContext.ActiveCmdBuffer(), 1, &m_commandBuffer);
+    vkCmdExecuteCommands(g_renderContext.ActiveCmdBuffer(), 1, &m_commandBuffers[g_renderContext.ActiveFrame()]);
 }
 
 void Font::RebuildPipeline()
@@ -164,21 +165,22 @@ void Font::Draw()
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
     beginInfo.pInheritanceInfo = &inheritanceInfo;
 
-    VK_VERIFY(vkBeginCommandBuffer(m_commandBuffer, &beginInfo));
-    vkCmdSetViewport(m_commandBuffer, 0, 1, &g_renderContext.Viewport());
-    vkCmdSetScissor(m_commandBuffer, 0, 1, &g_renderContext.Scissor());
+    int frameIdx = g_renderContext.ActiveFrame();
+    VK_VERIFY(vkBeginCommandBuffer(m_commandBuffers[frameIdx], &beginInfo));
+    vkCmdSetViewport(m_commandBuffers[frameIdx], 0, 1, &g_renderContext.Viewport());
+    vkCmdSetScissor(m_commandBuffers[frameIdx], 0, 1, &g_renderContext.Scissor());
 
-    vkCmdBindPipeline(m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.pipeline);
+    vkCmdBindPipeline(m_commandBuffers[frameIdx], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.pipeline);
 
     // queue all pending characters
     VkDeviceSize offsets[] = { 0 };
-    vkCmdBindVertexBuffers(m_commandBuffer, 0, 1, &m_vertexBuffer.buffer, offsets);
-    vkCmdBindDescriptorSets(m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.layout, 0, 1, &m_descriptor.set, 0, nullptr);
+    vkCmdBindVertexBuffers(m_commandBuffers[frameIdx], 0, 1, &m_vertexBuffer.buffer, offsets);
+    vkCmdBindDescriptorSets(m_commandBuffers[frameIdx], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.layout, 0, 1, &m_descriptor.set, 0, nullptr);
 
     for (int j = 0; j < m_charCount; j++)
-        vkCmdDraw(m_commandBuffer, 4, 1, j * 4, 0);
+        vkCmdDraw(m_commandBuffers[frameIdx], 4, 1, j * 4, 0);
 
-    VK_VERIFY(vkEndCommandBuffer(m_commandBuffer));
+    VK_VERIFY(vkEndCommandBuffer(m_commandBuffers[frameIdx]));
 }
 
 void Font::CreateDescriptor(const vk::Texture *texture, vk::Descriptor *descriptor)

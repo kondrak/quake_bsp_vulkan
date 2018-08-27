@@ -65,9 +65,9 @@ private:
     Glyph  m_charBuffer[MAX_CHARS]; // character data for vertex buffer
     Glyph *m_mappedData = nullptr;  // pointer to currently mapped Vulkan data
 
-    // secondary command buffer and pool to render into
+    // secondary command buffers (double buffered) and pool to render into
     VkCommandPool m_commandPool;
-    VkCommandBuffer m_commandBuffer;
+    VkCommandBuffer m_commandBuffers[2];
 };
 
 #endif
