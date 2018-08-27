@@ -28,6 +28,17 @@ Running the viewer with multithreaded renderer:
 
 Use tilde key (~) to toggle statistics menu on/off. Note that you must have Quake III Arena textures and models unpacked in the root directory if you want to see proper texturing. To move around use the WASD keys. RF keys lift you up/down and QE keys let you do the barrel roll.
 
+OpenGL vs Vulkan
+----------------
+Performance comparison between OpenGL, Vulkan and Vulkan multithreaded versions (tested on Intel i5 and GTX 970). Differences become more apparent as the amount of rendered geometry increases:
+
+|           |   PVS + Frustum   |  full BSP render  |
+|-----------|:-----------------:|------------------:|
+|  OpenGL   | 0.98ms (1025 FPS) | 6.89ms (145 FPS)  |
+|  Vulkan   | 0.37ms (2615 FPS) | 1.01ms (983 FPS)  |
+| Vulkan MT | 0.38ms (2635 FPS) | 0.69ms (1450 FPS) |
+
+
 Dependencies
 -------
 This project uses following external libraries:
