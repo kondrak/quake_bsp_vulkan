@@ -30,7 +30,7 @@ Use tilde key (~) to toggle statistics menu on/off. Note that you must have Quak
 
 OpenGL vs Vulkan
 ----------------
-Performance comparison between OpenGL, Vulkan and Vulkan multithreaded versions (tested on Intel i5 and GTX 970). Differences become more apparent as the amount of rendered geometry increases:
+Performance comparison between OpenGL, Vulkan and Vulkan multithreaded versions (tested on Intel i5 and GTX 970). Differences become more apparent as the amount of rendered geometry increases. All measurements are average values collected when rendering the attached sample BSP with all textures present:
 
 |           |   PVS + Frustum   |  full BSP render  |
 |-----------|:-----------------:|------------------:|
@@ -55,6 +55,7 @@ Keyword list:
 - multiple pipeline rendering
 - multithreaded command buffer generation (secondary buffers for threads and one primary presentation buffer)
 - pipeline dynamic state, derivatives and cache
+- uniform buffer objects and push constants
 - texture mapping (filtered and unfiltered)
 - memory allocation handled using VMA
 - validation layers enabled by default in debug builds
