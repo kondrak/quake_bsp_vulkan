@@ -93,6 +93,7 @@ private:
     // rendering Vulkan buffers and pipelines
     RenderBuffers m_renderBuffers;
     UniformBufferObject m_ubo;
+    BspPushConstants m_pc;
     vk::Pipeline   m_facesPipeline; // used for rendering standard faces
     vk::Pipeline   m_patchPipeline; // used for rendering curves/patches
 

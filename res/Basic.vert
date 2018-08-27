@@ -4,11 +4,15 @@
 layout(binding = 0) uniform UniformBufferObject
 {
     mat4 ModelViewProjectionMatrix;
+} ubo;
+
+layout(push_constant) uniform BspPushConstants
+{
     float worldScaleFactor;
     int renderLightmaps;
     int useLightmaps;
     int useAlphaTest;
-} ubo;
+} pc;
 
 layout(location = 0) in vec3 inVertex;
 layout(location = 1) in vec2 inTexCoord;
@@ -25,10 +29,10 @@ out gl_PerVertex {
 };
 
 void main() {
-    gl_Position = ubo.ModelViewProjectionMatrix * vec4(inVertex * ubo.worldScaleFactor, 1.0);
+    gl_Position = ubo.ModelViewProjectionMatrix * vec4(inVertex * pc.worldScaleFactor, 1.0);
     TexCoord = inTexCoord;
     TexCoordLightmap = inTexCoordLightmap;
-    renderLightmaps = ubo.renderLightmaps;
-    useLightmaps = ubo.useLightmaps;
-    useAlphaTest = ubo.useAlphaTest;
+    renderLightmaps = pc.renderLightmaps;
+    useLightmaps = pc.useLightmaps;
+    useAlphaTest = pc.useAlphaTest;
 }

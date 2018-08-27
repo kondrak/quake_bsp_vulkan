@@ -178,8 +178,15 @@ namespace vk
         plCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         plCreateInfo.setLayoutCount = 1;
         plCreateInfo.pSetLayouts = &descriptorLayout;
-        plCreateInfo.pushConstantRangeCount = 0;
-        plCreateInfo.pPushConstantRanges = nullptr;
+        plCreateInfo.pushConstantRangeCount = pipeline->pushConstantRangeCount;
+        if (pipeline->pushConstantRangeCount > 0)
+        {
+            plCreateInfo.pPushConstantRanges = &pipeline->pushConstantRange;
+        }
+        else
+        {
+            plCreateInfo.pPushConstantRanges = nullptr;
+        }
 
         VkResult plResult = vkCreatePipelineLayout(device.logical, &plCreateInfo, nullptr, &pipeline->layout);
         if (plResult != VK_SUCCESS)

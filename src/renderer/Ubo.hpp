@@ -8,13 +8,18 @@
 struct UniformBufferObject
 {
     Math::Matrix4f ModelViewProjectionMatrix;
-    float worldScaleFactor;
+};
+
+// push constants used by the main shader
+struct BspPushConstants
+{
+    float worldScaleFactor = 1.f;
     int renderLightmaps = 0;
     int useLightmaps = 1;
     int useAlphaTest = 0;
 };
 
-// GLSL attribute IDs for both the main and font shaders
+// shader attribute IDs for both the main and font shaders
 enum Attributes : uint32_t
 {
     inVertex = 0,

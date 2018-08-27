@@ -183,7 +183,7 @@ void Q3BspMap::Init()
     RebuildPipeline();
 
     // set the scale-down uniform
-    m_ubo.worldScaleFactor = 1.f / Q3BspMap::s_worldScale;
+    m_pc.worldScaleFactor = 1.f / Q3BspMap::s_worldScale;
 }
 
 void Q3BspMap::OnRender()
@@ -262,8 +262,14 @@ void Q3BspMap::RebuildPipeline()
     vk::destroyPipeline(g_renderContext.Device(), m_patchPipeline);
 
     const char *shaders[] = { "res/Basic_vert.spv", "res/Basic_frag.spv" };
+    m_facesPipeline.pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    m_facesPipeline.pushConstantRange.size = sizeof(BspPushConstants);
+    m_facesPipeline.pushConstantRangeCount = 1;
     VK_VERIFY(vk::createPipeline(g_renderContext.Device(), g_renderContext.SwapChain(), g_renderContext.ActiveRenderPass(), m_dsLayout, &m_vbInfo, &m_facesPipeline, shaders));
+    m_patchPipeline.pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    m_patchPipeline.pushConstantRange.size = sizeof(BspPushConstants);
     m_patchPipeline.basePipelineHandle = m_facesPipeline.pipeline;
+    m_patchPipeline.pushConstantRangeCount = 1;
     VK_VERIFY(vk::createPipeline(g_renderContext.Device(), g_renderContext.SwapChain(), g_renderContext.ActiveRenderPass(), m_dsLayout, &m_vbInfo, &m_patchPipeline, shaders));
 }
 
@@ -379,13 +385,13 @@ void Q3BspMap::ToggleRenderFlag(int flag)
         RebuildPipeline();
         break;
     case Q3RenderShowLightmaps:
-        m_ubo.renderLightmaps = set ? 1 : 0;
+        m_pc.renderLightmaps = set ? 1 : 0;
         break;
     case Q3RenderUseLightmaps:
-        m_ubo.useLightmaps = set ? 1 : 0;
+        m_pc.useLightmaps = set ? 1 : 0;
         break;
     case Q3RenderAlphaTest:
-        m_ubo.useAlphaTest = set ? 1 : 0;
+        m_pc.useAlphaTest = set ? 1 : 0;
         break;
     default:
         break;
@@ -546,6 +552,7 @@ void Q3BspMap::Draw(int threadIndex, VkCommandBufferInheritanceInfo inheritanceI
     vkCmdSetScissor(m_commandBuffers[threadIndex], 0, 1, &g_renderContext.Scissor());
 
     // draw regular faces
+    vkCmdPushConstants(m_commandBuffers[threadIndex], m_facesPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(BspPushConstants), &m_pc);
     vkCmdBindPipeline(m_commandBuffers[threadIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, m_facesPipeline.pipeline);
     vkCmdBindVertexBuffers(m_commandBuffers[threadIndex], 0, 1, vertexBuffers, offsets);
     // quake 3 bsp requires uint32 for index type - 16 is too small
@@ -559,6 +566,7 @@ void Q3BspMap::Draw(int threadIndex, VkCommandBufferInheritanceInfo inheritanceI
     }
 
     // draw patches
+    vkCmdPushConstants(m_commandBuffers[threadIndex], m_patchPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(BspPushConstants), &m_pc);
     vkCmdBindPipeline(m_commandBuffers[threadIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, m_patchPipeline.pipeline);
     vkCmdBindVertexBuffers(m_commandBuffers[threadIndex], 0, 1, &vertexBuffers[1], offsets);
     // quake 3 bsp requires uint32 for index type - 16 is too small
