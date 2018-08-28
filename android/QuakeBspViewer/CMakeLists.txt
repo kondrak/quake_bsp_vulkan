@@ -5,17 +5,21 @@
 
 cmake_minimum_required(VERSION 3.4.1)
 
-set(SRCS ../../src)
+set(SRC_DIR ../../src)
+include_directories(../../contrib)
+include_directories(${SRC_DIR})
 include_directories(${ANDROID_NDK}/sources/android/native_app_glue)
 
-file(GLOB SRC_LIST "${SRCS}/*.cpp")
+file(GLOB SRC_LIST "${SRC_DIR}/*.cpp")
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
-add_library(native-lib SHARED ${SRC_LIST})
+add_library(native-lib SHARED
+            ${SRC_LIST}
+            ../../contrib/stb_image/stb_image.c)
 add_library(native-app-glue STATIC ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
 
 # Searches for a specified prebuilt library and stores the path as a
