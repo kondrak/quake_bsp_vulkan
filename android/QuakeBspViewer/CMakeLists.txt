@@ -10,7 +10,10 @@ include_directories(../../contrib)
 include_directories(${SRC_DIR})
 include_directories(${ANDROID_NDK}/sources/android/native_app_glue)
 
-file(GLOB SRC_LIST "${SRC_DIR}/*.cpp")
+file(GLOB SRC_LIST "${SRC_DIR}/*.cpp"
+                   "${SRC_DIR}/q3bsp/*.cpp"
+                   "${SRC_DIR}/renderer/*.cpp"
+                   "${SRC_DIR}/renderer/vulkan/*.cpp")
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -42,6 +45,7 @@ find_library( # Sets the name of the path variable.
 target_link_libraries( # Specifies the target library.
                        native-lib
                        native-app-glue
+                       vulkan
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib} )
