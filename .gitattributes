@@ -1,5 +1,7 @@
 contrib/* linguist-vendored
 .git* text eol=lf
+gradlew text eol=lf
+gradlew.bat text eol=crlf
 Makefile text eol=lf
 *.hpp text eol=lf
 *.cpp text eol=lf
