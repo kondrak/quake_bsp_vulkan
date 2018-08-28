@@ -1,10 +1,9 @@
 package pl.kondrak.quakebspviewer;
 
-import android.app.Activity;
+import android.app.NativeActivity;
 import android.os.Bundle;
-import android.widget.TextView;
 
-public class MainActivity extends Activity {
+public class MainActivity extends NativeActivity {
 
     // Used to load the 'native-lib' library on application startup.
     static {
@@ -14,10 +13,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Example of a call to a native method
-        TextView tv = (TextView) findViewById(R.id.sample_text);
-        tv.setText(stringFromJNI());
     }
 
     /**
