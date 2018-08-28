@@ -5,7 +5,7 @@
 
 cmake_minimum_required(VERSION 3.4.1)
 
-set(SRCS ../../../src)
+set(SRCS ../../src)
 include_directories(${ANDROID_NDK}/sources/android/native_app_glue)
 
 file(GLOB SRC_LIST "${SRCS}/*.cpp")
