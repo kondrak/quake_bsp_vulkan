@@ -11,7 +11,6 @@ set(SDL_SRC ${SDL_DIR}/src)
 include_directories(../../contrib)
 include_directories(${SDL_DIR}/include)
 include_directories(${SRC})
-include_directories(${ANDROID_NDK}/sources/android/native_app_glue)
 
 file(GLOB SRC_LIST "${SRC}/*.cpp"
                    "${SRC}/q3bsp/*.cpp"
@@ -53,10 +52,9 @@ file(GLOB SRC_LIST "${SRC}/*.cpp"
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
-add_library(native-lib SHARED
+add_library(main SHARED
             ${SRC_LIST}
             ../../contrib/stb_image/stb_image.c)
-add_library(native-app-glue STATIC ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -76,8 +74,7 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       native-lib
-                       native-app-glue
+                       main
                        #required by SDL2
                        android
                        GLESv1_CM 
