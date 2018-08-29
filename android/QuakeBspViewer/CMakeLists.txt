@@ -5,46 +5,52 @@
 
 cmake_minimum_required(VERSION 3.4.1)
 
-set(SRC ../../src)
-set(SDL_DIR ../../contrib/SDL2-2.0.8)
-set(SDL_SRC ${SDL_DIR}/src)
-include_directories(../../contrib)
-include_directories(${SDL_DIR}/include)
-include_directories(${SRC})
+# Source file root directories
+set(SRC_ROOT ../../src)
+set(SDL2_DIR ../../contrib/SDL2-2.0.8)
 
-file(GLOB SRC_LIST "${SRC}/*.cpp"
-                   "${SRC}/q3bsp/*.cpp"
-                   "${SRC}/renderer/*.cpp"
-                   "${SRC}/renderer/vulkan/*.cpp"
-                   "${SDL_SRC}/*.c"
-                   "${SDL_SRC}/audio/*.c"
-                   "${SDL_SRC}/audio/android/*.c"
-                   "${SDL_SRC}/audio/dummy/*.c"
-                   "${SDL_SRC}/atomic/*.c"
-                   "${SDL_SRC}/core/android/*.c"
-                   "${SDL_SRC}/cpuinfo/*.c"
-                   "${SDL_SRC}/dynapi/*.c"
-                   "${SDL_SRC}/events/*.c"
-                   "${SDL_SRC}/file/*.c"
-                   "${SDL_SRC}/haptic/*.c"
-                   "${SDL_SRC}/haptic/android/*.c"
-                   "${SDL_SRC}/joystick/*.c"
-                   "${SDL_SRC}/joystick/android/*.c"
-                   "${SDL_SRC}/joystick/steam/SDL_steamcontroller.c"
-                   "${SDL_SRC}/loadso/dlopen/*.c"
-                   "${SDL_SRC}/power/*.c"
-                   "${SDL_SRC}/power/android/*.c"
-                   "${SDL_SRC}/filesystem/android/*.c"
-                   "${SDL_SRC}/render/*.c"
-                   "${SDL_SRC}/render/*/*.c"
-                   "${SDL_SRC}/stdlib/*.c"
-                   "${SDL_SRC}/thread/*.c"
-                   "${SDL_SRC}/thread/pthread/*.c"
-                   "${SDL_SRC}/timer/*.c"
-                   "${SDL_SRC}/timer/unix/*.c"
-                   "${SDL_SRC}/video/*.c"
-                   "${SDL_SRC}/video/android/*.c"
-                   "${SDL_SRC}/video/yuv2rgb/*.c"
+include_directories(../../contrib)
+include_directories(${SDL2_DIR}/include)
+include_directories(${SRC_ROOT})
+
+# Application sources
+file(GLOB APP_SRC "${SRC_ROOT}/*.cpp"
+                  "${SRC_ROOT}/q3bsp/*.cpp"
+                  "${SRC_ROOT}/renderer/*.cpp"
+                  "${SRC_ROOT}/renderer/vulkan/*.cpp"
+                  "../../contrib/stb_image/stb_image.c"
+                  )
+
+# SDL2 shared library sources
+file(GLOB SDL2_SRC "${SDL2_DIR}/src/*.c"
+                   "${SDL2_DIR}/src/audio/*.c"
+                   "${SDL2_DIR}/src/audio/android/*.c"
+                   "${SDL2_DIR}/src/audio/dummy/*.c"
+                   "${SDL2_DIR}/src/atomic/*.c"
+                   "${SDL2_DIR}/src/core/android/*.c"
+                   "${SDL2_DIR}/src/cpuinfo/*.c"
+                   "${SDL2_DIR}/src/dynapi/*.c"
+                   "${SDL2_DIR}/src/events/*.c"
+                   "${SDL2_DIR}/src/file/*.c"
+                   "${SDL2_DIR}/src/haptic/*.c"
+                   "${SDL2_DIR}/src/haptic/android/*.c"
+                   "${SDL2_DIR}/src/joystick/*.c"
+                   "${SDL2_DIR}/src/joystick/android/*.c"
+                   "${SDL2_DIR}/src/joystick/steam/SDL_steamcontroller.c"
+                   "${SDL2_DIR}/src/loadso/dlopen/*.c"
+                   "${SDL2_DIR}/src/power/*.c"
+                   "${SDL2_DIR}/src/power/android/*.c"
+                   "${SDL2_DIR}/src/filesystem/android/*.c"
+                   "${SDL2_DIR}/src/render/*.c"
+                   "${SDL2_DIR}/src/render/*/*.c"
+                   "${SDL2_DIR}/src/stdlib/*.c"
+                   "${SDL2_DIR}/src/thread/*.c"
+                   "${SDL2_DIR}/src/thread/pthread/*.c"
+                   "${SDL2_DIR}/src/timer/*.c"
+                   "${SDL2_DIR}/src/timer/unix/*.c"
+                   "${SDL2_DIR}/src/video/*.c"
+                   "${SDL2_DIR}/src/video/android/*.c"
+                   "${SDL2_DIR}/src/video/yuv2rgb/*.c"
                    )
 
 # Creates and names a library, sets it as either STATIC
@@ -52,22 +58,8 @@ file(GLOB SRC_LIST "${SRC}/*.cpp"
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
-add_library(main SHARED
-            ${SRC_LIST}
-            ../../contrib/stb_image/stb_image.c)
-
-# Searches for a specified prebuilt library and stores the path as a
-# variable. Because CMake includes system libraries in the search path by
-# default, you only need to specify the name of the public NDK library
-# you want to add. CMake verifies that the library exists before
-# completing its build.
-
-find_library( # Sets the name of the path variable.
-              log-lib
-
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
-              log )
+add_library(main SHARED ${APP_SRC} )
+add_library(SDL2 SHARED ${SDL2_SRC})
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
@@ -75,12 +67,12 @@ find_library( # Sets the name of the path variable.
 
 target_link_libraries( # Specifies the target library.
                        main
-                       #required by SDL2
+                       SDL2
+                       vulkan )
+
+target_link_libraries( # Specifies the target library.
+                       SDL2
                        android
                        GLESv1_CM 
                        GLESv2
-                       #required by Vulkan
-                       vulkan
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib} )
+                       log )
