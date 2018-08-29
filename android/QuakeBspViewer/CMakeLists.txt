@@ -5,15 +5,48 @@
 
 cmake_minimum_required(VERSION 3.4.1)
 
-set(SRC_DIR ../../src)
+set(SRC ../../src)
+set(SDL_DIR ../../contrib/SDL2-2.0.8)
+set(SDL_SRC ${SDL_DIR}/src)
 include_directories(../../contrib)
-include_directories(${SRC_DIR})
+include_directories(${SDL_DIR}/include)
+include_directories(${SRC})
 include_directories(${ANDROID_NDK}/sources/android/native_app_glue)
 
-file(GLOB SRC_LIST "${SRC_DIR}/*.cpp"
-                   "${SRC_DIR}/q3bsp/*.cpp"
-                   "${SRC_DIR}/renderer/*.cpp"
-                   "${SRC_DIR}/renderer/vulkan/*.cpp")
+file(GLOB SRC_LIST "${SRC}/*.cpp"
+                   "${SRC}/q3bsp/*.cpp"
+                   "${SRC}/renderer/*.cpp"
+                   "${SRC}/renderer/vulkan/*.cpp"
+                   "${SDL_SRC}/*.c"
+                   "${SDL_SRC}/audio/*.c"
+                   "${SDL_SRC}/audio/android/*.c"
+                   "${SDL_SRC}/audio/dummy/*.c"
+                   "${SDL_SRC}/atomic/*.c"
+                   "${SDL_SRC}/core/android/*.c"
+                   "${SDL_SRC}/cpuinfo/*.c"
+                   "${SDL_SRC}/dynapi/*.c"
+                   "${SDL_SRC}/events/*.c"
+                   "${SDL_SRC}/file/*.c"
+                   "${SDL_SRC}/haptic/*.c"
+                   "${SDL_SRC}/haptic/android/*.c"
+                   "${SDL_SRC}/joystick/*.c"
+                   "${SDL_SRC}/joystick/android/*.c"
+                   "${SDL_SRC}/joystick/steam/SDL_steamcontroller.c"
+                   "${SDL_SRC}/loadso/dlopen/*.c"
+                   "${SDL_SRC}/power/*.c"
+                   "${SDL_SRC}/power/android/*.c"
+                   "${SDL_SRC}/filesystem/android/*.c"
+                   "${SDL_SRC}/render/*.c"
+                   "${SDL_SRC}/render/*/*.c"
+                   "${SDL_SRC}/stdlib/*.c"
+                   "${SDL_SRC}/thread/*.c"
+                   "${SDL_SRC}/thread/pthread/*.c"
+                   "${SDL_SRC}/timer/*.c"
+                   "${SDL_SRC}/timer/unix/*.c"
+                   "${SDL_SRC}/video/*.c"
+                   "${SDL_SRC}/video/android/*.c"
+                   "${SDL_SRC}/video/yuv2rgb/*.c"
+                   )
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -45,6 +78,11 @@ find_library( # Sets the name of the path variable.
 target_link_libraries( # Specifies the target library.
                        native-lib
                        native-app-glue
+                       #required by SDL2
+                       android
+                       GLESv1_CM 
+                       GLESv2
+                       #required by Vulkan
                        vulkan
                        # Links the target library to the log library
                        # included in the NDK.

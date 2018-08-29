@@ -11,6 +11,7 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
+                cFlags "-DGL_GLEXT_PROTOTYPES"
                 cppFlags "-std=c++14"
             }
         }
