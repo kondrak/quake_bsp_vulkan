@@ -1,6 +1,11 @@
 #include "renderer/vulkan/Pipeline.hpp"
 #include "Utils.hpp"
 #include <fstream>
+#ifdef __ANDROID__
+#include <android/asset_manager.h>
+
+extern AAssetManager *g_androidAssetMgr;
+#endif
 
 namespace vk
 {
@@ -27,6 +32,16 @@ namespace vk
 
     static uint32_t *ReadShaderFromFile(const char *filename, size_t *buffSize)
     {
+#ifdef __ANDROID__
+        AAsset *asset = AAssetManager_open(g_androidAssetMgr, filename, AASSET_MODE_STREAMING);
+        LOG_MESSAGE_ASSERT(asset, "Cannot open input file: " << filename);
+        *buffSize = AAsset_getLength64(asset);
+        uint32_t *outBuffer = new uint32_t[*buffSize];
+        AAsset_read(asset, (char*)outBuffer, *buffSize);
+        AAsset_close(asset);
+
+        return outBuffer;
+#else
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
         if (!file.is_open())
@@ -43,6 +58,7 @@ namespace vk
         file.close();
 
         return outBuffer;
+#endif
     }
 
     static ShaderProgram loadShader(const Device &device, const char* vshFilename, const char *fshFilename)

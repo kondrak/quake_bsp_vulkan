@@ -15,6 +15,7 @@ include_directories(${SRC_ROOT})
 
 # Application sources
 file(GLOB APP_SRC "${SRC_ROOT}/*.cpp"
+                  "${SRC_ROOT}/android/*.cpp"
                   "${SRC_ROOT}/q3bsp/*.cpp"
                   "${SRC_ROOT}/renderer/*.cpp"
                   "${SRC_ROOT}/renderer/vulkan/*.cpp"

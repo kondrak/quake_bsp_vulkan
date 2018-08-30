@@ -22,5 +22,8 @@ public class MainActivity extends SDLActivity
     {
         super.onCreate(savedInstanceState);
         assetMgr = getResources().getAssets();
+        initAssetManager(assetMgr);
     }
+
+    private static native void initAssetManager(AssetManager mgr);
 }
