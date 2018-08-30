@@ -200,6 +200,7 @@ namespace vk
                 LOG_MESSAGE_ASSERT(queueFamilyCount != 0, "No queue families for the device!");
 
                 // check if requested device extensions are present
+#ifndef __ANDROID__
                 bool extSupported = deviceExtensionsSupported(devices[i], devExtensions.data(), devExtensions.size());
 
                 // no required extensions? try next device
@@ -212,6 +213,7 @@ namespace vk
 
                 if (scInfo.formatCount == 0 || scInfo.presentModesCount == 0)
                     continue;
+#endif
 
                 VkQueueFamilyProperties *queueFamilies = new VkQueueFamilyProperties[queueFamilyCount];
                 vkGetPhysicalDeviceQueueFamilyProperties(devices[i], &queueFamilyCount, queueFamilies);
