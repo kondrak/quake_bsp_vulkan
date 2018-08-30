@@ -32,7 +32,12 @@ namespace vk
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pEngineName = "custom";
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+// Android is limited to Vulkan 1.0 so far
+#ifdef __ANDROID__
+        appInfo.apiVersion = VK_API_VERSION_1_0;
+#else
         appInfo.apiVersion = VK_API_VERSION_1_1;
+#endif
 
         unsigned int extCount = 0;
         // get count of required extensions
