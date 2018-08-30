@@ -257,7 +257,11 @@ bool RenderContext::InitVulkan(const char *appTitle)
     // set initial swap chain extent to current window size - in case WM can't determine it by itself
     m_swapChain.extent = { (uint32_t)width, (uint32_t)height };
     // desired present mode
+#ifdef __ANDROID__
+    m_swapChain.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+#else
     m_swapChain.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+#endif
 
     VK_VERIFY(vk::createSwapChain(m_device, m_surface, &m_swapChain, VK_NULL_HANDLE));
 
