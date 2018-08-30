@@ -3,7 +3,7 @@
 #include <sstream>
 #include <string.h>
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 #define LOG_MESSAGE(msg) { \
     std::stringstream msgStr; \
     msgStr << "[LOG]: " << msg << "\n"; \
