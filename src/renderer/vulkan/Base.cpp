@@ -59,13 +59,13 @@ namespace vk
         createInfo.ppEnabledExtensionNames = enabledExtensions.data();
 
 #ifdef VALIDATION_LAYERS_ON
-        if (!validationLayersAvailable(validationLayers, 1))
+        if (!validationLayersAvailable(validationLayers, validationLayerCount))
         {
             LOG_MESSAGE_ASSERT(false, "Validation layers not available!");
             return VK_RESULT_MAX_ENUM;
         }
 
-        createInfo.enabledLayerCount = 1;
+        createInfo.enabledLayerCount = validationLayerCount;
         createInfo.ppEnabledLayerNames = validationLayers;
 #else
         createInfo.enabledLayerCount = 0;

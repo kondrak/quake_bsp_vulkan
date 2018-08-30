@@ -174,7 +174,7 @@ namespace vk
         deviceCreateInfo.pQueueCreateInfos = queueCreateInfo;
 
 #ifdef VALIDATION_LAYERS_ON
-        deviceCreateInfo.enabledLayerCount = 1;
+        deviceCreateInfo.enabledLayerCount = vk::validationLayerCount;
         deviceCreateInfo.ppEnabledLayerNames = vk::validationLayers;
 #else
         deviceCreateInfo.enabledLayerCount = 0;

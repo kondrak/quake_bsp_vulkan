@@ -4,7 +4,7 @@
 
 AAssetManager *g_androidAssetMgr = nullptr;
 
-extern "C" JNIEXPORT void JNICALL Java_pl_kondrak_quakebspviewer_initAssetManager(JNIEnv *env, jobject obj, jobject assetManager)
+extern "C" JNIEXPORT void JNICALL Java_pl_kondrak_quakebspviewer_MainActivity_initAssetManager(JNIEnv *env, jobject obj, jobject assetManager)
 {
     g_androidAssetMgr = AAssetManager_fromJava(env, assetManager);
 }
