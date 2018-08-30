@@ -21,23 +21,19 @@ GameTexture::GameTexture(const char *filename)
 
 #ifdef __ANDROID__
     AAsset *asset = AAssetManager_open(g_androidAssetMgr, filename, AASSET_MODE_STREAMING);
-    size_t texSize = AAsset_getLength64(asset);
-    char *texBuffer = new char[texSize];
-    AAsset_read(asset, texBuffer, texSize);
-    AAsset_close(asset);
 
     // force rgba if the device can't blit to rgb format (required by mipmapping)
     if (canBlitLinear || canBlitOptimal)
     {
-        m_textureData = stbi_load_from_memory((const unsigned char*)texBuffer, texSize, &m_width, &m_height, &m_components, STBI_default);
+        m_textureData = stbi_load_from_memory((const unsigned char*)AAsset_getBuffer(asset), AAsset_getLength64(asset), &m_width, &m_height, &m_components, STBI_default);
     }
     else
     {
-        m_textureData = stbi_load_from_memory((const unsigned char*)texBuffer, texSize, &m_width, &m_height, &m_components, STBI_rgb_alpha);
+        m_textureData = stbi_load_from_memory((const unsigned char*)AAsset_getBuffer(asset), AAsset_getLength64(asset), &m_width, &m_height, &m_components, STBI_rgb_alpha);
         m_components = 4;
     }
 
-    delete[] texBuffer;
+    AAsset_close(asset);
 #else
     // force rgba if the device can't blit to rgb format (required by mipmapping)
     if (canBlitLinear || canBlitOptimal)
