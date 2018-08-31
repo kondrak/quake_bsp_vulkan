@@ -18,7 +18,11 @@ android {
     }
 
     sourceSets {
-        main.assets.srcDirs = ['assets']
+        main {
+            assets.srcDirs = ['assets']
+            # bundle validation layer libraries straight from NDK third party directory
+            jniLibs.srcDir System.getenv('ANDROID_NDK_HOME') + "/sources/third_party/vulkan/src/build-android/jniLibs"
+        }
     }
 
     buildTypes {
