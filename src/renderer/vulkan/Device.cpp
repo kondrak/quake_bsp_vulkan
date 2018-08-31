@@ -85,7 +85,8 @@ namespace vk
             scCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
         }
 
-        scCreateInfo.preTransform = scInfo.surfaceCaps.currentTransform;
+        // prefer a surface with no transformation - this is especially relevant on Android (prevents image being rendered in wrong orientation)
+        scCreateInfo.preTransform = scInfo.surfaceCaps.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR ? VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR : scInfo.surfaceCaps.currentTransform;
         scCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
         scCreateInfo.presentMode = swapChain->presentMode;
         scCreateInfo.clipped = VK_TRUE;
