@@ -112,6 +112,29 @@ namespace vk
         vmaDestroyAllocator(allocator);
     }
 
+    VkFormat getBestDepthFormat(const Device &device)
+    {
+        VkFormat depthFormats[] = {
+            VK_FORMAT_D32_SFLOAT_S8_UINT,
+            VK_FORMAT_D32_SFLOAT,
+            VK_FORMAT_D24_UNORM_S8_UINT,
+            VK_FORMAT_D16_UNORM_S8_UINT,
+            VK_FORMAT_D16_UNORM
+        };
+
+        for (int i = 0; i < 6; ++i)
+        {
+            VkFormatProperties formatProps;
+            vkGetPhysicalDeviceFormatProperties(device.physical, depthFormats[i], &formatProps);
+
+            if (formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
+                return depthFormats[i];
+        }
+
+        LOG_MESSAGE_ASSERT(false, "No supported depth format found!");
+        return VK_FORMAT_D16_UNORM;
+    }
+
 // deprecated Vulkan surface creation prior to SDL 2.0.6
 /*
     VkResult createSurface(const void *window, const VkInstance &instance, VkSurfaceKHR *surface)

@@ -61,4 +61,5 @@ namespace vk
     // this application uses VMA for memory management
     VkResult createAllocator(const Device &device, VmaAllocator *allocator);
     void    destroyAllocator(VmaAllocator &allocator);
+    VkFormat getBestDepthFormat(const Device &device);
 }

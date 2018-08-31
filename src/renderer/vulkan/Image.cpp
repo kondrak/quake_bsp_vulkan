@@ -156,7 +156,7 @@ namespace vk
     Texture createDepthBuffer(const Device &device, const SwapChain &swapChain, VkSampleCountFlagBits sampleCount)
     {
         Texture depthTexture;
-        depthTexture.format = VK_FORMAT_D32_SFLOAT;
+        depthTexture.format = getBestDepthFormat(device);
         depthTexture.sampleCount = sampleCount;
 
         VK_VERIFY(createImage(device, swapChain.extent.width, swapChain.extent.height, depthTexture.format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, &depthTexture));

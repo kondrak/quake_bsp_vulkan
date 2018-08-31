@@ -263,7 +263,7 @@ namespace vk
             colorAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentDescription depthAttachmentDesc = {};
-        depthAttachmentDesc.format = VK_FORMAT_D32_SFLOAT;
+        depthAttachmentDesc.format = getBestDepthFormat(device);
         depthAttachmentDesc.samples = renderPass->sampleCount;
         depthAttachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
