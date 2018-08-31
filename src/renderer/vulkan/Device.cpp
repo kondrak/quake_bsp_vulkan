@@ -33,6 +33,7 @@ namespace vk
     static void getSwapSurfaceFormat(const SwapChainInfo &scInfo, VkSurfaceFormatKHR *surfaceFormat);
     static void getSwapPresentMode(const SwapChainInfo &scInfo, VkPresentModeKHR *presentMode);
     static void getSwapExtent(const SwapChainInfo &scInfo, VkExtent2D *swapExtent, const VkExtent2D &currentSize);
+    static VkCompositeAlphaFlagBitsKHR getSupportedCompositeAlpha(VkCompositeAlphaFlagsKHR supportedFlags);
 
     Device createDevice(const VkInstance &instance, const VkSurfaceKHR &surface)
     {
@@ -87,7 +88,7 @@ namespace vk
 
         // prefer a surface with no transformation - this is especially relevant on Android (prevents image being rendered in wrong orientation)
         scCreateInfo.preTransform = scInfo.surfaceCaps.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR ? VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR : scInfo.surfaceCaps.currentTransform;
-        scCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        scCreateInfo.compositeAlpha = getSupportedCompositeAlpha(scInfo.surfaceCaps.supportedCompositeAlpha);
         scCreateInfo.presentMode = swapChain->presentMode;
         scCreateInfo.clipped = VK_TRUE;
         scCreateInfo.oldSwapchain = oldSwapchain;
@@ -380,5 +381,24 @@ namespace vk
         swapExtent->width  = std::max(scInfo.surfaceCaps.minImageExtent.width,  std::min(scInfo.surfaceCaps.maxImageExtent.width,  currentSize.width));
         swapExtent->height = std::max(scInfo.surfaceCaps.minImageExtent.height, std::min(scInfo.surfaceCaps.maxImageExtent.height, currentSize.height));
         LOG_MESSAGE("WM sets extent width and height to max uint32!");
+    }
+
+    VkCompositeAlphaFlagBitsKHR getSupportedCompositeAlpha(VkCompositeAlphaFlagsKHR supportedFlags)
+    {
+        VkCompositeAlphaFlagBitsKHR compositeAlphaFlags[] = {
+            VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+            VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR,
+            VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR,
+            VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR
+        };
+
+        for (int i = 0; i < 4; ++i)
+        {
+            if (supportedFlags & compositeAlphaFlags[i])
+                return compositeAlphaFlags[i];
+        }
+
+        LOG_MESSAGE_ASSERT(false, "No composite alpha flags supported!");
+        return VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
     }
 }
