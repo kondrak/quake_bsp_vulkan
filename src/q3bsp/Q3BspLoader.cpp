@@ -1,12 +1,15 @@
 #include "q3bsp/Q3BspLoader.hpp"
-#include <fstream>
 
-Q3BspMap *Q3BspLoader::Load(const std::string &filename)
+#ifdef __ANDROID__
+extern AAssetManager *g_androidAssetMgr;
+#endif
+
+Q3BspMap *Q3BspLoader::Load(const char *filename)
 {
-    std::ifstream bspFile;
-    bspFile.open(filename, std::ios::in | std::ios::binary);
+    BSP_INPUT_TYPE bspFile;
+    BSP_OPEN(bspFile, filename);
 
-    if (!bspFile.is_open())
+    if (!BSP_IS_OPEN(bspFile))
     {
         return new Q3BspMap(false);
     }
@@ -49,34 +52,34 @@ Q3BspMap *Q3BspLoader::Load(const std::string &filename)
     // vis data lump
     LoadVisDataLump(q3map, bspFile);
 
-    bspFile.close();
+    BSP_CLOSE(bspFile);
 
     return q3map;
 }
 
-void Q3BspLoader::LoadBspHeader(Q3BspHeader &hdr, std::ifstream &fstream)
+void Q3BspLoader::LoadBspHeader(Q3BspHeader &hdr, BSP_INPUT_FILE bsp)
 {
-    fstream.read((char*)&(hdr), sizeof(Q3BspHeader));
+    BSP_READ(bsp, (char*)&(hdr), sizeof(Q3BspHeader));
 }
 
-void Q3BspLoader::LoadEntitiesLump(Q3BspMap *map, std::ifstream &fstream)
+void Q3BspLoader::LoadEntitiesLump(Q3BspMap *map, BSP_INPUT_FILE bsp)
 {
     map->entities.size = map->header.direntries[Entities].length;
     map->entities.ents = new char[map->entities.size];
 
-    fstream.seekg(map->header.direntries[Entities].offset, std::ios_base::beg);
-    fstream.read(map->entities.ents, sizeof(char) * map->entities.size);
+    BSP_SEEK_SET(bsp, map->header.direntries[Entities].offset);
+    BSP_READ(bsp, map->entities.ents, sizeof(char) * map->entities.size);
 }
 
-void Q3BspLoader::LoadVisDataLump(Q3BspMap *map, std::ifstream &fstream)
+void Q3BspLoader::LoadVisDataLump(Q3BspMap *map, BSP_INPUT_FILE bsp)
 {
-    fstream.seekg(map->header.direntries[VisData].offset, std::ios_base::beg);
+    BSP_SEEK_SET(bsp, map->header.direntries[VisData].offset);
 
-    fstream.read((char *)&(map->visData.n_vecs), sizeof(int));
-    fstream.read((char *)&(map->visData.sz_vecs), sizeof(int));
+    BSP_READ(bsp, (char *)&(map->visData.n_vecs), sizeof(int));
+    BSP_READ(bsp, (char *)&(map->visData.sz_vecs), sizeof(int));
 
     int vecSize = map->visData.n_vecs * map->visData.sz_vecs;
     map->visData.vecs = new unsigned char[vecSize];
 
-    fstream.read((char *)(map->visData.vecs), vecSize * sizeof(unsigned char));
+    BSP_READ(bsp, (char *)(map->visData.vecs), vecSize * sizeof(unsigned char));
 }

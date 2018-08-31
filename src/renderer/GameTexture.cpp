@@ -11,7 +11,7 @@ extern AAssetManager *g_androidAssetMgr;
 
 extern RenderContext  g_renderContext;
 
-GameTexture::GameTexture(const char *filename)
+GameTexture::GameTexture(const char *filename) : m_textureData(nullptr)
 {
     VkFormatProperties fp = {};
     vkGetPhysicalDeviceFormatProperties(g_renderContext.Device().physical, VK_FORMAT_R8G8B8_UNORM, &fp);
@@ -21,6 +21,9 @@ GameTexture::GameTexture(const char *filename)
 
 #ifdef __ANDROID__
     AAsset *asset = AAssetManager_open(g_androidAssetMgr, filename, AASSET_MODE_STREAMING);
+
+    if (!asset)
+        return;
 
     // force rgba if the device can't blit to rgb format (required by mipmapping)
     if (canBlitLinear || canBlitOptimal)
