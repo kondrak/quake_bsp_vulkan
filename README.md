@@ -16,6 +16,15 @@ Assuming that the Vulkan SDK is already downloaded and properly set up on your t
 - download and install SDL2 (`libsdl2-dev` 2.0.7 or higher for Linux, `SDL2.framework` 2.0.8 or higher for MacOS)
 - run the Makefile (Linux) or XCode project (MacOS) to build the application
 
+Building on Android
+-----
+Requirements:
+- Android Studio 3.0 or higher
+- Android NDK r17b or higher with `ANDROID_NDK_HOME` environment set and pointing to its location
+- download and extract [SDL 2.0.8](http://libsdl.org/release/SDL2-2.0.8.zip) source code to `contrib` folder (NOT runtime libraries!)
+
+Enter the `android` folder and run `./gradlew assembleDebug` for debug build (with validation layers enabled by default) or `./gradlew assembleRelease` for release build. Since this application uses the default Vulkan headers and libraries bundled with the NDK, no further steps are required. However, this also limits the application to be run on devices with Android 7.0 or higher.
+
 Usage
 -----
 Running the viewer:
