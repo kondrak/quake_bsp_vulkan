@@ -13,6 +13,10 @@ android {
                 cFlags "-DGL_GLEXT_PROTOTYPES"
                 cppFlags "-std=c++14 -DANDROID_STL=c++_static"
             }
+
+            ndk {
+                abiFilters 'armeabi-v7a', 'arm64-v8a'
+            }
         }
     }
 
@@ -51,6 +55,16 @@ task copyResources {
             from '../../maps'
             into "assets/maps"
             include 'ntkjidm2.bsp'
+        }
+
+        copy {
+            from '../../models'
+            into "assets/models"
+        }
+
+        copy {
+            from '../../textures'
+            into "assets/textures"
         }
 
         copy {
