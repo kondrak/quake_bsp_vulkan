@@ -19,9 +19,9 @@ Assuming that the Vulkan SDK is already downloaded and properly set up on your t
 Building on Android
 -----
 Requirements:
-- Android Studio 3.0 or higher
-- Android NDK r17b or higher with `ANDROID_NDK_HOME` environment set and pointing to its location
-- download and extract [SDL 2.0.8](http://libsdl.org/release/SDL2-2.0.8.zip) source code to `contrib` folder (NOT runtime libraries!)
+- [Android Studio 3.0](https://developer.android.com/studio) or higher
+- [Android NDK r17b](https://developer.android.com/ndk/downloads) or higher with `ANDROID_NDK_HOME` environment set and pointing to its location
+- download and extract [SDL 2.0.8](http://libsdl.org/release/SDL2-2.0.8.zip) source code (NOT runtime libraries!) into `contrib` folder
 
 Enter the `android` folder and run `./gradlew assembleDebug` for debug build (with validation layers enabled by default) or `./gradlew assembleRelease` for release build. Since this application uses the default Vulkan headers and libraries bundled with the NDK, no further steps are required. However, this also limits the application to be run on devices with Android 7.0 or higher.
 
