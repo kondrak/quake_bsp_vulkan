@@ -10,6 +10,7 @@ namespace vk
     static void copyBufferToImage(const VkCommandBuffer &cmdBuffer, const VkBuffer &buffer, const VkImage &image, uint32_t width, uint32_t height);
     static VkResult createImage(const Device &device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VmaMemoryUsage memUsage, Texture *texture);
     static void generateMipmaps(const VkCommandBuffer &cmdBuffer, const Texture &texture, uint32_t width, uint32_t height);
+    static VkImageAspectFlags getDepthStencilAspect(VkFormat depthFormat);
 
     void createTextureImage(const Device &device, Texture *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
     {
@@ -160,7 +161,7 @@ namespace vk
         depthTexture.sampleCount = sampleCount;
 
         VK_VERIFY(createImage(device, swapChain.extent.width, swapChain.extent.height, depthTexture.format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, &depthTexture));
-        VK_VERIFY(createImageView(device, depthTexture.image, VK_IMAGE_ASPECT_DEPTH_BIT, &depthTexture.imageView, depthTexture.format, depthTexture.mipLevels));
+        VK_VERIFY(createImageView(device, depthTexture.image, getDepthStencilAspect(depthTexture.format), &depthTexture.imageView, depthTexture.format, depthTexture.mipLevels));
 
         VkCommandBuffer cmdBuffer = createCommandBuffer(device, device.commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
         beginCommand(cmdBuffer);
@@ -190,7 +191,7 @@ namespace vk
 
         if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
         {
-            imgBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+            imgBarrier.subresourceRange.aspectMask = getDepthStencilAspect(texture.format);
         }
         else
         {
@@ -384,5 +385,18 @@ namespace vk
         imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
         vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imgBarrier);
+    }
+
+    VkImageAspectFlags getDepthStencilAspect(VkFormat depthFormat)
+    {
+        switch (depthFormat)
+        {
+        case VK_FORMAT_D32_SFLOAT_S8_UINT:
+        case VK_FORMAT_D24_UNORM_S8_UINT:
+        case VK_FORMAT_D16_UNORM_S8_UINT:
+                return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+        default:
+            return VK_IMAGE_ASPECT_DEPTH_BIT;
+        }
     }
 }
