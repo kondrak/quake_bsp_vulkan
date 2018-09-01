@@ -12,7 +12,7 @@ android {
         externalNativeBuild {
             cmake {
                 cFlags "-DGL_GLEXT_PROTOTYPES"
-                cppFlags "-std=c++14"
+                cppFlags "-std=c++14 -DANDROID_STL=c++_static"
             }
         }
     }
