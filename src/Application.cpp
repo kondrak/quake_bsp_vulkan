@@ -49,6 +49,7 @@ void Application::OnStart(int argc, char **argv)
 {
     Q3BspLoader loader;
 #ifdef __ANDROID__
+    // just auto-load the bundled BSP on Android
     m_q3map = loader.Load("maps/ntkjidm2.bsp");
 #else
     // assume the parameter with a string ".bsp" is the map we want to load
