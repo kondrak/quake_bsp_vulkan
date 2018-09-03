@@ -31,5 +31,17 @@ public class MainActivity extends SDLActivity
                                 View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
     }
 
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+
+        if(hasFocus) {
+            View v = getWindow().getDecorView();
+            v.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | 
+                                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | 
+                                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        }
+    }
+
     private static native void initAssetManager(AssetManager mgr);
 }
