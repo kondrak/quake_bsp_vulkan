@@ -219,6 +219,16 @@ bool RenderContext::RecreateSwapChain()
     DestroyFramebuffers();
     DestroyImageViews();
 
+    // using Vulkan in conjuction with SDL2 causes vkCreateSwapChainKHR and/or vkAcquireNextImageKHR to return VK_ERROR_INITIALIZATION_FAILED when
+    // app regains focus (which is not even spec compliant) - the easiest/fastest way to fix this is to recreate entire surface along with the swapchain
+    // sidenote: stay away from SDL2 if you want Vulkan on Android!
+#ifdef __ANDROID__
+    vkDestroySwapchainKHR(m_device.logical, m_swapChain.sc, nullptr);
+    vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+    SDL_Vulkan_CreateSurface(window, m_instance, &m_surface);
+    m_swapChain.sc = VK_NULL_HANDLE;
+#endif
+
     // set initial swap chain extent to current window size - in case WM can't determine it by itself
     m_swapChain.extent = { (uint32_t)width, (uint32_t)height };
     VK_VERIFY(vk::createSwapChain(m_device, m_surface, &m_swapChain, m_swapChain.sc));

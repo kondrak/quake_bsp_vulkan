@@ -38,6 +38,11 @@ void Application::OnWindowMinimized(bool minimized)
 
     if (minimized)
         g_threadProcessor.Wait();
+    // recreate swapchain when Android regains focus for the app - required, since drawable surface is invalidated
+#ifdef __ANDROID__
+    else
+        g_renderContext.RecreateSwapChain();
+#endif
 }
 
 void Application::OnStart(int argc, char **argv)
