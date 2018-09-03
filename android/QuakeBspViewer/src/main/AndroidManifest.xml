@@ -3,9 +3,8 @@
           package="pl.kondrak.quakebspviewer">
 
     <application
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/icon"
         android:label="Quake BSP Viewer in Vulkan"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
         <activity
             android:name="MainActivity"
