@@ -122,7 +122,7 @@ namespace vk
             VK_FORMAT_D16_UNORM
         };
 
-        for (int i = 0; i < 6; ++i)
+        for (int i = 0; i < 5; ++i)
         {
             VkFormatProperties formatProps;
             vkGetPhysicalDeviceFormatProperties(device.physical, depthFormats[i], &formatProps);
