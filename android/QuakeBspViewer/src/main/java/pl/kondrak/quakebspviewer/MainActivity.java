@@ -26,7 +26,7 @@ public class MainActivity extends SDLActivity
         initAssetManager(assetMgr);
 
         View v = getWindow().getDecorView();
-        v.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        v.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
     }
 
     private static native void initAssetManager(AssetManager mgr);
