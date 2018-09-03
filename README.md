@@ -18,7 +18,7 @@ Assuming that the Vulkan SDK is already downloaded and properly set up on your t
 
 Building on Android
 -----
-Disclaimer: there are no plans to introduce Android-specific controls in the application, since its purpose is solely to demonstrate how to pull off a Vulkan rendered that works on desktop and on mobile. For clarity, the Android code makes use of SDL2 which is a terrible idea and something you should NOT follow in your own applications - the proper way is to make direct use of the native APIs for minimum overhead.
+Disclaimer: there are no plans to introduce Android-specific controls in the application, since its purpose is solely to demonstrate how to pull off a Vulkan renderer that works on desktop and on mobile. For clarity, the Android code makes use of SDL2 in the same way as desktop version - this is a terrible idea and something you should NOT do in your own applications. The proper way is to make direct use of the native APIs for minimum overhead.
 
 Requirements:
 - [Android Studio 3.0](https://developer.android.com/studio) or higher with CMake and Android SDK installed
