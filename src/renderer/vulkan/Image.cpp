@@ -122,7 +122,9 @@ namespace vk
         samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.anisotropyEnable = (texture->magFilter == texture->minFilter) && texture->minFilter == VK_FILTER_NEAREST ? VK_FALSE : VK_TRUE;
-        samplerInfo.maxAnisotropy = 16;
+        if (device.properties.limits.maxSamplerAnisotropy == 1.f)
+            samplerInfo.anisotropyEnable = VK_FALSE;
+        samplerInfo.maxAnisotropy = device.properties.limits.maxSamplerAnisotropy;
         samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
         samplerInfo.unnormalizedCoordinates = VK_FALSE;
         samplerInfo.compareEnable = VK_FALSE;
