@@ -32,7 +32,12 @@ namespace vk
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pEngineName = "custom";
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+// Android is limited to Vulkan 1.0 so far
+#ifdef __ANDROID__
+        appInfo.apiVersion = VK_API_VERSION_1_0;
+#else
         appInfo.apiVersion = VK_API_VERSION_1_1;
+#endif
 
         unsigned int extCount = 0;
         // get count of required extensions
@@ -59,13 +64,13 @@ namespace vk
         createInfo.ppEnabledExtensionNames = enabledExtensions.data();
 
 #ifdef VALIDATION_LAYERS_ON
-        if (!validationLayersAvailable(validationLayers, 1))
+        if (!validationLayersAvailable(validationLayers, validationLayerCount))
         {
             LOG_MESSAGE_ASSERT(false, "Validation layers not available!");
             return VK_RESULT_MAX_ENUM;
         }
 
-        createInfo.enabledLayerCount = 1;
+        createInfo.enabledLayerCount = validationLayerCount;
         createInfo.ppEnabledLayerNames = validationLayers;
 #else
         createInfo.enabledLayerCount = 0;
@@ -105,6 +110,29 @@ namespace vk
     void destroyAllocator(VmaAllocator &allocator)
     {
         vmaDestroyAllocator(allocator);
+    }
+
+    VkFormat getBestDepthFormat(const Device &device)
+    {
+        VkFormat depthFormats[] = {
+            VK_FORMAT_D32_SFLOAT_S8_UINT,
+            VK_FORMAT_D32_SFLOAT,
+            VK_FORMAT_D24_UNORM_S8_UINT,
+            VK_FORMAT_D16_UNORM_S8_UINT,
+            VK_FORMAT_D16_UNORM
+        };
+
+        for (int i = 0; i < 5; ++i)
+        {
+            VkFormatProperties formatProps;
+            vkGetPhysicalDeviceFormatProperties(device.physical, depthFormats[i], &formatProps);
+
+            if (formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
+                return depthFormats[i];
+        }
+
+        LOG_MESSAGE_ASSERT(false, "No supported depth format found!");
+        return VK_FORMAT_D16_UNORM;
     }
 
 // deprecated Vulkan surface creation prior to SDL 2.0.6

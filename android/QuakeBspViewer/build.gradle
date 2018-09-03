@@ -1,0 +1,79 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "pl.kondrak.quakebspviewer"
+        minSdkVersion 24
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        externalNativeBuild {
+            cmake {
+                cFlags "-DGL_GLEXT_PROTOTYPES"
+                cppFlags "-std=c++14 -DANDROID_STL=c++_static"
+            }
+
+            ndk {
+                abiFilters 'armeabi-v7a', 'arm64-v8a'
+            }
+        }
+    }
+
+    sourceSets {
+        main {
+            assets.srcDirs = ['assets']
+            // bundle validation layer libraries straight from NDK third party directory
+            jniLibs.srcDir System.getenv('ANDROID_NDK_HOME') + "/sources/third_party/vulkan/src/build-android/jniLibs"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig debug.signingConfig
+
+            externalNativeBuild {
+                cmake {
+                    cFlags += "-DNDEBUG"
+                }
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+}
+
+task copyResources {
+    doLast {
+        copy {
+            from '../../maps'
+            into "assets/maps"
+            include 'ntkjidm2.bsp'
+        }
+
+        copy {
+            from '../../models'
+            into "assets/models"
+        }
+
+        copy {
+            from '../../textures'
+            into "assets/textures"
+        }
+
+        copy {
+            from '../../res'
+            into "assets/res"
+            include '*.spv'
+            include '*.png'
+        }
+    }
+}
+
+preBuild.dependsOn copyResources

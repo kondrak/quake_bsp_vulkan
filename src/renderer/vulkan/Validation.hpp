@@ -9,7 +9,18 @@ namespace vk
 {
 #ifdef VALIDATION_LAYERS_ON
     // requested validation layers
+#ifndef __ANDROID__
+    static const int validationLayerCount = 1;
     static const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
+#else
+    static const int validationLayerCount = 5;
+    static const char *validationLayers[] = { "VK_LAYER_GOOGLE_threading",
+                                              "VK_LAYER_LUNARG_parameter_validation",
+                                              "VK_LAYER_LUNARG_object_tracker",
+                                              "VK_LAYER_LUNARG_core_validation",
+                                              "VK_LAYER_GOOGLE_unique_objects"
+                                            };
+#endif
 #endif
 
     void createValidationLayers(const VkInstance &instance, bool useEXTDebugUtils);

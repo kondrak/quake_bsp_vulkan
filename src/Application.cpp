@@ -38,11 +38,20 @@ void Application::OnWindowMinimized(bool minimized)
 
     if (minimized)
         g_threadProcessor.Wait();
+    // recreate swapchain when Android regains focus for the app - required, since drawable surface is invalidated
+#ifdef __ANDROID__
+    else
+        g_renderContext.RecreateSwapChain();
+#endif
 }
 
 void Application::OnStart(int argc, char **argv)
 {
     Q3BspLoader loader;
+#ifdef __ANDROID__
+    // just auto-load the bundled BSP on Android
+    m_q3map = loader.Load("maps/ntkjidm2.bsp");
+#else
     // assume the parameter with a string ".bsp" is the map we want to load
     for (int i = 1; i < argc; ++i)
     {
@@ -57,6 +66,7 @@ void Application::OnStart(int argc, char **argv)
             g_threadProcessor.SpawnWorkers();
         }
     }
+#endif
 
     // print in window title how many threads are being used
     AddThreadsToTitle();

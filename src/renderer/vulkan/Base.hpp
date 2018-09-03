@@ -4,6 +4,9 @@ struct SDL_Window;
 #ifdef _WIN32
 #    define VK_USE_PLATFORM_WIN32_KHR
 #endif
+#ifdef __ANDROID__
+#    define VK_USE_PLATFORM_ANDROID_KHR
+#endif
 
 // enable validation layers in debug builds by default
 #ifndef NDEBUG
@@ -58,4 +61,5 @@ namespace vk
     // this application uses VMA for memory management
     VkResult createAllocator(const Device &device, VmaAllocator *allocator);
     void    destroyAllocator(VmaAllocator &allocator);
+    VkFormat getBestDepthFormat(const Device &device);
 }

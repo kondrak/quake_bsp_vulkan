@@ -16,6 +16,17 @@ Assuming that the Vulkan SDK is already downloaded and properly set up on your t
 - download and install SDL2 (`libsdl2-dev` 2.0.7 or higher for Linux, `SDL2.framework` 2.0.8 or higher for MacOS)
 - run the Makefile (Linux) or XCode project (MacOS) to build the application
 
+Building on Android
+-----
+Disclaimer: there are no plans to introduce Android-specific controls in the application, since its purpose is solely to demonstrate how to pull off a Vulkan renderer that works on desktop and on mobile. For clarity, the Android code makes use of SDL2 in the same way as desktop version - this is a terrible idea and something you should NOT do in your own applications. The proper way is to make direct use of the native APIs for minimum overhead.
+
+Requirements:
+- [Android Studio 3.0](https://developer.android.com/studio) or higher with CMake and Android SDK installed
+- [Android NDK r17b](https://developer.android.com/ndk/downloads) or higher with `ANDROID_NDK_HOME` environment variable set and pointing to its location
+- download and extract [SDL 2.0.8](http://libsdl.org/release/SDL2-2.0.8.zip) source code (NOT runtime libraries!) into `contrib` folder
+
+Enter the `android` folder and run `./gradlew assembleDebug` for debug build (with validation layers enabled by default) or `./gradlew assembleRelease` for release build. Since this application uses the default Vulkan headers and libraries bundled with the NDK, no further steps are required. However, this also limits the application to be run on devices with Android 7.0 or higher.
+
 Usage
 -----
 Running the viewer:
