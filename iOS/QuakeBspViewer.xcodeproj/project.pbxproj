@@ -37,10 +37,35 @@
 		E20EDB7620FE35DF00AA234A /* Q3BspPatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB6F20FE35DF00AA234A /* Q3BspPatch.cpp */; };
 		E20EDB7B20FE362200AA234A /* Frustum.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB7920FE362200AA234A /* Frustum.cpp */; };
 		E20EDB7C20FE362200AA234A /* StringHelpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB7A20FE362200AA234A /* StringHelpers.cpp */; };
-		E289308320FDD1D200074D1A /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E289308220FDD1D200074D1A /* SDL2.framework */; };
-		E2AD3E9420FDD41200EAB4BB /* SDL2.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = E289308220FDD1D200074D1A /* SDL2.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E25C358F213EC6BD0021EEAC /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E25C3586213EC3370021EEAC /* libSDL2.a */; };
+		E25C3597213EC74A0021EEAC /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E25C3596213EC74A0021EEAC /* UIKit.framework */; };
+		E25C359B213EC7DB0021EEAC /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E25C359A213EC7DB0021EEAC /* QuartzCore.framework */; };
+		E25C359D213EC8190021EEAC /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E25C359C213EC8190021EEAC /* OpenGLES.framework */; };
+		E25C359F213EC8360021EEAC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E25C359E213EC8360021EEAC /* Foundation.framework */; };
+		E25C35A1213EC84C0021EEAC /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E25C35A0213EC84C0021EEAC /* CoreMotion.framework */; };
+		E25C35A3213EC8600021EEAC /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E25C35A2213EC8600021EEAC /* GameController.framework */; };
+		E25C35A4213EC8970021EEAC /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E25C3590213EC6E00021EEAC /* AVFoundation.framework */; };
+		E25C35A6213EC8AB0021EEAC /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E25C35A5213EC8AB0021EEAC /* AudioToolbox.framework */; };
+		E25C35A7213EC8BE0021EEAC /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E25C3598213EC7A20021EEAC /* CoreGraphics.framework */; };
 		E2FCFA2E2127086D00D84A34 /* ThreadProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2FCFA2C2127086D00D84A34 /* ThreadProcessor.cpp */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E25C3585213EC3370021EEAC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E25C357D213EC3370021EEAC /* SDL.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = FD6526630DE8FCCB002AD96B;
+			remoteInfo = "libSDL-iOS";
+		};
+		E25C3587213EC3370021EEAC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E25C357D213EC3370021EEAC /* SDL.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = FAB598141BB5C1B100BE72C5;
+			remoteInfo = "libSDL-tvOS";
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		E289307220FDCB6600074D1A /* CopyFiles */ = {
@@ -51,7 +76,6 @@
 			files = (
 				E20EDB6220FDDE8D00AA234A /* libvulkan.1.dylib in CopyFiles */,
 				E20EDB6020FDDE4900AA234A /* libvulkan.1.1.82.dylib in CopyFiles */,
-				E2AD3E9420FDD41200EAB4BB /* SDL2.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -117,8 +141,19 @@
 		E20EDB7820FE362200AA234A /* Frustum.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Frustum.hpp; path = ../src/Frustum.hpp; sourceTree = "<group>"; };
 		E20EDB7920FE362200AA234A /* Frustum.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Frustum.cpp; path = ../src/Frustum.cpp; sourceTree = "<group>"; };
 		E20EDB7A20FE362200AA234A /* StringHelpers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = StringHelpers.cpp; path = ../src/StringHelpers.cpp; sourceTree = "<group>"; };
-		E289307420FDCB6600074D1A /* QuakeBspViewer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = QuakeBspViewer; sourceTree = BUILT_PRODUCTS_DIR; };
-		E289308220FDD1D200074D1A /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
+		E25C357D213EC3370021EEAC /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = "../contrib/SDL2-2.0.8/Xcode-iOS/SDL/SDL.xcodeproj"; sourceTree = "<group>"; };
+		E25C3590213EC6E00021EEAC /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/System/Library/Frameworks/AVFoundation.framework; sourceTree = DEVELOPER_DIR; };
+		E25C3592213EC6F70021EEAC /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/System/Library/Frameworks/AVKit.framework; sourceTree = DEVELOPER_DIR; };
+		E25C3594213EC7070021EEAC /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
+		E25C3596213EC74A0021EEAC /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
+		E25C3598213EC7A20021EEAC /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/System/Library/Frameworks/CoreGraphics.framework; sourceTree = DEVELOPER_DIR; };
+		E25C359A213EC7DB0021EEAC /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/System/Library/Frameworks/QuartzCore.framework; sourceTree = DEVELOPER_DIR; };
+		E25C359C213EC8190021EEAC /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/System/Library/Frameworks/OpenGLES.framework; sourceTree = DEVELOPER_DIR; };
+		E25C359E213EC8360021EEAC /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		E25C35A0213EC84C0021EEAC /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/System/Library/Frameworks/CoreMotion.framework; sourceTree = DEVELOPER_DIR; };
+		E25C35A2213EC8600021EEAC /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/System/Library/Frameworks/GameController.framework; sourceTree = DEVELOPER_DIR; };
+		E25C35A5213EC8AB0021EEAC /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = DEVELOPER_DIR; };
+		E289307420FDCB6600074D1A /* QuakeBspViewer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = QuakeBspViewer; path = QuakeBspViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2B71EA021086C520008A53B /* Ubo.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Ubo.hpp; path = ../src/renderer/Ubo.hpp; sourceTree = "<group>"; };
 		E2FCFA2C2127086D00D84A34 /* ThreadProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ThreadProcessor.cpp; path = ../src/ThreadProcessor.cpp; sourceTree = "<group>"; };
 		E2FCFA2D2127086D00D84A34 /* ThreadProcessor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ThreadProcessor.hpp; path = ../src/ThreadProcessor.hpp; sourceTree = "<group>"; };
@@ -129,9 +164,18 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E25C35A7213EC8BE0021EEAC /* CoreGraphics.framework in Frameworks */,
+				E25C35A6213EC8AB0021EEAC /* AudioToolbox.framework in Frameworks */,
+				E25C35A4213EC8970021EEAC /* AVFoundation.framework in Frameworks */,
+				E25C35A3213EC8600021EEAC /* GameController.framework in Frameworks */,
+				E25C35A1213EC84C0021EEAC /* CoreMotion.framework in Frameworks */,
+				E25C359F213EC8360021EEAC /* Foundation.framework in Frameworks */,
+				E25C359D213EC8190021EEAC /* OpenGLES.framework in Frameworks */,
+				E25C359B213EC7DB0021EEAC /* QuartzCore.framework in Frameworks */,
+				E25C3597213EC74A0021EEAC /* UIKit.framework in Frameworks */,
+				E25C358F213EC6BD0021EEAC /* libSDL2.a in Frameworks */,
 				E20EDB5E20FDDDB900AA234A /* libvulkan.1.dylib in Frameworks */,
 				E20EDB5C20FDDD3E00AA234A /* libvulkan.1.1.82.dylib in Frameworks */,
-				E289308320FDD1D200074D1A /* SDL2.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,6 +254,7 @@
 		E20EDB4F20FDD6B100AA234A /* contrib */ = {
 			isa = PBXGroup;
 			children = (
+				E25C357D213EC3370021EEAC /* SDL.xcodeproj */,
 				E20EDB5020FDD6C700AA234A /* stb_image */,
 			);
 			name = contrib;
@@ -250,6 +295,15 @@
 			name = q3bsp;
 			sourceTree = "<group>";
 		};
+		E25C357E213EC3370021EEAC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E25C3586213EC3370021EEAC /* libSDL2.a */,
+				E25C3588213EC3370021EEAC /* libSDL2.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		E289306B20FDCB6600074D1A = {
 			isa = PBXGroup;
 			children = (
@@ -273,9 +327,19 @@
 		E289307E20FDD10200074D1A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				E25C35A5213EC8AB0021EEAC /* AudioToolbox.framework */,
+				E25C35A2213EC8600021EEAC /* GameController.framework */,
+				E25C35A0213EC84C0021EEAC /* CoreMotion.framework */,
+				E25C359E213EC8360021EEAC /* Foundation.framework */,
+				E25C359C213EC8190021EEAC /* OpenGLES.framework */,
+				E25C359A213EC7DB0021EEAC /* QuartzCore.framework */,
+				E25C3598213EC7A20021EEAC /* CoreGraphics.framework */,
+				E25C3596213EC74A0021EEAC /* UIKit.framework */,
+				E25C3594213EC7070021EEAC /* JavaScriptCore.framework */,
+				E25C3592213EC6F70021EEAC /* AVKit.framework */,
+				E25C3590213EC6E00021EEAC /* AVFoundation.framework */,
 				E20EDB5D20FDDDB900AA234A /* libvulkan.1.dylib */,
 				E20EDB5B20FDDD3E00AA234A /* libvulkan.1.1.82.dylib */,
-				E289308220FDD1D200074D1A /* SDL2.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -298,7 +362,7 @@
 			name = QuakeBspViewer;
 			productName = QuakeBspViewer;
 			productReference = E289307420FDCB6600074D1A /* QuakeBspViewer */;
-			productType = "com.apple.product-type.tool";
+			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
@@ -325,12 +389,35 @@
 			mainGroup = E289306B20FDCB6600074D1A;
 			productRefGroup = E289307520FDCB6600074D1A /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = E25C357E213EC3370021EEAC /* Products */;
+					ProjectRef = E25C357D213EC3370021EEAC /* SDL.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				E289307320FDCB6600074D1A /* QuakeBspViewer */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		E25C3586213EC3370021EEAC /* libSDL2.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSDL2.a;
+			remoteRef = E25C3585213EC3370021EEAC /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		E25C3588213EC3370021EEAC /* libSDL2.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSDL2.a;
+			remoteRef = E25C3587213EC3370021EEAC /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
 		E289307020FDCB6600074D1A /* Sources */ = {
@@ -487,14 +574,16 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(VULKAN_SDK)/macOS/include",
-					/Library/Frameworks/SDL2.framework/Headers,
+					"../contrib/SDL2-2.0.8/include",
 					../contrib,
 					../src,
 				);
 				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
 				OTHER_CFLAGS = "-D_DEBUG";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				VALID_ARCHS = x86_64;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Debug;
 		};
@@ -508,14 +597,16 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(VULKAN_SDK)/macOS/include",
-					/Library/Frameworks/SDL2.framework/Headers,
+					"../contrib/SDL2-2.0.8/include",
 					../contrib,
 					../src,
 				);
 				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
 				OTHER_CFLAGS = "-DNDEBUG";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				VALID_ARCHS = x86_64;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Release;
 		};
