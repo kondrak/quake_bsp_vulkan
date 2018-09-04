@@ -1,5 +1,8 @@
 #include "renderer/TextureManager.hpp"
 #include "Utils.hpp"
+#ifdef __APPLE__
+#include "apple/AppleUtils.hpp"
+#endif
 
 TextureManager* TextureManager::GetInstance()
 {
@@ -28,8 +31,11 @@ GameTexture *TextureManager::LoadTexture(const char *textureName, bool filtering
     if (m_textures.count(textureName) == 0)
     {
         LOG_MESSAGE("[TextureManager] Loading texture: " << textureName);
+#ifdef TARGET_OS_IPHONE
+        GameTexture *newTex = new GameTexture((getResourcePath() + textureName).c_str());
+#else
         GameTexture *newTex = new GameTexture(textureName);
-
+#endif
         // failed to load texture/file doesn't exist
         if (!newTex->Load(filtering))
         {

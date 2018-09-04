@@ -2,6 +2,9 @@
 #include "Application.hpp"
 #include "StringHelpers.hpp"
 #include "ThreadProcessor.hpp"
+#ifdef __APPLE__
+#include "apple/AppleUtils.hpp"
+#endif
 #include "renderer/CameraDirector.hpp"
 #include "renderer/RenderContext.hpp"
 #include "q3bsp/Q3BspLoader.hpp"
@@ -48,9 +51,11 @@ void Application::OnWindowMinimized(bool minimized)
 void Application::OnStart(int argc, char **argv)
 {
     Q3BspLoader loader;
-#ifdef __ANDROID__
-    // just auto-load the bundled BSP on Android
+    // just auto-load the bundled BSP on Android and iOS
+#if defined(__ANDROID__)
     m_q3map = loader.Load("maps/ntkjidm2.bsp");
+#elif defined(TARGET_OS_IPHONE)
+    m_q3map = loader.Load((getResourcePath() + "maps/ntkjidm2.bsp").c_str());
 #else
     // assume the parameter with a string ".bsp" is the map we want to load
     for (int i = 1; i < argc; ++i)
