@@ -45,6 +45,7 @@
 		E25C35A7213EC8BE0021EEAC /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E25C3598213EC7A20021EEAC /* CoreGraphics.framework */; };
 		E2A5790B213EE4230071A6FF /* MoltenVK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2A5790A213EE4230071A6FF /* MoltenVK.framework */; };
 		E2A57913213EE46B0071A6FF /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = E2A5790D213EE46B0071A6FF /* libc++.tbd */; };
+		E2A57915213EEA5D0071A6FF /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2A57914213EEA5D0071A6FF /* Metal.framework */; };
 		E2FCFA2E2127086D00D84A34 /* ThreadProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2FCFA2C2127086D00D84A34 /* ThreadProcessor.cpp */; };
 /* End PBXBuildFile section */
 
@@ -149,6 +150,7 @@
 		E2A578F3213ED2200071A6FF /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = SOURCE_ROOT; };
 		E2A5790A213EE4230071A6FF /* MoltenVK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MoltenVK.framework; path = ../../VulkanSDK/1.1.82.0/MoltenVK/iOS/MoltenVK.framework; sourceTree = "<group>"; };
 		E2A5790D213EE46B0071A6FF /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/usr/lib/libc++.tbd"; sourceTree = DEVELOPER_DIR; };
+		E2A57914213EEA5D0071A6FF /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
 		E2B71EA021086C520008A53B /* Ubo.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Ubo.hpp; path = ../src/renderer/Ubo.hpp; sourceTree = "<group>"; };
 		E2FCFA2C2127086D00D84A34 /* ThreadProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ThreadProcessor.cpp; path = ../src/ThreadProcessor.cpp; sourceTree = "<group>"; };
 		E2FCFA2D2127086D00D84A34 /* ThreadProcessor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ThreadProcessor.hpp; path = ../src/ThreadProcessor.hpp; sourceTree = "<group>"; };
@@ -159,7 +161,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E2A57913213EE46B0071A6FF /* libc++.tbd in Frameworks */,
+				E2A57915213EEA5D0071A6FF /* Metal.framework in Frameworks */,
 				E2A5790B213EE4230071A6FF /* MoltenVK.framework in Frameworks */,
 				E25C35A7213EC8BE0021EEAC /* CoreGraphics.framework in Frameworks */,
 				E25C35A6213EC8AB0021EEAC /* AudioToolbox.framework in Frameworks */,
@@ -170,6 +172,7 @@
 				E25C359D213EC8190021EEAC /* OpenGLES.framework in Frameworks */,
 				E25C359B213EC7DB0021EEAC /* QuartzCore.framework in Frameworks */,
 				E25C3597213EC74A0021EEAC /* UIKit.framework in Frameworks */,
+				E2A57913213EE46B0071A6FF /* libc++.tbd in Frameworks */,
 				E25C358F213EC6BD0021EEAC /* libSDL2.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -322,6 +325,7 @@
 			isa = PBXGroup;
 			children = (
 				E2A5790D213EE46B0071A6FF /* libc++.tbd */,
+				E2A57914213EEA5D0071A6FF /* Metal.framework */,
 				E2A5790A213EE4230071A6FF /* MoltenVK.framework */,
 				E25C35A5213EC8AB0021EEAC /* AudioToolbox.framework */,
 				E25C35A2213EC8600021EEAC /* GameController.framework */,
@@ -586,6 +590,7 @@
 				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
 				OTHER_CFLAGS = "-D_DEBUG";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				VALID_ARCHS = arm64;
@@ -612,6 +617,7 @@
 				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
 				OTHER_CFLAGS = "-DNDEBUG";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				VALID_ARCHS = arm64;
