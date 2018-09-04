@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "E289307320FDCB6600074D1A"
-               BuildableName = "QuakeBspViewer"
+               BuildableName = "QuakeBspViewer.app"
                BlueprintName = "QuakeBspViewer"
                ReferencedContainer = "container:QuakeBspViewer.xcodeproj">
             </BuildableReference>
@@ -34,7 +34,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E289307320FDCB6600074D1A"
-            BuildableName = "QuakeBspViewer"
+            BuildableName = "QuakeBspViewer.app"
             BlueprintName = "QuakeBspViewer"
             ReferencedContainer = "container:QuakeBspViewer.xcodeproj">
          </BuildableReference>
@@ -58,7 +58,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E289307320FDCB6600074D1A"
-            BuildableName = "QuakeBspViewer"
+            BuildableName = "QuakeBspViewer.app"
             BlueprintName = "QuakeBspViewer"
             ReferencedContainer = "container:QuakeBspViewer.xcodeproj">
          </BuildableReference>
@@ -95,7 +95,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E289307320FDCB6600074D1A"
-            BuildableName = "QuakeBspViewer"
+            BuildableName = "QuakeBspViewer.app"
             BlueprintName = "QuakeBspViewer"
             ReferencedContainer = "container:QuakeBspViewer.xcodeproj">
          </BuildableReference>
