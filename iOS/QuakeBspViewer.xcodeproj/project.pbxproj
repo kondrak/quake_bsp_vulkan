@@ -154,6 +154,7 @@
 		E25C35A2213EC8600021EEAC /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/System/Library/Frameworks/GameController.framework; sourceTree = DEVELOPER_DIR; };
 		E25C35A5213EC8AB0021EEAC /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = DEVELOPER_DIR; };
 		E289307420FDCB6600074D1A /* QuakeBspViewer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = QuakeBspViewer; path = QuakeBspViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2A578F3213ED2200071A6FF /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = SOURCE_ROOT; };
 		E2B71EA021086C520008A53B /* Ubo.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Ubo.hpp; path = ../src/renderer/Ubo.hpp; sourceTree = "<group>"; };
 		E2FCFA2C2127086D00D84A34 /* ThreadProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ThreadProcessor.cpp; path = ../src/ThreadProcessor.cpp; sourceTree = "<group>"; };
 		E2FCFA2D2127086D00D84A34 /* ThreadProcessor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ThreadProcessor.hpp; path = ../src/ThreadProcessor.hpp; sourceTree = "<group>"; };
@@ -312,6 +313,7 @@
 				E20EDB4F20FDD6B100AA234A /* contrib */,
 				E20EDB1020FDD64700AA234A /* src */,
 				E289307520FDCB6600074D1A /* Products */,
+				E2A578ED213ED1FB0071A6FF /* Resources */,
 				E289307E20FDD10200074D1A /* Frameworks */,
 			);
 			sourceTree = "<group>";
@@ -342,6 +344,14 @@
 				E20EDB5B20FDDD3E00AA234A /* libvulkan.1.1.82.dylib */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E2A578ED213ED1FB0071A6FF /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				E2A578F3213ED2200071A6FF /* Info.plist */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -578,6 +588,7 @@
 					../contrib,
 					../src,
 				);
+				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
 				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
 				OTHER_CFLAGS = "-D_DEBUG";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -601,6 +612,7 @@
 					../contrib,
 					../src,
 				);
+				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
 				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
 				OTHER_CFLAGS = "-DNDEBUG";
 				PRODUCT_NAME = "$(TARGET_NAME)";
