@@ -46,6 +46,7 @@
 		E2A5790B213EE4230071A6FF /* MoltenVK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2A5790A213EE4230071A6FF /* MoltenVK.framework */; };
 		E2A57913213EE46B0071A6FF /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = E2A5790D213EE46B0071A6FF /* libc++.tbd */; };
 		E2A57915213EEA5D0071A6FF /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2A57914213EEA5D0071A6FF /* Metal.framework */; };
+		E2A57923213FBD030071A6FF /* AppleUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = E2A57921213FBD030071A6FF /* AppleUtils.mm */; };
 		E2FCFA2E2127086D00D84A34 /* ThreadProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2FCFA2C2127086D00D84A34 /* ThreadProcessor.cpp */; };
 /* End PBXBuildFile section */
 
@@ -151,6 +152,8 @@
 		E2A5790A213EE4230071A6FF /* MoltenVK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MoltenVK.framework; path = ../../VulkanSDK/1.1.82.0/MoltenVK/iOS/MoltenVK.framework; sourceTree = "<group>"; };
 		E2A5790D213EE46B0071A6FF /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/usr/lib/libc++.tbd"; sourceTree = DEVELOPER_DIR; };
 		E2A57914213EEA5D0071A6FF /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.0.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
+		E2A57921213FBD030071A6FF /* AppleUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppleUtils.mm; path = ../src/apple/AppleUtils.mm; sourceTree = "<group>"; };
+		E2A57922213FBD030071A6FF /* AppleUtils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = AppleUtils.hpp; path = ../src/apple/AppleUtils.hpp; sourceTree = "<group>"; };
 		E2B71EA021086C520008A53B /* Ubo.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Ubo.hpp; path = ../src/renderer/Ubo.hpp; sourceTree = "<group>"; };
 		E2FCFA2C2127086D00D84A34 /* ThreadProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ThreadProcessor.cpp; path = ../src/ThreadProcessor.cpp; sourceTree = "<group>"; };
 		E2FCFA2D2127086D00D84A34 /* ThreadProcessor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ThreadProcessor.hpp; path = ../src/ThreadProcessor.hpp; sourceTree = "<group>"; };
@@ -183,6 +186,7 @@
 		E20EDB1020FDD64700AA234A /* src */ = {
 			isa = PBXGroup;
 			children = (
+				E2A5791B213FBCEB0071A6FF /* apple */,
 				E20EDB6520FE359D00AA234A /* common */,
 				E20EDB6820FE35CB00AA234A /* q3bsp */,
 				E20EDB2320FDD68100AA234A /* renderer */,
@@ -350,6 +354,15 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		E2A5791B213FBCEB0071A6FF /* apple */ = {
+			isa = PBXGroup;
+			children = (
+				E2A57922213FBD030071A6FF /* AppleUtils.hpp */,
+				E2A57921213FBD030071A6FF /* AppleUtils.mm */,
+			);
+			name = apple;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -442,6 +455,7 @@
 				E20EDB3320FDD69800AA234A /* RenderContext.cpp in Sources */,
 				E20EDB4720FDD6AB00AA234A /* Validation.cpp in Sources */,
 				E20EDB4E20FDD6AB00AA234A /* Image.cpp in Sources */,
+				E2A57923213FBD030071A6FF /* AppleUtils.mm in Sources */,
 				E20EDB4820FDD6AB00AA234A /* Device.cpp in Sources */,
 				E20EDB3120FDD69800AA234A /* Camera.cpp in Sources */,
 				E20EDB7C20FE362200AA234A /* StringHelpers.cpp in Sources */,
@@ -573,6 +587,7 @@
 		E289307C20FDCB6600074D1A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -586,6 +601,7 @@
 					../src,
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
 				OTHER_CFLAGS = "-D_DEBUG";
@@ -600,6 +616,7 @@
 		E289307D20FDCB6600074D1A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -613,6 +630,7 @@
 					../src,
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
 				OTHER_CFLAGS = "-DNDEBUG";
