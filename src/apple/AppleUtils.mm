@@ -1,4 +1,5 @@
-#include <Foundation/NSBundle.h>
+#include "apple/AppleUtils.hpp"
+#import <Foundation/NSBundle.h>
 
 std::string getResourcePath()
 {
