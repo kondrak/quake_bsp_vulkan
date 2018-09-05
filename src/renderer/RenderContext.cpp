@@ -28,7 +28,12 @@ static VkSampleCountFlagBits getMaxUsableSampleCount(const VkPhysicalDevicePrope
 // initialize Vulkan render context
 bool RenderContext::Init(const char *title, int x, int y, int w, int h)
 {
-    window = SDL_CreateWindow(title, x, y, w, h, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN);
+    uint32_t windowFlags = SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI;
+    // SDL overrides status bar visibility on iOS in Info.plist unless SDL_WINDOW_FULLSCREEN is explicitly passed as a flag.
+#if TARGET_OS_IPHONE
+    windowFlags |= SDL_WINDOW_FULLSCREEN;
+#endif
+    window = SDL_CreateWindow(title, x, y, w, h, windowFlags);
     m_windowTitle = title;
 #if TARGET_OS_IPHONE
     // SDL_Vulkan_GetDrawableSize() is broken on iOS
