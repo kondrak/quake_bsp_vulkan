@@ -1,7 +1,5 @@
 #include "renderer/vulkan/Base.hpp"
 #include "renderer/vulkan/Validation.hpp"
-#include "Utils.hpp"
-#include <SDL_vulkan.h>
 #include <vector>
 
 namespace vk

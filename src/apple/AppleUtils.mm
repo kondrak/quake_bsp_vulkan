@@ -3,5 +3,5 @@
 
 std::string getResourcePath()
 {
-    return [[NSBundle mainBundle] resourcePath].UTF8String;
+    return [[[NSBundle mainBundle] resourcePath] stringByAppendingString:@"/"].UTF8String;
 }
