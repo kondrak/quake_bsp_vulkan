@@ -49,6 +49,8 @@
 		E2A57923213FBD030071A6FF /* AppleUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = E2A57921213FBD030071A6FF /* AppleUtils.mm */; };
 		E2A57933213FC42D0071A6FF /* maps in CopyFiles */ = {isa = PBXBuildFile; fileRef = E2A5792C213FC1A80071A6FF /* maps */; };
 		E2A57934213FC42D0071A6FF /* res in CopyFiles */ = {isa = PBXBuildFile; fileRef = E2A5792B213FC1520071A6FF /* res */; };
+		E2A57943213FC7880071A6FF /* models in CopyFiles */ = {isa = PBXBuildFile; fileRef = E2A57942213FC77C0071A6FF /* models */; };
+		E2A57944213FC7880071A6FF /* textures in CopyFiles */ = {isa = PBXBuildFile; fileRef = E2A5793C213FC7760071A6FF /* textures */; };
 		E2FCFA2E2127086D00D84A34 /* ThreadProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2FCFA2C2127086D00D84A34 /* ThreadProcessor.cpp */; };
 /* End PBXBuildFile section */
 
@@ -76,6 +78,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 7;
 			files = (
+				E2A57943213FC7880071A6FF /* models in CopyFiles */,
+				E2A57944213FC7880071A6FF /* textures in CopyFiles */,
 				E2A57933213FC42D0071A6FF /* maps in CopyFiles */,
 				E2A57934213FC42D0071A6FF /* res in CopyFiles */,
 			);
@@ -160,6 +164,8 @@
 		E2A57922213FBD030071A6FF /* AppleUtils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = AppleUtils.hpp; path = ../src/apple/AppleUtils.hpp; sourceTree = "<group>"; };
 		E2A5792B213FC1520071A6FF /* res */ = {isa = PBXFileReference; lastKnownFileType = folder; name = res; path = ../res; sourceTree = "<group>"; };
 		E2A5792C213FC1A80071A6FF /* maps */ = {isa = PBXFileReference; lastKnownFileType = folder; name = maps; path = ../maps; sourceTree = "<group>"; };
+		E2A5793C213FC7760071A6FF /* textures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = textures; path = ../textures; sourceTree = "<group>"; };
+		E2A57942213FC77C0071A6FF /* models */ = {isa = PBXFileReference; lastKnownFileType = folder; name = models; path = ../models; sourceTree = "<group>"; };
 		E2B71EA021086C520008A53B /* Ubo.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Ubo.hpp; path = ../src/renderer/Ubo.hpp; sourceTree = "<group>"; };
 		E2FCFA2C2127086D00D84A34 /* ThreadProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ThreadProcessor.cpp; path = ../src/ThreadProcessor.cpp; sourceTree = "<group>"; };
 		E2FCFA2D2127086D00D84A34 /* ThreadProcessor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ThreadProcessor.hpp; path = ../src/ThreadProcessor.hpp; sourceTree = "<group>"; };
@@ -355,6 +361,8 @@
 		E2A578ED213ED1FB0071A6FF /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				E2A57942213FC77C0071A6FF /* models */,
+				E2A5793C213FC7760071A6FF /* textures */,
 				E2A5792C213FC1A80071A6FF /* maps */,
 				E2A5792B213FC1520071A6FF /* res */,
 				E2A578F3213ED2200071A6FF /* Info.plist */,
