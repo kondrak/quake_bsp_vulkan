@@ -56,6 +56,7 @@
 		E2A57968213FD32E0071A6FF /* Default-812@3x.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = E2A57962213FD2B90071A6FF /* Default-812@3x.png */; };
 		E2A57969213FD32E0071A6FF /* Default-Landscape-1366@2x.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = E2A57963213FD2B90071A6FF /* Default-Landscape-1366@2x.png */; };
 		E2A5796A213FD32E0071A6FF /* Default-Landscape@2x~ipad.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = E2A57961213FD2B90071A6FF /* Default-Landscape@2x~ipad.png */; };
+		E2A57990213FF2590071A6FF /* Icon.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = E2A5798A213FF23D0071A6FF /* Icon.png */; };
 		E2FCFA2E2127086D00D84A34 /* ThreadProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2FCFA2C2127086D00D84A34 /* ThreadProcessor.cpp */; };
 /* End PBXBuildFile section */
 
@@ -83,6 +84,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 7;
 			files = (
+				E2A57990213FF2590071A6FF /* Icon.png in CopyFiles */,
 				E2A57966213FD32E0071A6FF /* Default-568h@2x.png in CopyFiles */,
 				E2A57967213FD32E0071A6FF /* Default-736h@3x.png in CopyFiles */,
 				E2A57968213FD32E0071A6FF /* Default-812@3x.png in CopyFiles */,
@@ -181,6 +183,7 @@
 		E2A57963213FD2B90071A6FF /* Default-Landscape-1366@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape-1366@2x.png"; sourceTree = "<group>"; };
 		E2A57964213FD2B90071A6FF /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		E2A57965213FD2B90071A6FF /* Default-736h@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-736h@3x.png"; sourceTree = "<group>"; };
+		E2A5798A213FF23D0071A6FF /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 		E2B71EA021086C520008A53B /* Ubo.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Ubo.hpp; path = ../src/renderer/Ubo.hpp; sourceTree = "<group>"; };
 		E2FCFA2C2127086D00D84A34 /* ThreadProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ThreadProcessor.cpp; path = ../src/ThreadProcessor.cpp; sourceTree = "<group>"; };
 		E2FCFA2D2127086D00D84A34 /* ThreadProcessor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ThreadProcessor.hpp; path = ../src/ThreadProcessor.hpp; sourceTree = "<group>"; };
@@ -376,6 +379,7 @@
 		E2A578ED213ED1FB0071A6FF /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				E2A5798A213FF23D0071A6FF /* Icon.png */,
 				E2A57964213FD2B90071A6FF /* Default-568h@2x.png */,
 				E2A57965213FD2B90071A6FF /* Default-736h@3x.png */,
 				E2A57962213FD2B90071A6FF /* Default-812@3x.png */,
