@@ -38,6 +38,7 @@
 		E20EDB7B20FE362200AA234A /* Frustum.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB7920FE362200AA234A /* Frustum.cpp */; };
 		E20EDB7C20FE362200AA234A /* StringHelpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB7A20FE362200AA234A /* StringHelpers.cpp */; };
 		E289308320FDD1D200074D1A /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E289308220FDD1D200074D1A /* SDL2.framework */; };
+		E2A57982213FEBF00071A6FF /* AppleUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = E2A57980213FEBF00071A6FF /* AppleUtils.mm */; };
 		E2AD3E9420FDD41200EAB4BB /* SDL2.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = E289308220FDD1D200074D1A /* SDL2.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E2FCFA2E2127086D00D84A34 /* ThreadProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2FCFA2C2127086D00D84A34 /* ThreadProcessor.cpp */; };
 /* End PBXBuildFile section */
@@ -119,6 +120,8 @@
 		E20EDB7A20FE362200AA234A /* StringHelpers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = StringHelpers.cpp; path = ../src/StringHelpers.cpp; sourceTree = "<group>"; };
 		E289307420FDCB6600074D1A /* QuakeBspViewer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = QuakeBspViewer; sourceTree = BUILT_PRODUCTS_DIR; };
 		E289308220FDD1D200074D1A /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
+		E2A57980213FEBF00071A6FF /* AppleUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppleUtils.mm; path = ../src/apple/AppleUtils.mm; sourceTree = "<group>"; };
+		E2A57981213FEBF00071A6FF /* AppleUtils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = AppleUtils.hpp; path = ../src/apple/AppleUtils.hpp; sourceTree = "<group>"; };
 		E2B71EA021086C520008A53B /* Ubo.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Ubo.hpp; path = ../src/renderer/Ubo.hpp; sourceTree = "<group>"; };
 		E2FCFA2C2127086D00D84A34 /* ThreadProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ThreadProcessor.cpp; path = ../src/ThreadProcessor.cpp; sourceTree = "<group>"; };
 		E2FCFA2D2127086D00D84A34 /* ThreadProcessor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ThreadProcessor.hpp; path = ../src/ThreadProcessor.hpp; sourceTree = "<group>"; };
@@ -141,6 +144,7 @@
 		E20EDB1020FDD64700AA234A /* src */ = {
 			isa = PBXGroup;
 			children = (
+				E2A5797F213FEBD80071A6FF /* apple */,
 				E20EDB6520FE359D00AA234A /* common */,
 				E20EDB6820FE35CB00AA234A /* q3bsp */,
 				E20EDB2320FDD68100AA234A /* renderer */,
@@ -280,6 +284,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		E2A5797F213FEBD80071A6FF /* apple */ = {
+			isa = PBXGroup;
+			children = (
+				E2A57981213FEBF00071A6FF /* AppleUtils.hpp */,
+				E2A57980213FEBF00071A6FF /* AppleUtils.mm */,
+			);
+			name = apple;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -349,6 +362,7 @@
 				E20EDB3320FDD69800AA234A /* RenderContext.cpp in Sources */,
 				E20EDB4720FDD6AB00AA234A /* Validation.cpp in Sources */,
 				E20EDB4E20FDD6AB00AA234A /* Image.cpp in Sources */,
+				E2A57982213FEBF00071A6FF /* AppleUtils.mm in Sources */,
 				E20EDB4820FDD6AB00AA234A /* Device.cpp in Sources */,
 				E20EDB3120FDD69800AA234A /* Camera.cpp in Sources */,
 				E20EDB7C20FE362200AA234A /* StringHelpers.cpp in Sources */,
