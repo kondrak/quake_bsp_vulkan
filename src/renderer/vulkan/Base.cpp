@@ -33,7 +33,7 @@ namespace vk
         appInfo.pEngineName = "custom";
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 // Android and iOS are limited to Vulkan 1.0 at this point
-#if defined(__ANDROID__) || defined(TARGET_OS_IPHONE)
+#if defined(__ANDROID__) || TARGET_OS_IPHONE
         appInfo.apiVersion = VK_API_VERSION_1_0;
 #else
         appInfo.apiVersion = VK_API_VERSION_1_1;

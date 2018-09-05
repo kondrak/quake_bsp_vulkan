@@ -54,7 +54,7 @@ void Application::OnStart(int argc, char **argv)
     // just auto-load the bundled BSP on Android and iOS
 #if defined(__ANDROID__)
     m_q3map = loader.Load("maps/ntkjidm2.bsp");
-#elif defined(TARGET_OS_IPHONE)
+#elif TARGET_OS_IPHONE
     m_q3map = loader.Load((getResourcePath() + "/maps/ntkjidm2.bsp").c_str());
 #else
     // assume the parameter with a string ".bsp" is the map we want to load

@@ -30,7 +30,7 @@ bool RenderContext::Init(const char *title, int x, int y, int w, int h)
 {
     window = SDL_CreateWindow(title, x, y, w, h, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN);
     m_windowTitle = title;
-#ifdef __APPLE__
+#if TARGET_OS_IPHONE
     // SDL_Vulkan_GetDrawableSize() is broken on iOS
     getRetinaScreenSize(&width, &height);
 #else
@@ -202,7 +202,7 @@ Math::Vector2f RenderContext::WindowSize()
     if (surfaceCaps.currentExtent.width == std::numeric_limits<uint32_t>::max())
     {
         // fetch current window width and height from SDL, since we can't rely on WM in this case
-#ifdef __APPLE__
+#if TARGET_OS_IPHONE
         // SDL_Vulkan_GetDrawableSize() is broken on iOS
         getRetinaScreenSize(&width, &height);
 #else

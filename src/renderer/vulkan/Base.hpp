@@ -9,7 +9,7 @@ struct SDL_Window;
 #endif
 
 // enable validation layers in debug builds by default (at this point iOS has no support for it in MoltenVK at all)
-#if !defined(NDEBUG) && !defined(TARGET_OS_IPHONE)
+#if !defined(NDEBUG) && !TARGET_OS_IPHONE
 #    define VALIDATION_LAYERS_ON
 #endif
 
