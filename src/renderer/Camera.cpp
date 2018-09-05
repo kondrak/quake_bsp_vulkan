@@ -128,15 +128,25 @@ void Camera::OnMouseMove(int x, int y)
     // vector that describes mouseposition - center
     Math::Vector3f MouseDirection(0, 0, 0);
 
+    // adjust mouse movement for high dpi if it's enabled
+    int windowWidth, windowHeight;
+    SDL_GetWindowSize(g_renderContext.window, &windowWidth, &windowHeight);
+
+    float scaleX = (float)windowWidth / g_renderContext.width;
+    float scaleY = (float)windowHeight / g_renderContext.height;
+
+    int halfWidth  = g_renderContext.halfWidth * scaleX;
+    int halfHeight = g_renderContext.halfHeight * scaleY;
+
     // skip if cursor didn't move
-    if ((x == g_renderContext.halfWidth) && (y == g_renderContext.halfHeight))
+    if ((x == halfWidth) && (y == halfHeight))
         return;
 
     // keep the cursor at screen center
-    SDL_WarpMouseInWindow(g_renderContext.window, g_renderContext.halfWidth, g_renderContext.halfHeight);
+    SDL_WarpMouseInWindow(g_renderContext.window, halfWidth, halfHeight);
 
-    MouseDirection.m_x = (float)(g_renderContext.halfWidth - x) / MouseSensitivity;
-    MouseDirection.m_y = (float)(g_renderContext.halfHeight - y) / MouseSensitivity;
+    MouseDirection.m_x = (float)(halfWidth - x) / MouseSensitivity;
+    MouseDirection.m_y = (float)(halfHeight - y) / MouseSensitivity;
 
     m_rotation.m_x += MouseDirection.m_y;
     m_rotation.m_y += MouseDirection.m_x;
