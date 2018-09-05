@@ -135,8 +135,8 @@ void Camera::OnMouseMove(int x, int y)
     float scaleX = (float)windowWidth / g_renderContext.width;
     float scaleY = (float)windowHeight / g_renderContext.height;
 
-    int halfWidth  = g_renderContext.halfWidth * scaleX;
-    int halfHeight = g_renderContext.halfHeight * scaleY;
+    int halfWidth  = int(g_renderContext.halfWidth * scaleX);
+    int halfHeight = int(g_renderContext.halfHeight * scaleY);
 
     // skip if cursor didn't move
     if ((x == halfWidth) && (y == halfHeight))
