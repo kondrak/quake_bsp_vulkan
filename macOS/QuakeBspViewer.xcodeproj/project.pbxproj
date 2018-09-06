@@ -27,8 +27,6 @@
 		E20EDB4D20FDD6AB00AA234A /* Buffers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB3F20FDD6AB00AA234A /* Buffers.cpp */; };
 		E20EDB4E20FDD6AB00AA234A /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB4320FDD6AB00AA234A /* Image.cpp */; };
 		E20EDB5320FDD6D500AA234A /* stb_image.c in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB5120FDD6D500AA234A /* stb_image.c */; };
-		E20EDB5E20FDDDB900AA234A /* libvulkan.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E20EDB5D20FDDDB900AA234A /* libvulkan.1.dylib */; };
-		E20EDB6220FDDE8D00AA234A /* libvulkan.1.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = E20EDB6120FDDE8C00AA234A /* libvulkan.1.dylib */; };
 		E20EDB7320FE35DF00AA234A /* Q3BspLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB6920FE35DF00AA234A /* Q3BspLoader.cpp */; };
 		E20EDB7420FE35DF00AA234A /* Q3BspMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB6A20FE35DF00AA234A /* Q3BspMap.cpp */; };
 		E20EDB7520FE35DF00AA234A /* Q3BspStatsUI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E20EDB6E20FE35DF00AA234A /* Q3BspStatsUI.cpp */; };
@@ -38,6 +36,7 @@
 		E289308320FDD1D200074D1A /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E289308220FDD1D200074D1A /* SDL2.framework */; };
 		E2A57982213FEBF00071A6FF /* AppleUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = E2A57980213FEBF00071A6FF /* AppleUtils.mm */; };
 		E2AD3E9420FDD41200EAB4BB /* SDL2.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = E289308220FDD1D200074D1A /* SDL2.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E2E64DE32141119C00AC05CC /* libvulkan.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E2E64DE22141119C00AC05CC /* libvulkan.1.dylib */; };
 		E2FCFA2E2127086D00D84A34 /* ThreadProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2FCFA2C2127086D00D84A34 /* ThreadProcessor.cpp */; };
 /* End PBXBuildFile section */
 
@@ -48,7 +47,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				E20EDB6220FDDE8D00AA234A /* libvulkan.1.dylib in CopyFiles */,
 				E2AD3E9420FDD41200EAB4BB /* SDL2.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -95,8 +93,6 @@
 		E20EDB4620FDD6AB00AA234A /* Validation.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Validation.hpp; path = ../src/renderer/vulkan/Validation.hpp; sourceTree = "<group>"; };
 		E20EDB5120FDD6D500AA234A /* stb_image.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = stb_image.c; path = ../contrib/stb_image/stb_image.c; sourceTree = "<group>"; };
 		E20EDB5220FDD6D500AA234A /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_image.h; path = ../contrib/stb_image/stb_image.h; sourceTree = "<group>"; };
-		E20EDB5D20FDDDB900AA234A /* libvulkan.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvulkan.1.dylib; path = ../../VulkanSDK/1.1.82.1/macOS/lib/libvulkan.1.dylib; sourceTree = "<group>"; };
-		E20EDB6120FDDE8C00AA234A /* libvulkan.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvulkan.1.dylib; path = ../../VulkanSDK/1.1.82.1/macOS/lib/libvulkan.1.dylib; sourceTree = "<group>"; };
 		E20EDB6620FE35B600AA234A /* StatsUI.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = StatsUI.hpp; path = ../src/common/StatsUI.hpp; sourceTree = "<group>"; };
 		E20EDB6720FE35B600AA234A /* BspMap.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = BspMap.hpp; path = ../src/common/BspMap.hpp; sourceTree = "<group>"; };
 		E20EDB6920FE35DF00AA234A /* Q3BspLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Q3BspLoader.cpp; path = ../src/q3bsp/Q3BspLoader.cpp; sourceTree = "<group>"; };
@@ -118,6 +114,7 @@
 		E2A57980213FEBF00071A6FF /* AppleUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppleUtils.mm; path = ../src/apple/AppleUtils.mm; sourceTree = "<group>"; };
 		E2A57981213FEBF00071A6FF /* AppleUtils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = AppleUtils.hpp; path = ../src/apple/AppleUtils.hpp; sourceTree = "<group>"; };
 		E2B71EA021086C520008A53B /* Ubo.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Ubo.hpp; path = ../src/renderer/Ubo.hpp; sourceTree = "<group>"; };
+		E2E64DE22141119C00AC05CC /* libvulkan.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libvulkan.1.dylib; sourceTree = "<group>"; };
 		E2FCFA2C2127086D00D84A34 /* ThreadProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ThreadProcessor.cpp; path = ../src/ThreadProcessor.cpp; sourceTree = "<group>"; };
 		E2FCFA2D2127086D00D84A34 /* ThreadProcessor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ThreadProcessor.hpp; path = ../src/ThreadProcessor.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -127,7 +124,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E20EDB5E20FDDDB900AA234A /* libvulkan.1.dylib in Frameworks */,
+				E2E64DE32141119C00AC05CC /* libvulkan.1.dylib in Frameworks */,
 				E289308320FDD1D200074D1A /* SDL2.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -251,7 +248,6 @@
 		E289306B20FDCB6600074D1A = {
 			isa = PBXGroup;
 			children = (
-				E20EDB6120FDDE8C00AA234A /* libvulkan.1.dylib */,
 				E20EDB4F20FDD6B100AA234A /* contrib */,
 				E20EDB1020FDD64700AA234A /* src */,
 				E289307520FDCB6600074D1A /* Products */,
@@ -270,7 +266,7 @@
 		E289307E20FDD10200074D1A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				E20EDB5D20FDDDB900AA234A /* libvulkan.1.dylib */,
+				E2E64DE22141119C00AC05CC /* libvulkan.1.dylib */,
 				E289308220FDD1D200074D1A /* SDL2.framework */,
 			);
 			name = Frameworks;
@@ -295,6 +291,7 @@
 				E289307020FDCB6600074D1A /* Sources */,
 				E289307120FDCB6600074D1A /* Frameworks */,
 				E289307220FDCB6600074D1A /* CopyFiles */,
+				E2E64DE62141159900AC05CC /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -336,6 +333,22 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		E2E64DE62141159900AC05CC /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cp $VULKAN_SDK/macOS/lib/libvulkan.1.dylib ./";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		E289307020FDCB6600074D1A /* Sources */ = {
@@ -490,6 +503,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+					"$(VULKAN_SDK)/macOS/lib",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(VULKAN_SDK)/macOS/include",
@@ -511,6 +525,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+					"$(VULKAN_SDK)/macOS/lib",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(VULKAN_SDK)/macOS/include",
