@@ -1,5 +1,7 @@
 #pragma once
-struct SDL_Window;
+#include <SDL_vulkan.h>
+#include "renderer/vulkan/vk_mem_alloc.h"
+#include "Utils.hpp"
 
 #ifdef _WIN32
 #    define VK_USE_PLATFORM_WIN32_KHR
@@ -8,19 +10,15 @@ struct SDL_Window;
 #    define VK_USE_PLATFORM_ANDROID_KHR
 #endif
 
-// enable validation layers in debug builds by default
-#ifndef NDEBUG
+// enable validation layers in debug builds by default (at this point iOS has no support for it in MoltenVK at all)
+#if !defined(NDEBUG) && !TARGET_OS_IPHONE
 #    define VALIDATION_LAYERS_ON
 #endif
-
-#include <vulkan/vulkan.h>
-#include "renderer/vulkan/vk_mem_alloc.h"
 
 // fetch and call Vulkan extension function
 #define callVkF(func, inst, ...) ((PFN_##func)vkGetInstanceProcAddr(inst, #func))(inst, __VA_ARGS__)
 
 // verify if VkResult is VK_SUCCESS
-#include "Utils.hpp"
 #define VK_VERIFY(x) { \
     VkResult res = (x); \
     LOG_MESSAGE_ASSERT(res == VK_SUCCESS, "Invalid VkResult: " << res << " in " << __FILE__ << ":" << __LINE__ << "\n"); \

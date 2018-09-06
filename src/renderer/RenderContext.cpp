@@ -25,9 +25,14 @@ static VkSampleCountFlagBits getMaxUsableSampleCount(const VkPhysicalDevicePrope
 // initialize Vulkan render context
 bool RenderContext::Init(const char *title, int x, int y, int w, int h)
 {
-    window = SDL_CreateWindow(title, x, y, w, h, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
+    uint32_t windowFlags = SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI;
+    // SDL overrides status bar visibility on iOS in Info.plist unless SDL_WINDOW_FULLSCREEN is explicitly passed as a flag. This also makes the SDL_Vulkan_GetDrawableSize() function return correct results!
+#if TARGET_OS_IPHONE
+    windowFlags |= SDL_WINDOW_FULLSCREEN;
+#endif
+    window = SDL_CreateWindow(title, x, y, w, h, windowFlags);
     m_windowTitle = title;
-    SDL_GetWindowSize(window, &width, &height);
+    SDL_Vulkan_GetDrawableSize(window, &width, &height);
 
     halfWidth  = width  >> 1;
     halfHeight = height >> 1;
@@ -195,7 +200,7 @@ Math::Vector2f RenderContext::WindowSize()
     if (surfaceCaps.currentExtent.width == std::numeric_limits<uint32_t>::max())
     {
         // fetch current window width and height from SDL, since we can't rely on WM in this case
-        SDL_GetWindowSize(window, &width, &height);
+        SDL_Vulkan_GetDrawableSize(window, &width, &height);
         float w = (float)std::max(surfaceCaps.minImageExtent.width,  std::min(surfaceCaps.maxImageExtent.width,  (uint32_t)width));
         float h = (float)std::max(surfaceCaps.minImageExtent.height, std::min(surfaceCaps.maxImageExtent.height, (uint32_t)height));
         return Math::Vector2f(w, h);

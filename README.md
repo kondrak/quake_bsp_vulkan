@@ -16,16 +16,26 @@ Assuming that the Vulkan SDK is already downloaded and properly set up on your t
 - download and install SDL2 (`libsdl2-dev` 2.0.7 or higher for Linux, `SDL2.framework` 2.0.8 or higher for MacOS)
 - run the Makefile (Linux) or XCode project (MacOS) to build the application
 
-Building on Android
+MacOS uses the Vulkan loader bundled with the SDK, rather than directly linking against `MoltenVK.framework`. This is done so that validation layers are available for debugging.
+
+Building for mobile: iOS and Android
 -----
-Disclaimer: there are no plans to introduce Android-specific controls in the application, since its purpose is solely to demonstrate how to pull off a Vulkan renderer that works on desktop and on mobile. For clarity, the Android code makes use of SDL2 in the same way as desktop version - this is a terrible idea and something you should NOT do in your own applications. The proper way is to make direct use of the native APIs for minimum overhead.
+Disclaimer: there are no plans to introduce mobile-specific controls in the application, since its purpose is solely to demonstrate how to pull off a Vulkan renderer that "just works". For clarity, both Android and iOS code makes use of SDL2 in the same way as the desktop version - this is a terrible idea and something you should NOT do in your own applications. The proper way is to make direct use of the native APIs for minimum overhead.
 
 Requirements:
-- [Android Studio 3.0](https://developer.android.com/studio) or higher with CMake and Android SDK installed
-- [Android NDK r17b](https://developer.android.com/ndk/downloads) or higher with `ANDROID_NDK_HOME` environment variable set and pointing to its location
+- set the VULKAN_SDK environment variable pointing to the location of downloaded Vulkan SDK
 - download and extract [SDL 2.0.8](http://libsdl.org/release/SDL2-2.0.8.zip) source code (NOT runtime libraries!) into `contrib` folder
 
+Android:
+- [Android Studio 3.0](https://developer.android.com/studio) or higher with CMake and Android SDK installed
+- [Android NDK r17b](https://developer.android.com/ndk/downloads) or higher with `ANDROID_NDK_HOME` environment variable set and pointing to its location
+
 Enter the `android` folder and run `./gradlew assembleDebug` for debug build (with validation layers enabled by default) or `./gradlew assembleRelease` for release build. Since this application uses the default Vulkan headers and libraries bundled with the NDK, no further steps are required. However, this also limits the application to be run on devices with Android 7.0 or higher.
+
+iOS:
+- XCode 9.0 or higher, MoltenVK requires iOS 9+ to work
+
+Running the project in XCode should work out of the box. The build may fail if the `textures` and `models` folders don't exist in the repo root directory - if you want to run the app regardless, simply remove them from resources and "Copy Files" build steps. Note that iOS version does not support a dedicated Vulkan loader or validation layers - this is a Vulkan SDK limitation that may be removed in the future. Simulator builds are also not available due to lack of Metal support.
 
 Usage
 -----

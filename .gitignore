@@ -1,0 +1,12 @@
+.vs
+.DS_Store
+*~
+*.vcxproj.user
+*.dSYM
+*.xcworkspace
+xcuserdata
+iOS/*.app
+macOS/QuakeBspViewer
+macOS/*.framework
+macOS/*.dylib
+x64
