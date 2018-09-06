@@ -16,7 +16,7 @@ Assuming that the Vulkan SDK is already downloaded and properly set up on your t
 - download and install SDL2 (`libsdl2-dev` 2.0.7 or higher for Linux, `SDL2.framework` 2.0.8 or higher for MacOS)
 - run the Makefile (Linux) or XCode project (MacOS) to build the application
 
-MacOS uses the Vulkan loader bundled with the SDK, rather than linking against MoltenVK.framework. This is done so that validation layers are available for debugging.
+MacOS uses the Vulkan loader bundled with the SDK, rather than directly linking against `MoltenVK.framework`. This is done so that validation layers are available for debugging.
 
 Building for mobile: iOS and Android
 -----
@@ -35,7 +35,7 @@ Enter the `android` folder and run `./gradlew assembleDebug` for debug build (wi
 iOS:
 - XCode 9.0 or higher, MoltenVK requires iOS 9+ to work
 
-Running the project in XCode should work out of the box. The build may fail if the 'textures' and 'models' folders don't exist in the repo root directory - if you want to run the app regardless, simply remove them from resources and "Copy Files" build steps. Note that iOS version does not support a dedicated Vulkan loader or validation layers - this is a Vulkan SDK limitation that may be removed in the future. Simulator builds are also not available due to lack of Metal support.
+Running the project in XCode should work out of the box. The build may fail if the `textures` and `models` folders don't exist in the repo root directory - if you want to run the app regardless, simply remove them from resources and "Copy Files" build steps. Note that iOS version does not support a dedicated Vulkan loader or validation layers - this is a Vulkan SDK limitation that may be removed in the future. Simulator builds are also not available due to lack of Metal support.
 
 Usage
 -----
