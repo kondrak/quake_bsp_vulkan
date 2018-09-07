@@ -59,6 +59,7 @@ Performance comparison between OpenGL, Vulkan and Vulkan multithreaded versions 
 |  Vulkan   | 0.38ms (2615 FPS) | 1.01ms (983 FPS)  |
 | Vulkan MT | 0.37ms (2635 FPS) | 0.69ms (1450 FPS) |
 
+Sidenote: As the number of available threads increases, you might notice that singlethreaded Vulkan application performs sligthly better than multithreaded. This is expected, since the visible faces are divided between threads without taking into consideration the BSP leaves they belong to. This might lead to a situation where with large amount of threads the work is not evenly distributed if PVS and frustum culling are enabled. Since this is a "proof of concept" project, there are no plans to improve this behavior.
 
 Dependencies
 -------
