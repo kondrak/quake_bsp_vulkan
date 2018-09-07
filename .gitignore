@@ -2,6 +2,7 @@
 .DS_Store
 *~
 *.vcxproj.user
+*.VC.db
 *.dSYM
 *.xcworkspace
 xcuserdata
