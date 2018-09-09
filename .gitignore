@@ -4,6 +4,7 @@
 *.vcxproj.user
 *.VC.db
 *.dSYM
+*.sdf
 *.xcworkspace
 xcuserdata
 iOS/*.app
