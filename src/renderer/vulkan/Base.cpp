@@ -100,7 +100,28 @@ namespace vk
         VmaAllocatorCreateInfo allocatorInfo = {};
         allocatorInfo.physicalDevice = device.physical;
         allocatorInfo.device = device.logical;
+        // supply VMA with proper function pointers which are overriden on Android by vulkan_wrapper.h/cpp
+#ifdef __ANDROID__
+        VmaVulkanFunctions vkFunctions;
+        vkFunctions.vkAllocateMemory   = ::vkAllocateMemory;
+        vkFunctions.vkBindBufferMemory = ::vkBindBufferMemory;
+        vkFunctions.vkBindImageMemory  = ::vkBindImageMemory;
+        vkFunctions.vkCreateBuffer  = ::vkCreateBuffer;
+        vkFunctions.vkCreateImage   = ::vkCreateImage;
+        vkFunctions.vkDestroyBuffer = ::vkDestroyBuffer;
+        vkFunctions.vkDestroyImage  = ::vkDestroyImage;
+        vkFunctions.vkFreeMemory    = ::vkFreeMemory;
+        vkFunctions.vkGetBufferMemoryRequirements = ::vkGetBufferMemoryRequirements;
+        vkFunctions.vkGetBufferMemoryRequirements2KHR = nullptr; // unavailable
+        vkFunctions.vkGetImageMemoryRequirements = ::vkGetImageMemoryRequirements;
+        vkFunctions.vkGetImageMemoryRequirements2KHR = nullptr; // unavailable
+        vkFunctions.vkGetPhysicalDeviceMemoryProperties = ::vkGetPhysicalDeviceMemoryProperties;
+        vkFunctions.vkGetPhysicalDeviceProperties = ::vkGetPhysicalDeviceProperties;
+        vkFunctions.vkMapMemory   = ::vkMapMemory;
+        vkFunctions.vkUnmapMemory = ::vkUnmapMemory;
 
+        allocatorInfo.pVulkanFunctions = &vkFunctions;
+#endif
         return vmaCreateAllocator(&allocatorInfo, allocator);
     }
 

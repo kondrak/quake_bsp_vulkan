@@ -3,6 +3,9 @@
 #include "renderer/vulkan/Pipeline.hpp"
 #include "renderer/vulkan/Validation.hpp"
 #include "renderer/TextureManager.hpp"
+#ifdef __ANDROID__
+#include "android/vulkan_wrapper.h"
+#endif
 #include "Utils.hpp"
 #include <algorithm>
 
@@ -262,6 +265,13 @@ bool RenderContext::RecreateSwapChain()
 
 bool RenderContext::InitVulkan(const char *appTitle)
 {
+#ifdef __ANDROID__
+    // initialize Vulkan function pointers in vulkan_wrapper.h/cpp
+    bool vkSupported = ::InitVulkan();
+    LOG_MESSAGE_ASSERT(vkSupported, "This Android device has no Vulkan support!");
+    if (!vkSupported)
+        return false;
+#endif
     VK_VERIFY(vk::createInstance(window, &m_instance, appTitle));
     // "oldschool" way of creating a Vulkan surface in SDL prior to 2.0.6
     //VK_VERIFY(vk::createSurface(window, m_instance, &m_surface));

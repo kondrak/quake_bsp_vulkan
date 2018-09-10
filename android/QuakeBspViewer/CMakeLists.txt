@@ -68,8 +68,7 @@ add_library(SDL2 SHARED ${SDL2_SRC})
 
 target_link_libraries( # Specifies the target library.
                        main
-                       SDL2
-                       vulkan )
+                       SDL2 )
 
 target_link_libraries( # Specifies the target library.
                        SDL2

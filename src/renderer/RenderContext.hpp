@@ -8,6 +8,9 @@
 #include "renderer/vulkan/Image.hpp"
 #include "renderer/vulkan/Pipeline.hpp"
 #include <SDL.h>
+#ifdef __ANDROID__
+#include "android/vulkan_wrapper.h"
+#endif
 #include <SDL_vulkan.h>
 
 // SDL-based Vulkan setup container ("render context")

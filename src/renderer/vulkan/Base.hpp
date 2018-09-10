@@ -1,4 +1,7 @@
 #pragma once
+#ifdef __ANDROID__
+#include "android/vulkan_wrapper.h"
+#endif
 #include <SDL_vulkan.h>
 #include "renderer/vulkan/vk_mem_alloc.h"
 #include "Utils.hpp"

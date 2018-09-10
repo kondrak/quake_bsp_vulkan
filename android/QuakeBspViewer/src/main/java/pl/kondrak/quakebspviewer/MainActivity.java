@@ -10,15 +10,6 @@ public class MainActivity extends SDLActivity
     private AssetManager assetMgr;
 
     @Override
-    protected String[] getLibraries() {
-        return new String[] {
-            "SDL2",
-            "vulkan",
-            "main"
-        };
-    }
-
-    @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
