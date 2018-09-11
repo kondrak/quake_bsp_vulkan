@@ -103,23 +103,26 @@ namespace vk
         // supply VMA with proper function pointers which are overriden on Android by vulkan_wrapper.h/cpp
 #ifdef __ANDROID__
         VmaVulkanFunctions vkFunctions;
-        vkFunctions.vkAllocateMemory   = ::vkAllocateMemory;
-        vkFunctions.vkBindBufferMemory = ::vkBindBufferMemory;
-        vkFunctions.vkBindImageMemory  = ::vkBindImageMemory;
         vkFunctions.vkCreateBuffer  = ::vkCreateBuffer;
         vkFunctions.vkCreateImage   = ::vkCreateImage;
         vkFunctions.vkDestroyBuffer = ::vkDestroyBuffer;
         vkFunctions.vkDestroyImage  = ::vkDestroyImage;
         vkFunctions.vkFreeMemory    = ::vkFreeMemory;
-        vkFunctions.vkGetBufferMemoryRequirements = ::vkGetBufferMemoryRequirements;
-        vkFunctions.vkGetBufferMemoryRequirements2KHR = nullptr; // unavailable
-        vkFunctions.vkGetImageMemoryRequirements = ::vkGetImageMemoryRequirements;
-        vkFunctions.vkGetImageMemoryRequirements2KHR = nullptr; // unavailable
+        vkFunctions.vkMapMemory     = ::vkMapMemory;
+        vkFunctions.vkUnmapMemory   = ::vkUnmapMemory;
+        vkFunctions.vkAllocateMemory   = ::vkAllocateMemory;
+        vkFunctions.vkBindBufferMemory = ::vkBindBufferMemory;
+        vkFunctions.vkBindImageMemory  = ::vkBindImageMemory;
+        vkFunctions.vkFlushMappedMemoryRanges = ::vkFlushMappedMemoryRanges;
+        vkFunctions.vkInvalidateMappedMemoryRanges = ::vkInvalidateMappedMemoryRanges;
+        vkFunctions.vkGetBufferMemoryRequirements  = ::vkGetBufferMemoryRequirements;
+        vkFunctions.vkGetImageMemoryRequirements   = ::vkGetImageMemoryRequirements;
+        vkFunctions.vkGetPhysicalDeviceProperties  = ::vkGetPhysicalDeviceProperties;
         vkFunctions.vkGetPhysicalDeviceMemoryProperties = ::vkGetPhysicalDeviceMemoryProperties;
-        vkFunctions.vkGetPhysicalDeviceProperties = ::vkGetPhysicalDeviceProperties;
-        vkFunctions.vkMapMemory   = ::vkMapMemory;
-        vkFunctions.vkUnmapMemory = ::vkUnmapMemory;
-
+#if VMA_DEDICATED_ALLOCATION
+        vkFunctions.vkGetBufferMemoryRequirements2KHR   = ::vkGetBufferMemoryRequirements2KHR;
+        vkFunctions.vkGetImageMemoryRequirements2KHR    = ::vkGetImageMemoryRequirements2KHR;
+#endif
         allocatorInfo.pVulkanFunctions = &vkFunctions;
 #endif
         return vmaCreateAllocator(&allocatorInfo, allocator);
