@@ -28,7 +28,7 @@ Requirements:
 
 Android:
 - [Android Studio 3.0](https://developer.android.com/studio) or higher with CMake and Android SDK installed
-- [Android NDK](https://developer.android.com/ndk/downloads) with `ANDROID_NDK_HOME` environment variable set and pointing to its location
+- [Android NDK](https://developer.android.com/ndk/downloads) with `ANDROID_NDK_HOME` environment variable set and pointing to its location (using latest NDK is highly recommended due to better validation layer support)
 
 Enter the `android` folder and run `./gradlew assembleDebug` for debug build (with validation layers enabled by default) or `./gradlew assembleRelease` for release build. This application uses dedicated Vulkan loader code on Android instead of linking directly to dynamic library in the NDK, so it's possible to run it on Vulkan-capable hardware with API level 23 or lower.
 
