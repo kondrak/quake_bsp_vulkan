@@ -635,7 +635,7 @@
 					"$(VULKAN_SDK)/MoltenVK/iOS",
 				);
 				HEADER_SEARCH_PATHS = (
-					"$(VULKAN_SDK)/macOS/include",
+					"$(VULKAN_SDK)/MoltenVK/include",
 					"../contrib/SDL2-2.0.8/include",
 					../contrib,
 					../src,
@@ -663,7 +663,7 @@
 					"$(VULKAN_SDK)/MoltenVK/iOS",
 				);
 				HEADER_SEARCH_PATHS = (
-					"$(VULKAN_SDK)/macOS/include",
+					"$(VULKAN_SDK)/MoltenVK/include",
 					"../contrib/SDL2-2.0.8/include",
 					../contrib,
 					../src,
