@@ -25,6 +25,7 @@
 #define VK_VERIFY(x) { \
     VkResult res = (x); \
     LOG_MESSAGE_ASSERT(res == VK_SUCCESS, "Invalid VkResult: " << res << " in " << __FILE__ << ":" << __LINE__ << "\n"); \
+    (void)res; \
 }
 
 namespace vk
