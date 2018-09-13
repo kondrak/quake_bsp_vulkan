@@ -76,6 +76,11 @@
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
+            key = "VK_LOADER_DEBUG"
+            value = "all"
+            isEnabled = "NO">
+         </EnvironmentVariable>
+         <EnvironmentVariable
             key = "VK_LAYER_PATH"
             value = "$VULKAN_SDK/macOS/etc/vulkan/explicit_layer.d"
             isEnabled = "YES">
