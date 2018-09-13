@@ -357,7 +357,7 @@ void Q3BspMap::CalculateVisibleFaces(int threadIndex, int cameraLeaf)
             bool idxInRange = (idx >= threadIndex * m_facesPerThread) && (idx < (threadIndex + 1) * m_facesPerThread);
             Q3FaceRenderable *face = &m_renderFaces[idx];
 
-            if (HasRenderFlag(Q3RenderSkipMissingTex) && !m_textures[faces[idx].texture] || !idxInRange)
+            if (HasRenderFlag(Q3RenderSkipMissingTex) && (!m_textures[faces[idx].texture] || !idxInRange))
                 continue;
 
             if (face->type == FaceTypePolygon || face->type == FaceTypeMesh)

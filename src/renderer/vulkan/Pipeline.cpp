@@ -24,8 +24,7 @@ namespace vk
         smCreateInfo.codeSize = codeSize;
         smCreateInfo.pCode = shaderSrc;
 
-        VkResult result = vkCreateShaderModule(device.logical, &smCreateInfo, nullptr, &shaderModule);
-        LOG_MESSAGE_ASSERT(result == VK_SUCCESS, "Could not create shader module: " << result);
+        VK_VERIFY(vkCreateShaderModule(device.logical, &smCreateInfo, nullptr, &shaderModule));
 
         return shaderModule;
     }

@@ -149,9 +149,7 @@ VkResult RenderContext::RenderStart()
 VkResult RenderContext::Submit()
 {
     vkCmdEndRenderPass(m_commandBuffers[m_currentCmdBuffer]);
-
-    VkResult result = vkEndCommandBuffer(m_commandBuffers[m_currentCmdBuffer]);
-    LOG_MESSAGE_ASSERT(result == VK_SUCCESS, "Error recording command buffer: " << result);
+    VK_VERIFY(vkEndCommandBuffer(m_commandBuffers[m_currentCmdBuffer]));
 
     VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     VkSubmitInfo submitInfo = {};
