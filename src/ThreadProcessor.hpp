@@ -1,6 +1,8 @@
 #ifndef THREADPROCESSOR_HPP
 #define THREADPROCESSOR_HPP
 
+#include <condition_variable>
+#include <functional>
 #include <mutex>
 #include <queue>
 #include <thread>

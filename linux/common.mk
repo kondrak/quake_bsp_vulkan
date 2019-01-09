@@ -1,7 +1,7 @@
-INCLUDES = -I$(VULKAN_SDK)/x86_64/include -I../contrib -I../src
+INCLUDES = -I$(VULKAN_SDK)/include -I../contrib -I../src
 CFLAGS := $(OPTFLAGS) $(shell pkg-config --cflags sdl2)
 CXXFLAGS = $(CFLAGS) -std=c++14
-LDFLAGS = -L$(VULKAN_SDK)/x86_64/lib -lvulkan $(shell pkg-config --libs sdl2)
+LDFLAGS = -L$(VULKAN_SDK)/lib -lvulkan -lpthread $(shell pkg-config --libs sdl2)
 
 include sources.mk
 BUILDDIR = $(BUILD)/build
