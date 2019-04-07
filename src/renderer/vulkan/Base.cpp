@@ -2,6 +2,8 @@
 #include "renderer/vulkan/Validation.hpp"
 #include <vector>
 
+#define vkEnumerateInstanceVersion(instance, instanceVersion) callVkF2(vkEnumerateInstanceVersion, instance, instanceVersion)
+
 namespace vk
 {
     static bool instanceExtensionSupported(const char *extension)
@@ -24,18 +26,16 @@ namespace vk
 
     VkResult createInstance(SDL_Window *window, VkInstance *instance, const char *title)
     {
+        uint32_t instanceVersion = VK_API_VERSION_1_0;
+        vkEnumerateInstanceVersion(NULL, &instanceVersion);
+
         VkApplicationInfo appInfo = {};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         appInfo.pApplicationName = title;
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pEngineName = "custom";
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-// Android and iOS are limited to Vulkan 1.0 at this point
-#if defined(__ANDROID__) || TARGET_OS_IPHONE
-        appInfo.apiVersion = VK_API_VERSION_1_0;
-#else
-        appInfo.apiVersion = VK_API_VERSION_1_1;
-#endif
+        appInfo.apiVersion = instanceVersion;
 
         unsigned int extCount = 0;
         // get count of required extensions

@@ -21,6 +21,9 @@
 // fetch and call Vulkan extension function
 #define callVkF(func, inst, ...) ((PFN_##func)vkGetInstanceProcAddr(inst, #func))(inst, __VA_ARGS__)
 
+// fetch and call Vulkan extension function (no instance in arg list)
+#define callVkF2(func, inst, ...) ((PFN_##func)vkGetInstanceProcAddr(inst, #func))(__VA_ARGS__)
+
 // verify if VkResult is VK_SUCCESS
 #define VK_VERIFY(x) { \
     VkResult res = (x); \

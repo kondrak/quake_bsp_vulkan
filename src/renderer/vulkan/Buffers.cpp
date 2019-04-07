@@ -36,9 +36,9 @@ namespace vk
         bcInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         // separate transfer queue makes sense only if the buffer is targetted for being transfered to GPU, so ignore it if it's CPU-only
+        uint32_t queueFamilies[] = { (uint32_t)device.graphicsFamilyIndex, (uint32_t)device.transferFamilyIndex };
         if (bOpts.vmaUsage != VMA_MEMORY_USAGE_CPU_ONLY && device.graphicsFamilyIndex != device.transferFamilyIndex)
         {
-            uint32_t queueFamilies[] = { (uint32_t)device.graphicsFamilyIndex, (uint32_t)device.transferFamilyIndex };
             bcInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
             bcInfo.queueFamilyIndexCount = 2;
             bcInfo.pQueueFamilyIndices = queueFamilies;
@@ -80,7 +80,7 @@ namespace vk
 
         BufferOptions dstOpts;
         dstOpts.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-        dstOpts.memFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        dstOpts.memFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         dstOpts.vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY;
 
         VK_VERIFY(createBuffer(device, size, dstBuffer, dstOpts));
@@ -93,7 +93,7 @@ namespace vk
     {
         BufferOptions dstOpts;
         dstOpts.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-        dstOpts.memFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        dstOpts.memFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         dstOpts.vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY;
 
         VK_VERIFY(createBuffer(device, size, dstBuffer, dstOpts));
@@ -113,7 +113,7 @@ namespace vk
 
         BufferOptions dstOpts;
         dstOpts.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-        dstOpts.memFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        dstOpts.memFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         dstOpts.vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY;
 
         VK_VERIFY(createBuffer(device, size, dstBuffer, dstOpts));
@@ -126,7 +126,7 @@ namespace vk
     {
         BufferOptions dstOpts;
         dstOpts.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-        dstOpts.memFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        dstOpts.memFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         dstOpts.vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY;
 
         VK_VERIFY(createBuffer(device, size, dstBuffer, dstOpts));

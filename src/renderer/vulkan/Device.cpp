@@ -59,11 +59,15 @@ namespace vk
         getSwapPresentMode(scInfo, &swapChain->presentMode);
         getSwapExtent(scInfo, &extent, currentSize);
 
-        uint32_t imageCount = scInfo.surfaceCaps.minImageCount;
+        // request at least 2 images
+        uint32_t imageCount = std::max(2, (int)scInfo.surfaceCaps.minImageCount);
 
         // request additional image for triple buffering if using MAILBOX
         if (swapChain->presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
-            imageCount++;
+            imageCount = std::max(3, (int)scInfo.surfaceCaps.minImageCount);
+
+        if (scInfo.surfaceCaps.maxImageCount > 0)
+            imageCount = std::min(imageCount, scInfo.surfaceCaps.maxImageCount);
 
         VkSwapchainCreateInfoKHR scCreateInfo = {};
         scCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -78,9 +82,9 @@ namespace vk
         scCreateInfo.queueFamilyIndexCount = 0;
         scCreateInfo.pQueueFamilyIndices = nullptr;
 
+        uint32_t queueFamilyIndices[] = { (uint32_t)device.graphicsFamilyIndex, (uint32_t)device.presentFamilyIndex };
         if (device.presentFamilyIndex != device.graphicsFamilyIndex)
         {
-            uint32_t queueFamilyIndices[] = { (uint32_t)device.graphicsFamilyIndex, (uint32_t)device.presentFamilyIndex };
             scCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
             scCreateInfo.queueFamilyIndexCount = 2;
             scCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
@@ -228,17 +232,17 @@ namespace vk
                     VK_VERIFY(vkGetPhysicalDeviceSurfaceSupportKHR(devices[i], j, surface, &presentSupported));
 
                     // good optimization would be to find a queue where presentIdx == queueIdx for less overhead
-                    if (queueFamilies[j].queueCount > 0 && presentSupported)
+                    if (device->presentFamilyIndex < 0 && queueFamilies[j].queueCount > 0 && presentSupported)
                     {
                         device->presentFamilyIndex = j;
                     }
 
-                    if (queueFamilies[j].queueCount > 0 && queueFamilies[j].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+                    if (device->graphicsFamilyIndex < 0 && queueFamilies[j].queueCount > 0 && queueFamilies[j].queueFlags & VK_QUEUE_GRAPHICS_BIT)
                     {
                         device->graphicsFamilyIndex = j;
                     }
 
-                    if (queueFamilies[j].queueCount > 0 && !(queueFamilies[j].queueFlags & VK_QUEUE_GRAPHICS_BIT) && (queueFamilies[j].queueFlags & VK_QUEUE_TRANSFER_BIT))
+                    if (device->transferFamilyIndex < 0 && queueFamilies[j].queueCount > 0 && !(queueFamilies[j].queueFlags & VK_QUEUE_GRAPHICS_BIT) && (queueFamilies[j].queueFlags & VK_QUEUE_TRANSFER_BIT))
                     {
                         device->transferFamilyIndex = j;
                     }
@@ -283,8 +287,13 @@ namespace vk
 
                 // all requested extensions must be available
                 if (!available)
+                {
+                    delete[] extensions;
                     return false;
+                }
             }
+
+            delete[] extensions;
         }
 
         return true;
