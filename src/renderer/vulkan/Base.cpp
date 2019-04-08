@@ -27,7 +27,10 @@ namespace vk
     VkResult createInstance(SDL_Window *window, VkInstance *instance, const char *title)
     {
         uint32_t instanceVersion = VK_API_VERSION_1_0;
-        vkEnumerateInstanceVersion(NULL, &instanceVersion);
+
+        // vkEnumerateInstanceVersion does not exist on (some?) Android devices
+        if (vkGetInstanceProcAddr(NULL, "vkEnumerateInstanceVersion"))
+            vkEnumerateInstanceVersion(NULL, &instanceVersion);
 
         VkApplicationInfo appInfo = {};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
