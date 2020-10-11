@@ -2,6 +2,7 @@
 #define APPLICATION_INCLUDED
 
 #include <map>
+#include <string>
 #include "InputHandlers.hpp"
 #include "Math.hpp"
 

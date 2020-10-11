@@ -11,7 +11,7 @@ namespace vk
     // requested validation layers
 #ifndef __ANDROID__
     static const int validationLayerCount = 1;
-    static const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
+    static const char *validationLayers[] = { "VK_LAYER_KHRONOS_validation" };
 #else
     static const int validationLayerCount = 5;
     static const char *validationLayers[] = { "VK_LAYER_GOOGLE_threading",
