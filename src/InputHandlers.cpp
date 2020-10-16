@@ -136,8 +136,8 @@ void processEvents()
             if (((event.key.keysym.sym == SDLK_RETURN) || (event.key.keysym.sym == SDLK_KP_ENTER)) && (event.key.keysym.mod & KMOD_ALT))
             {
                 SDL_DisplayMode dMode;
-                bool isFullScreen = (SDL_GetWindowFlags(g_renderContext.window) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
-                SDL_SetWindowFullscreen(g_renderContext.window, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+                bool isFullScreen = (SDL_GetWindowFlags(g_renderContext.window) & SDL_WINDOW_FULLSCREEN) != 0;
+                SDL_SetWindowFullscreen(g_renderContext.window, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN);
                 SDL_GetCurrentDisplayMode(0, &dMode);
                 g_renderContext.width  = dMode.w;
                 g_renderContext.height = dMode.h;
